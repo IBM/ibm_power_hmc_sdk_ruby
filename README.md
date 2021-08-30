@@ -34,6 +34,14 @@ hc = IbmPowerHmc::Connection.new(
 
 ### Using the SDK
 
+Retrieving information about the management console itself:
+
+```ruby
+hmc = hc.management_console
+puts hmc.name
+puts hmc.version
+```
+
 Listing the logical partitions and virtual I/O servers of each managed system:
 
 ```ruby
@@ -48,6 +56,16 @@ Shutting down a logical partition:
 
 ```ruby
 hc.poweroff_lpar(lpar.uuid, { "operation" => "shutdown" })
+```
+
+Processing events:
+
+```ruby
+loop
+  hc.next_events.each do |event|
+    puts event
+  end
+end
 ```
 
 ## Development
