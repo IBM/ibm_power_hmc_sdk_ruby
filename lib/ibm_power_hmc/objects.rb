@@ -11,7 +11,8 @@ module IbmPowerHmc
     end
 
     def get_value(doc, xpath, varname)
-      value = doc.elements[xpath].text.strip
+      value = doc.elements[xpath].text
+      value = value.strip unless value.nil?
       self.class.__send__(:attr_reader, "#{varname}")
       instance_variable_set("@#{varname}", value)
     end
@@ -125,5 +126,25 @@ module IbmPowerHmc
     attr_reader :lpar_uuid
 
     # Damien: TBD
+  end
+
+  # HMC Event
+  class Event < HmcObject
+    XMLMAP = {
+      "EventID" => "id",
+      "EventType" => "type",
+      "EventData" => "data",
+      "EventDetail" => "detail",
+    }.freeze
+
+    def initialize(doc)
+      super(doc)
+      info = doc.elements["content/Event:Event"]
+      get_values(info, XMLMAP)
+    end
+
+    def to_s
+      "event id=#{@id} type=#{@type} data=#{@data} detail=#{@detail}"
+    end
   end
 end
