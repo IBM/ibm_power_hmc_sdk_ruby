@@ -130,6 +130,26 @@ module IbmPowerHmc
       job.delete
     end
 
+    # Damien: share with poweron_lpar?
+    def poweron_vios(vios_uuid, params)
+      method_url = "/rest/api/uom/VirtualIOServer/#{vios_uuid}/do/PowerOn"
+
+      job = HmcJob.new(self, method_url, "PowerOn", "VirtualIOServer", params)
+      job.start
+      job.wait
+      job.delete
+    end
+
+    # Damien: share with poweroff_lpar?
+    def poweroff_vios(vios_uuid, params)
+      method_url = "/rest/api/uom/VirtualIOServer/#{vios_uuid}/do/PowerOff"
+
+      job = HmcJob.new(self, method_url, "PowerOff", "VirtualIOServer", params)
+      job.start
+      job.wait
+      job.delete
+    end
+
     def poweron_managed_system(sys_uuid, params)
       method_url = "/rest/api/uom/ManagedSystem/#{sys_uuid}/do/PowerOn"
 
@@ -148,6 +168,25 @@ module IbmPowerHmc
       job.delete
     end
 
+    # Blocks until new events occur.
+    def next_events
+      method_url = "/rest/api/uom/Event"
+
+      events = []
+      loop do
+        response = request(:get, method_url)
+        next if response.code == 204
+
+        doc = REXML::Document.new(response.body)
+        doc.root.each_element("entry") do |entry|
+          event = Event.new(entry)
+          events += [event]
+        end
+        break
+      end
+      events
+    end
+
     def request(method, url, headers = {}, payload = nil)
       logon if @api_session_token.nil?
 
@@ -160,7 +199,12 @@ module IbmPowerHmc
         payload: payload,
         headers: headers
       )
-      # Damien: if token expires, reauth?
+      if response.code == 403
+        # Damien: if token expires, reauth?
+        @api_session_token = nil
+        logon
+        # Damien: retry TBD
+      end
       response
     end
   end
