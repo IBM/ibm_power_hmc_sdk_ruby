@@ -7,11 +7,12 @@ module IbmPowerHmc
     attr_reader :uuid
 
     def initialize(doc)
-      @uuid = doc.elements["id"].text
+      @uuid = doc.elements["id"].text.downcase
     end
 
     def get_value(doc, xpath, varname)
-      value = doc.elements[xpath].text
+      value = doc.elements[xpath]
+      value = value.text unless value.nil?
       value = value.strip unless value.nil?
       self.class.__send__(:attr_reader, "#{varname}")
       instance_variable_set("@#{varname}", value)
@@ -81,7 +82,9 @@ module IbmPowerHmc
       "PartitionState" => "state",
       "PartitionType" => "type",
       "PartitionMemoryConfiguration/CurrentMemory" => "memory",
-      "PartitionProcessorConfiguration/HasDedicatedProcessors" => "dedicated"
+      "PartitionProcessorConfiguration/HasDedicatedProcessors" => "dedicated",
+      "ResourceMonitoringControlState" => "rmc_state",
+      "ResourceMonitoringIPAddress" => "rmc_ipaddr"
     }.freeze
 
     def initialize(sys_uuid, doc)
