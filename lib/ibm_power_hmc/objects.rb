@@ -7,7 +7,7 @@ module IbmPowerHmc
     attr_reader :uuid
 
     def initialize(doc)
-      @uuid = doc.elements["id"].text.downcase
+      @uuid = doc.elements["id"].text
     end
 
     def get_value(doc, xpath, varname)
