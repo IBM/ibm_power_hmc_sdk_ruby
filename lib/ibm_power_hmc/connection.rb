@@ -112,7 +112,7 @@ module IbmPowerHmc
       profiles
     end
 
-    def poweron_lpar(lpar_uuid, params)
+    def poweron_lpar(lpar_uuid, params = {})
       method_url = "/rest/api/uom/LogicalPartition/#{lpar_uuid}/do/PowerOn"
 
       job = HmcJob.new(self, method_url, "PowerOn", "LogicalPartition", params)
@@ -121,7 +121,7 @@ module IbmPowerHmc
       job.delete
     end
 
-    def poweroff_lpar(lpar_uuid, params)
+    def poweroff_lpar(lpar_uuid, params = {})
       method_url = "/rest/api/uom/LogicalPartition/#{lpar_uuid}/do/PowerOff"
 
       job = HmcJob.new(self, method_url, "PowerOff", "LogicalPartition", params)
@@ -131,7 +131,7 @@ module IbmPowerHmc
     end
 
     # Damien: share with poweron_lpar?
-    def poweron_vios(vios_uuid, params)
+    def poweron_vios(vios_uuid, params = {})
       method_url = "/rest/api/uom/VirtualIOServer/#{vios_uuid}/do/PowerOn"
 
       job = HmcJob.new(self, method_url, "PowerOn", "VirtualIOServer", params)
@@ -141,7 +141,7 @@ module IbmPowerHmc
     end
 
     # Damien: share with poweroff_lpar?
-    def poweroff_vios(vios_uuid, params)
+    def poweroff_vios(vios_uuid, params = {})
       method_url = "/rest/api/uom/VirtualIOServer/#{vios_uuid}/do/PowerOff"
 
       job = HmcJob.new(self, method_url, "PowerOff", "VirtualIOServer", params)
@@ -150,7 +150,7 @@ module IbmPowerHmc
       job.delete
     end
 
-    def poweron_managed_system(sys_uuid, params)
+    def poweron_managed_system(sys_uuid, params = {})
       method_url = "/rest/api/uom/ManagedSystem/#{sys_uuid}/do/PowerOn"
 
       job = HmcJob.new(self, method_url, "PowerOn", "ManagedSystem", params)
@@ -159,7 +159,7 @@ module IbmPowerHmc
       job.delete
     end
 
-    def poweroff_managed_system(sys_uuid, params)
+    def poweroff_managed_system(sys_uuid, params = {})
       method_url = "/rest/api/uom/ManagedSystem/#{sys_uuid}/do/PowerOff"
 
       job = HmcJob.new(self, method_url, "PowerOff", "ManagedSystem", params)
