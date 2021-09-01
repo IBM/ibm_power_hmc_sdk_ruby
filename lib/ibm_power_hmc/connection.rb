@@ -61,22 +61,30 @@ module IbmPowerHmc
       systems
     end
 
-    def lpars(sys_uuid)
-      method_url = "/rest/api/uom/ManagedSystem/#{sys_uuid}/LogicalPartition"
+    def lpars(sys_uuid = nil)
+      if sys_uuid.nil?
+        method_url = "/rest/api/uom/LogicalPartition"
+      else
+        method_url = "/rest/api/uom/ManagedSystem/#{sys_uuid}/LogicalPartition"
+      end
       response = request(:get, method_url)
       doc = REXML::Document.new(response.body)
       lpars = []
       return lpars if doc.root.nil?
 
       doc.root.each_element("entry") do |entry|
-        lpar = LogicalPartition.new(sys_uuid, entry)
+        lpar = LogicalPartition.new(entry)
         lpars += [lpar]
       end
       lpars
     end
 
-    def vioses(sys_uuid)
-      method_url = "/rest/api/uom/ManagedSystem/#{sys_uuid}/VirtualIOServer"
+    def vioses(sys_uuid = nil)
+      if sys_uuid.nil?
+        method_url = "/rest/api/uom/VirtualIOServer"
+      else
+        method_url = "/rest/api/uom/ManagedSystem/#{sys_uuid}/VirtualIOServer"
+      end
       begin
         response = request(:get, method_url)
       rescue StandardError
@@ -87,7 +95,7 @@ module IbmPowerHmc
       return vioses if doc.root.nil?
 
       doc.root.each_element("entry") do |entry|
-        vios = VirtualIOServer.new(sys_uuid, entry)
+        vios = VirtualIOServer.new(entry)
         vioses += [vios]
       end
       vioses

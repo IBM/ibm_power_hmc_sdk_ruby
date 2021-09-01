@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require 'uri'
+
 # Module for IBM HMC Rest API Client
 module IbmPowerHmc
   # HMC generic object
@@ -87,10 +89,11 @@ module IbmPowerHmc
       "ResourceMonitoringIPAddress" => "rmc_ipaddr"
     }.freeze
 
-    def initialize(sys_uuid, doc)
+    def initialize(doc)
       super(doc)
-      @sys_uuid = sys_uuid
       info = doc.elements["content/LogicalPartition:LogicalPartition"]
+      sys_href = info.elements["AssociatedManagedSystem"].attributes["href"]
+      @sys_uuid = URI(sys_href).path.split('/').last
       get_values(info, XMLMAP)
     end
 
@@ -112,10 +115,11 @@ module IbmPowerHmc
       "PartitionProcessorConfiguration/HasDedicatedProcessors" => "dedicated"
     }.freeze
 
-    def initialize(sys_uuid, doc)
+    def initialize(doc)
       super(doc)
-      @sys_uuid = sys_uuid
       info = doc.elements["content/VirtualIOServer:VirtualIOServer"]
+      sys_href = info.elements["AssociatedManagedSystem"].attributes["href"]
+      @sys_uuid = URI(sys_href).path.split('/').last
       get_values(info, XMLMAP)
     end
 
