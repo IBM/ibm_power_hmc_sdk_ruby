@@ -52,10 +52,16 @@ hc.managed_systems.each do |sys|
 end
 ```
 
+Retrieving a quick property for a given logical partition:
+
+```ruby
+hc.lpar_quick_property(lpar_uuid, "PartitionState")
+```
+
 Shutting down a logical partition:
 
 ```ruby
-hc.poweroff_lpar(lpar.uuid, { "operation" => "shutdown" })
+hc.poweroff_lpar(lpar_uuid, { "operation" => "shutdown" })
 ```
 
 Processing events:
