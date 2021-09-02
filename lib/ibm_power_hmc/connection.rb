@@ -79,6 +79,27 @@ module IbmPowerHmc
       lpars
     end
 
+    def lpar(lpar_uuid, sys_uuid = nil, group_name = nil)
+      if sys_uuid.nil?
+        method_url = "/rest/api/uom/LogicalPartition/#{lpar_uuid}"
+      else
+        method_url = "/rest/api/uom/ManagedSystem/#{sys_uuid}/LogicalPartition/#{lpar_uuid}"
+      end
+      method_url += "?group=#{group_name}" unless group_name.nil?
+
+      response = request(:get, method_url)
+      doc = REXML::Document.new(response.body)
+      entry = doc.elements["entry"]
+      LogicalPartition.new(entry)
+    end
+
+    def lpar_quick_property(lpar_uuid, property_name)
+      method_url = "/rest/api/uom/LogicalPartition/#{lpar_uuid}/quick/#{property_name}"
+
+      response = request(:get, method_url)
+      response.body[1..-2]
+    end
+
     def vioses(sys_uuid = nil)
       if sys_uuid.nil?
         method_url = "/rest/api/uom/VirtualIOServer"
