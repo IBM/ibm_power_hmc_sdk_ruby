@@ -3,11 +3,10 @@ require_relative 'lib/ibm_power_hmc/version'
 Gem::Specification.new do |spec|
   spec.name          = "ibm_power_hmc"
   spec.version       = IbmPowerHmc::VERSION
-  spec.authors       = ["dev@ibm.com"]
-  spec.email         = ["dev@ibm.com"]
+  spec.authors       = ["IBM Power"]
 
-  spec.summary       = %q{IBM Power HMC Ruby SDK}
-  spec.description   = %q{IBM Power HMC Ruby SDK}
+  spec.summary       = %q{IBM Power HMC Ruby gem.}
+  spec.description   = %q{A Ruby gem for interacting with the IBM Hardware Management Console (HMC).}
   spec.homepage      = "http://github.com/IBM/ibm_power_hmc_sdk_ruby"
   spec.license       = "Apache-2.0"
   spec.required_ruby_version = Gem::Requirement.new(">= 2.3.0")
