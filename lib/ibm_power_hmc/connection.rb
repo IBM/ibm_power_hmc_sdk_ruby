@@ -55,6 +55,7 @@ module IbmPowerHmc
       end
       objs
     end
+    private :parse_feed
 
     def managed_systems
       method_url = "/rest/api/uom/ManagedSystem"
