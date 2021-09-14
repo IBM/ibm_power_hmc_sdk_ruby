@@ -47,18 +47,20 @@ module IbmPowerHmc
       ManagementConsole.new(entry)
     end
 
+    def parse_feed(doc, myclass)
+      objs = []
+      return objs if doc.root.nil?
+      doc.each_element("feed/entry") do |entry|
+        objs << myclass.new(entry)
+      end
+      objs
+    end
+
     def managed_systems
       method_url = "/rest/api/uom/ManagedSystem"
       response = request(:get, method_url)
       doc = REXML::Document.new(response.body)
-      systems = []
-      return systems if doc.root.nil?
-
-      doc.root.each_element("entry") do |entry|
-        system = ManagedSystem.new(entry)
-        systems += [system]
-      end
-      systems
+      parse_feed(doc, ManagedSystem)
     end
 
     def lpars(sys_uuid = nil)
@@ -69,14 +71,7 @@ module IbmPowerHmc
       end
       response = request(:get, method_url)
       doc = REXML::Document.new(response.body)
-      lpars = []
-      return lpars if doc.root.nil?
-
-      doc.root.each_element("entry") do |entry|
-        lpar = LogicalPartition.new(entry)
-        lpars += [lpar]
-      end
-      lpars
+      parse_feed(doc, LogicalPartition)
     end
 
     def lpar(lpar_uuid, sys_uuid = nil, group_name = nil)
@@ -112,14 +107,7 @@ module IbmPowerHmc
         return []
       end
       doc = REXML::Document.new(response.body)
-      vioses = []
-      return vioses if doc.root.nil?
-
-      doc.root.each_element("entry") do |entry|
-        vios = VirtualIOServer.new(entry)
-        vioses += [vios]
-      end
-      vioses
+      parse_feed(doc, VirtualIOServer)
     end
 
     # Damien: share the same method for VIOS and LPAR?
@@ -131,14 +119,7 @@ module IbmPowerHmc
         return []
       end
       doc = REXML::Document.new(response.body)
-      profiles = []
-      return profiles if doc.root.nil?
-
-      doc.root.each_element("entry") do |entry|
-        profile = LogicalPartitionProfile.new(lpar_uuid, entry)
-        profiles += [profile]
-      end
-      profiles
+      parse_feed(doc, LogicalPartitionProfile)
     end
 
     def poweron_lpar(lpar_uuid, params = {})
