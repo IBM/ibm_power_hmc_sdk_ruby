@@ -5,7 +5,7 @@ module IbmPowerHmc
   # HMC Job for long running operations.
   class HmcJob
     ##
-    # @!method initialize(hc, method_url, operation, group, params)
+    # @!method initialize(hc, method_url, operation, group, params = {})
     # Construct a new HMC Job.
     #
     # @param hc [IbmPowerHmc::Connection] The connection to the HMC.
@@ -70,7 +70,7 @@ module IbmPowerHmc
     end
 
     ##
-    # @!method wait
+    # @!method wait(timeout = 120, poll_interval = 30)
     # Wait for the job to complete.
     # @param timeout [Integer] The maximum time in seconds to wait for the job to complete.
     # @param poll_interval [Integer] The interval in seconds between status queries.
@@ -86,7 +86,7 @@ module IbmPowerHmc
     end
 
     ##
-    # @!method run
+    # @!method run(timeout = 120, poll_interval = 30)
     # Run the job synchronously.
     # @param timeout [Integer] The maximum time in seconds to wait for the job to complete.
     # @param poll_interval [Integer] The interval in seconds between status queries.
