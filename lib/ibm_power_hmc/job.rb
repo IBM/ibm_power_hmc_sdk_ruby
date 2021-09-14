@@ -1,10 +1,19 @@
 # frozen_string_literal: true
 
-# Module for IBM HMC Rest API Client
 module IbmPowerHmc
-  # HMC Job for long running operations
+  ##
+  # HMC Job for long running operations.
   class HmcJob
-    def initialize(hc, method_url, operation, group, params)
+    ##
+    # @!method initialize(hc, method_url, operation, group, params)
+    # Construct a new HMC Job.
+    #
+    # @param hc [IbmPowerHmc::Connection] The connection to the HMC.
+    # @param method_url [String] The method URL.
+    # @param operation [String] The name of the requested operation.
+    # @param group [String] The name of the group.
+    # @param params [Hash] The job name/value parameters.
+    def initialize(hc, method_url, operation, group, params = {})
       @hc = hc
       @method_url = method_url
       @operation = operation
@@ -12,6 +21,10 @@ module IbmPowerHmc
       @params = params
     end
 
+    ##
+    # @!method status
+    # Start the job asynchronously.
+    # @return [String] The ID of the job.
     def start
       headers = {
         content_type: "application/vnd.ibm.powervm.web+xml; type=JobRequest"
@@ -38,6 +51,10 @@ module IbmPowerHmc
       @id = info.elements["JobID"].text
     end
 
+    ##
+    # @!method status
+    # Return the status of the job.
+    # @return [String] The status of the job.
     def status
       # Damien: check id is defined
       method_url = "/rest/api/uom/jobs/#{@id}"
@@ -52,15 +69,38 @@ module IbmPowerHmc
       status
     end
 
+    ##
+    # @!method wait
+    # Wait for the job to complete.
+    # @param timeout [Integer] The maximum time in seconds to wait for the job to complete.
+    # @param poll_interval [Integer] The interval in seconds between status queries.
+    # @return [String] The status of the job.
     def wait(timeout = 120, poll_interval = 30)
       endtime = Time.now + timeout
       while Time.now < endtime do
         status = self.status
-        break if status != "RUNNING" # Damien: and != "STARTING"?
+        return status if status != "RUNNING" and status != "NOT_STARTED"
         sleep(poll_interval)
       end
+      "TIMEDOUT"
     end
 
+    ##
+    # @!method run
+    # Run the job synchronously.
+    # @param timeout [Integer] The maximum time in seconds to wait for the job to complete.
+    # @param poll_interval [Integer] The interval in seconds between status queries.
+    # @return [String] The status of the job.
+    def run(timeout = 120, poll_interval = 30)
+      start
+      wait(timeout, poll_interval)
+      delete
+      # Damien: return status
+    end
+
+    ##
+    # @!method delete
+    # Delete the job from the HMC.
     def delete
       # Damien: check id is defined
       method_url = "/rest/api/uom/jobs/#{@id}"
