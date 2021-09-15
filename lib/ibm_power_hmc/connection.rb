@@ -2,8 +2,18 @@
 
 # Module for IBM HMC Rest API Client
 module IbmPowerHmc
-  # HMC REST Client connection
+  ##
+  # HMC REST Client connection.
   class Connection
+    ##
+    # @!method initialize(host:, username: "hscroot", password:, port: 12_443, validate_ssl: true)
+    # Create a new HMC connection.
+    #
+    # @param host [String] Hostname of the HMC.
+    # @param username [String] User name.
+    # @param password [String] Password.
+    # @param port [Integer] TCP port number.
+    # @param validate_ssl [Boolean] Verify SSL certificates.
     def initialize(host:, username: "hscroot", password:, port: 12_443, validate_ssl: true)
       # Damien: use URI::HTTPS
       @hostname = "#{host}:#{port}"
