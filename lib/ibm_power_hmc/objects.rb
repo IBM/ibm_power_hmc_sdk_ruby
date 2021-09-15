@@ -16,7 +16,7 @@ module IbmPowerHmc
       value = doc.elements[xpath]
       value = value.text unless value.nil?
       value = value.strip unless value.nil?
-      self.class.__send__(:attr_reader, "#{varname}")
+      self.class.__send__(:attr_reader, varname)
       instance_variable_set("@#{varname}", value)
     end
 
@@ -60,7 +60,10 @@ module IbmPowerHmc
       "AssociatedSystemMemoryConfiguration/InstalledSystemMemory" => "memory",
       "AssociatedSystemMemoryConfiguration/CurrentAvailableSystemMemory" => "avail_mem",
       "AssociatedSystemProcessorConfiguration/InstalledSystemProcessorUnits" => "cpus",
-      "AssociatedSystemProcessorConfiguration/CurrentAvailableSystemProcessorUnits" => "avail_cpus"
+      "AssociatedSystemProcessorConfiguration/CurrentAvailableSystemProcessorUnits" => "avail_cpus",
+      "MachineTypeModelAndSerialNumber/MachineType" => "mtype",
+      "MachineTypeModelAndSerialNumber/Model" => "model",
+      "MachineTypeModelAndSerialNumber/SerialNumber" => "serial",
     }.freeze
 
     def initialize(doc)
