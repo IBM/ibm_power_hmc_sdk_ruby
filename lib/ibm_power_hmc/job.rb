@@ -4,6 +4,8 @@ module IbmPowerHmc
   ##
   # HMC Job for long running operations.
   class HmcJob
+    class JobNotStarted < StandardError; end
+
     ##
     # @!method initialize(conn, method_url, operation, group, params = {})
     # Construct a new HMC Job.
@@ -51,12 +53,15 @@ module IbmPowerHmc
       @id = info.elements["JobID"].text
     end
 
+    attr_reader :results
+
     ##
     # @!method status
     # Return the status of the job.
     # @return [String] The status of the job.
     def status
-      # Damien: check id is defined
+      raise JobNotStarted unless defined?(@id)
+
       method_url = "/rest/api/uom/jobs/#{@id}"
       headers = {
         :content_type => "application/vnd.ibm.powervm.web+xml; type=JobRequest"
@@ -65,7 +70,16 @@ module IbmPowerHmc
       doc = REXML::Document.new(response.body)
       info = doc.root.elements["content/JobResponse:JobResponse"]
       status = info.elements["Status"].text
-      # Damien: also retrieve "ResponseException/Message"
+      # Damien: also retrieve "ResponseException/Message"?
+
+      # Gather Job results returned by the HMC.
+      @results = {}
+      info.each_element("Results/JobParameter") do |result|
+        name = result.elements["ParameterName"].text.strip
+        value = result.elements["ParameterValue"].text.strip
+        @results[name] = value
+      end
+
       status
     end
 
@@ -103,7 +117,8 @@ module IbmPowerHmc
     # @!method delete
     # Delete the job from the HMC.
     def delete
-      # Damien: check id is defined
+      raise JobNotStarted unless defined?(@id)
+
       method_url = "/rest/api/uom/jobs/#{@id}"
       @conn.request(:delete, method_url)
       # Returns HTTP 204 if ok
