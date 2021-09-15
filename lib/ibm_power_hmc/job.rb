@@ -53,6 +53,7 @@ module IbmPowerHmc
       @id = info.elements["JobID"].text
     end
 
+    # @return [Hash] The job results returned by the HMC.
     attr_reader :results
 
     ##
@@ -84,33 +85,36 @@ module IbmPowerHmc
     end
 
     ##
-    # @!method wait(timeout = 120, poll_interval = 30)
+    # @!method wait(timeout = 120, poll_interval = 0)
     # Wait for the job to complete.
     # @param timeout [Integer] The maximum time in seconds to wait for the job to complete.
-    # @param poll_interval [Integer] The interval in seconds between status queries.
+    # @param poll_interval [Integer] The interval in seconds between status queries (0 means auto).
     # @return [String] The status of the job.
-    def wait(timeout = 120, poll_interval = 30)
+    def wait(timeout = 120, poll_interval = 0)
       endtime = Time.now.utc + timeout
+      auto = poll_interval == 0
+      poll_interval = 1 if auto
       while Time.now.utc < endtime
         status = self.status
         return status if status != "RUNNING" && status != "NOT_STARTED"
 
+        poll_interval *= 2 if auto && poll_interval < 30
         sleep(poll_interval)
       end
       "TIMEDOUT"
     end
 
     ##
-    # @!method run(timeout = 120, poll_interval = 30)
+    # @!method run(timeout = 120, poll_interval = 0)
     # Run the job synchronously.
     # @param timeout [Integer] The maximum time in seconds to wait for the job to complete.
-    # @param poll_interval [Integer] The interval in seconds between status queries.
+    # @param poll_interval [Integer] The interval in seconds between status queries (0 means auto).
     # @return [String] The status of the job.
-    def run(timeout = 120, poll_interval = 30)
+    def run(timeout = 120, poll_interval = 0)
       start
-      wait(timeout, poll_interval)
+      status = wait(timeout, poll_interval)
       delete
-      # Damien: return status
+      status
     end
 
     ##
