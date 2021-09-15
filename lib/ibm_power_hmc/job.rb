@@ -4,6 +4,8 @@ module IbmPowerHmc
   ##
   # HMC Job for long running operations.
   class HmcJob
+    class JobNotStarted < StandardError; end
+
     ##
     # @!method initialize(conn, method_url, operation, group, params = {})
     # Construct a new HMC Job.
@@ -51,12 +53,16 @@ module IbmPowerHmc
       @id = info.elements["JobID"].text
     end
 
+    # @return [Hash] The job results returned by the HMC.
+    attr_reader :results
+
     ##
     # @!method status
     # Return the status of the job.
     # @return [String] The status of the job.
     def status
-      # Damien: check id is defined
+      raise JobNotStarted unless defined?(@id)
+
       method_url = "/rest/api/uom/jobs/#{@id}"
       headers = {
         :content_type => "application/vnd.ibm.powervm.web+xml; type=JobRequest"
@@ -65,45 +71,58 @@ module IbmPowerHmc
       doc = REXML::Document.new(response.body)
       info = doc.root.elements["content/JobResponse:JobResponse"]
       status = info.elements["Status"].text
-      # Damien: also retrieve "ResponseException/Message"
+      # Damien: also retrieve "ResponseException/Message"?
+
+      # Gather Job results returned by the HMC.
+      @results = {}
+      info.each_element("Results/JobParameter") do |result|
+        name = result.elements["ParameterName"].text.strip
+        value = result.elements["ParameterValue"].text.strip
+        @results[name] = value
+      end
+
       status
     end
 
     ##
-    # @!method wait(timeout = 120, poll_interval = 30)
+    # @!method wait(timeout = 120, poll_interval = 0)
     # Wait for the job to complete.
     # @param timeout [Integer] The maximum time in seconds to wait for the job to complete.
-    # @param poll_interval [Integer] The interval in seconds between status queries.
+    # @param poll_interval [Integer] The interval in seconds between status queries (0 means auto).
     # @return [String] The status of the job.
-    def wait(timeout = 120, poll_interval = 30)
+    def wait(timeout = 120, poll_interval = 0)
       endtime = Time.now.utc + timeout
+      auto = poll_interval == 0
+      poll_interval = 1 if auto
       while Time.now.utc < endtime
         status = self.status
         return status if status != "RUNNING" && status != "NOT_STARTED"
 
+        poll_interval *= 2 if auto && poll_interval < 30
         sleep(poll_interval)
       end
       "TIMEDOUT"
     end
 
     ##
-    # @!method run(timeout = 120, poll_interval = 30)
+    # @!method run(timeout = 120, poll_interval = 0)
     # Run the job synchronously.
     # @param timeout [Integer] The maximum time in seconds to wait for the job to complete.
-    # @param poll_interval [Integer] The interval in seconds between status queries.
+    # @param poll_interval [Integer] The interval in seconds between status queries (0 means auto).
     # @return [String] The status of the job.
-    def run(timeout = 120, poll_interval = 30)
+    def run(timeout = 120, poll_interval = 0)
       start
-      wait(timeout, poll_interval)
+      status = wait(timeout, poll_interval)
       delete
-      # Damien: return status
+      status
     end
 
     ##
     # @!method delete
     # Delete the job from the HMC.
     def delete
-      # Damien: check id is defined
+      raise JobNotStarted unless defined?(@id)
+
       method_url = "/rest/api/uom/jobs/#{@id}"
       @conn.request(:delete, method_url)
       # Returns HTTP 204 if ok

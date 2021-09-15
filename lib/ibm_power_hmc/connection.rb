@@ -172,87 +172,93 @@ module IbmPowerHmc
     end
 
     ##
-    # @!method poweron_lpar(lpar_uuid, params = {})
+    # @!method poweron_lpar(lpar_uuid, params = {}, sync = true)
     # Power on a logical partition.
     # @param lpar_uuid [String] The UUID of the logical partition.
     # @param params [Hash] Job parameters.
-    def poweron_lpar(lpar_uuid, params = {})
+    # @param sync [Boolean] Start the job and wait for its completion.
+    # @return [IbmPowerHmc::HmcJob] The HMC job.
+    def poweron_lpar(lpar_uuid, params = {}, sync = true)
       method_url = "/rest/api/uom/LogicalPartition/#{lpar_uuid}/do/PowerOn"
 
       job = HmcJob.new(self, method_url, "PowerOn", "LogicalPartition", params)
-      job.start
-      job.wait
-      job.delete
+      job.run if sync
+      job
     end
 
     ##
-    # @!method poweroff_lpar(lpar_uuid, params = {})
+    # @!method poweroff_lpar(lpar_uuid, params = {}, sync = true)
     # Power off a logical partition.
     # @param lpar_uuid [String] The UUID of the logical partition.
     # @param params [Hash] Job parameters.
-    def poweroff_lpar(lpar_uuid, params = {})
+    # @param sync [Boolean] Start the job and wait for its completion.
+    # @return [IbmPowerHmc::HmcJob] The HMC job.
+    def poweroff_lpar(lpar_uuid, params = {}, sync = true)
       method_url = "/rest/api/uom/LogicalPartition/#{lpar_uuid}/do/PowerOff"
 
       job = HmcJob.new(self, method_url, "PowerOff", "LogicalPartition", params)
-      job.start
-      job.wait
-      job.delete
+      job.run if sync
+      job
     end
 
     ##
-    # @!method poweron_vios(vios_uuid, params = {})
+    # @!method poweron_vios(vios_uuid, params = {}, sync = true)
     # Power on a virtual I/O server.
     # @param vios_uuid [String] The UUID of the virtual I/O server.
     # @param params [Hash] Job parameters.
-    def poweron_vios(vios_uuid, params = {})
+    # @param sync [Boolean] Start the job and wait for its completion.
+    # @return [IbmPowerHmc::HmcJob] The HMC job.
+    def poweron_vios(vios_uuid, params = {}, sync = true)
       method_url = "/rest/api/uom/VirtualIOServer/#{vios_uuid}/do/PowerOn"
 
       job = HmcJob.new(self, method_url, "PowerOn", "VirtualIOServer", params)
-      job.start
-      job.wait
-      job.delete
+      job.run if sync
+      job
     end
 
     ##
-    # @!method poweron_vios(vios_uuid, params = {})
+    # @!method poweron_vios(vios_uuid, params = {}, sync = true)
     # Power off a virtual I/O server.
     # @param vios_uuid [String] The UUID of the virtual I/O server.
     # @param params [Hash] Job parameters.
-    def poweroff_vios(vios_uuid, params = {})
+    # @param sync [Boolean] Start the job and wait for its completion.
+    # @return [IbmPowerHmc::HmcJob] The HMC job.
+    def poweroff_vios(vios_uuid, params = {}, sync = true)
       method_url = "/rest/api/uom/VirtualIOServer/#{vios_uuid}/do/PowerOff"
 
       job = HmcJob.new(self, method_url, "PowerOff", "VirtualIOServer", params)
-      job.start
-      job.wait
-      job.delete
+      job.run if sync
+      job
     end
 
     ##
-    # @!method poweron_managed_system(sys_uuid, params = {})
+    # @!method poweron_managed_system(sys_uuid, params = {}, sync = true)
     # Power on a managed system.
     # @param sys_uuid [String] The UUID of the managed system.
     # @param params [Hash] Job parameters.
-    def poweron_managed_system(sys_uuid, params = {})
+    # @param sync [Boolean] Start the job and wait for its completion.
+    # @return [IbmPowerHmc::HmcJob] The HMC job.
+    def poweron_managed_system(sys_uuid, params = {}, sync = true)
       method_url = "/rest/api/uom/ManagedSystem/#{sys_uuid}/do/PowerOn"
 
       job = HmcJob.new(self, method_url, "PowerOn", "ManagedSystem", params)
-      job.start
-      job.wait
-      job.delete
+      job.run if sync
+      job
     end
 
     ##
-    # @!method poweroff_managed_system(sys_uuid, params = {})
+    # @!method poweroff_managed_system(sys_uuid, params = {}, sync = true)
     # Power off a managed system.
     # @param sys_uuid [String] The UUID of the managed system.
     # @param params [Hash] Job parameters.
-    def poweroff_managed_system(sys_uuid, params = {})
+    # @param sync [Boolean] Start the job and wait for its completion.
+    # @return [IbmPowerHmc::HmcJob] The HMC job.
+    def poweroff_managed_system(sys_uuid, params = {}, sync = true)
       method_url = "/rest/api/uom/ManagedSystem/#{sys_uuid}/do/PowerOff"
 
       job = HmcJob.new(self, method_url, "PowerOff", "ManagedSystem", params)
-      job.start
-      job.wait
-      job.delete
+      job.run if sync
+      job
     end
 
     ##
