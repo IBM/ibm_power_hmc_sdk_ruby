@@ -1,0 +1,7 @@
+AllCops:
+  Exclude:
+  - '*.gemspec'
+Layout/HashAlignment:
+  EnforcedHashRocketStyle: key
+Style/ConditionalAssignment:
+  EnforcedStyle: assign_inside_condition

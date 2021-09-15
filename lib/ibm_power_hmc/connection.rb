@@ -30,7 +30,7 @@ module IbmPowerHmc
     def logon
       method_url = "/rest/api/web/Logon"
       headers = {
-        content_type: "application/vnd.ibm.powervm.web+xml; type=LogonRequest"
+        :content_type => "application/vnd.ibm.powervm.web+xml; type=LogonRequest"
       }
       doc = REXML::Document.new("")
       doc.add_element("LogonRequest", {
@@ -71,6 +71,7 @@ module IbmPowerHmc
     def parse_feed(doc, myclass)
       objs = []
       return objs if doc.root.nil?
+
       doc.each_element("feed/entry") do |entry|
         objs << myclass.new(entry)
       end
@@ -151,7 +152,7 @@ module IbmPowerHmc
       end
       begin
         response = request(:get, method_url)
-      rescue StandardError
+      rescue
         return []
       end
       doc = REXML::Document.new(response.body)
@@ -163,7 +164,7 @@ module IbmPowerHmc
       method_url = "/rest/api/uom/LogicalPartition/#{lpar_uuid}/LogicalPartitionProfile"
       begin
         response = request(:get, method_url)
-      rescue StandardError
+      rescue
         return []
       end
       doc = REXML::Document.new(response.body)
@@ -269,8 +270,7 @@ module IbmPowerHmc
 
         doc = REXML::Document.new(response.body)
         doc.root.each_element("entry") do |entry|
-          event = Event.new(entry)
-          events += [event]
+          events << Event.new(entry)
         end
         break
       end
@@ -288,14 +288,14 @@ module IbmPowerHmc
     def request(method, url, headers = {}, payload = nil)
       logon if @api_session_token.nil?
 
-      headers = headers.merge({ "X-API-Session" => @api_session_token })
+      headers = headers.merge({"X-API-Session" => @api_session_token})
       # Damien: use URI module and prepare in initialize?
       response = RestClient::Request.execute(
-        method: method,
-        url: "https://" + @hostname + url,
-        verify_ssl: @verify_ssl,
-        payload: payload,
-        headers: headers
+        :method => method,
+        :url => "https://" + @hostname + url,
+        :verify_ssl => @verify_ssl,
+        :payload => payload,
+        :headers => headers
       )
       if response.code == 403
         # Damien: if token expires, reauth?

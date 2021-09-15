@@ -16,7 +16,7 @@ module IbmPowerHmc
       value = doc.elements[xpath]
       value = value.text unless value.nil?
       value = value.strip unless value.nil?
-      self.class.__send__(:attr_reader, "#{varname}")
+      self.class.__send__(:attr_reader, varname)
       instance_variable_set("@#{varname}", value)
     end
 
