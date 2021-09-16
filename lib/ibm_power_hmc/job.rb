@@ -113,8 +113,9 @@ module IbmPowerHmc
     def run(timeout = 120, poll_interval = 0)
       start
       status = wait(timeout, poll_interval)
-      delete
       status
+    ensure
+      delete if defined?(@id)
     end
 
     ##
