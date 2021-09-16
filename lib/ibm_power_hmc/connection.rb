@@ -70,8 +70,6 @@ module IbmPowerHmc
 
     def parse_feed(doc, myclass)
       objs = []
-      return objs if doc.root.nil?
-
       doc.each_element("feed/entry") do |entry|
         objs << myclass.new(entry)
       end
@@ -318,23 +316,23 @@ module IbmPowerHmc
     end
 
     ##
-    # @!method next_events
+    # @!method next_events(wait = true)
     # Retrieve a list of events that occured since last call.
-    # If no event is available, blocks until new events occur.
+    # @param wait [Boolean] If no event is available, block until new events occur.
     # @return [Array<IbmPowerHmc::Event>] The list of events.
-    def next_events
+    def next_events(wait = true)
       method_url = "/rest/api/uom/Event"
 
-      events = []
+      response = nil
       loop do
         response = request(:get, method_url)
-        next if response.code == 204
-
-        doc = REXML::Document.new(response.body)
-        doc.root.each_element("entry") do |entry|
-          events << Event.new(entry)
-        end
-        break
+        # No need to sleep as the HMC already waits a bit before returning 204
+        break if response.code != 204 || !wait
+      end
+      doc = REXML::Document.new(response.body)
+      events = []
+      doc.each_element("feed/entry") do |entry|
+        events << Event.new(entry)
       end
       events
     end
