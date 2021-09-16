@@ -140,6 +140,8 @@ module IbmPowerHmc
 
   # HMC Event
   class Event < HmcObject
+    attr_reader :published
+
     XMLMAP = {
       "EventID" => "id",
       "EventType" => "type",
@@ -149,6 +151,7 @@ module IbmPowerHmc
 
     def initialize(doc)
       super(doc)
+      @published = doc.elements["published"].text
       info = doc.elements["content/Event:Event"]
       get_values(info, XMLMAP)
     end
