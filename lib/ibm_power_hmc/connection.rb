@@ -91,6 +91,22 @@ module IbmPowerHmc
     end
 
     ##
+    # @!method managed_system(lpar_uuid, sys_uuid = nil, group_name = nil)
+    # Retrieve information about a managed system.
+    # @param sys_uuid [String] The UUID of the managed system.
+    # @param group_name [String] The extended group attributes.
+    # @return [IbmPowerHmc::ManagedSystem] The logical partition.
+    def managed_system(sys_uuid, group_name = nil)
+      method_url = "/rest/api/uom/ManagedSystem/#{sys_uuid}"
+      method_url += "?group=#{group_name}" unless group_name.nil?
+
+      response = request(:get, method_url)
+      doc = REXML::Document.new(response.body)
+      entry = doc.elements["entry"]
+      ManagedSystem.new(entry)
+    end
+
+    ##
     # @!method lpars(sys_uuid = nil)
     # Retrieve the list of logical partitions managed by the HMC.
     # @param sys_uuid [String] The UUID of the managed system.
@@ -159,6 +175,27 @@ module IbmPowerHmc
       parse_feed(doc, VirtualIOServer)
     end
 
+    ##
+    # @!method vios(vios_uuid, sys_uuid = nil, group_name = nil)
+    # Retrieve information about a virtual I/O server.
+    # @param vios_uuid [String] The UUID of the virtual I/O server.
+    # @param sys_uuid [String] The UUID of the managed system.
+    # @param group_name [String] The extended group attributes.
+    # @return [IbmPowerHmc::VirtualIOServer] The virtual I/O server.
+    def vios(vios_uuid, sys_uuid = nil, group_name = nil)
+      if sys_uuid.nil?
+        method_url = "/rest/api/uom/VirtualIOServer/#{vios_uuid}"
+      else
+        method_url = "/rest/api/uom/ManagedSystem/#{sys_uuid}/VirtualIOServer/#{vios_uuid}"
+      end
+      method_url += "?group=#{group_name}" unless group_name.nil?
+
+      response = request(:get, method_url)
+      doc = REXML::Document.new(response.body)
+      entry = doc.elements["entry"]
+      VirtualIOServer.new(entry)
+    end
+
     # Damien: share the same method for VIOS and LPAR?
     def lpar_profiles(lpar_uuid)
       method_url = "/rest/api/uom/LogicalPartition/#{lpar_uuid}/LogicalPartitionProfile"
@@ -217,7 +254,7 @@ module IbmPowerHmc
     end
 
     ##
-    # @!method poweron_vios(vios_uuid, params = {}, sync = true)
+    # @!method poweroff_vios(vios_uuid, params = {}, sync = true)
     # Power off a virtual I/O server.
     # @param vios_uuid [String] The UUID of the virtual I/O server.
     # @param params [Hash] Job parameters.
@@ -257,6 +294,25 @@ module IbmPowerHmc
       method_url = "/rest/api/uom/ManagedSystem/#{sys_uuid}/do/PowerOff"
 
       job = HmcJob.new(self, method_url, "PowerOff", "ManagedSystem", params)
+      job.run if sync
+      job
+    end
+
+    ##
+    # @!method cli_run(hmc_uuid, cmd, sync = true)
+    # Run a CLI command on the HMC as a job.
+    # @param hmc_uuid [String] The UUID of the management console.
+    # @param cmd [String] The command to run.
+    # @param sync [Boolean] Start the job and wait for its completion.
+    # @return [IbmPowerHmc::HmcJob] The HMC job.
+    def cli_run(hmc_uuid, cmd, sync = true)
+      method_url = "/rest/api/uom/ManagementConsole/#{hmc_uuid}/do/CLIRunner"
+
+      params = {
+        "cmd" => cmd,
+        "acknowledgeThisAPIMayGoAwayInTheFuture" => "true",
+      }
+      job = HmcJob.new(self, method_url, "CLIRunner", "ManagementConsole", params)
       job.run if sync
       job
     end
