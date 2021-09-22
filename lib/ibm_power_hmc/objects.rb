@@ -77,6 +77,26 @@ module IbmPowerHmc
     end
   end
 
+  #virtualSwitch information
+  class VirtualSwitch < HmcObject
+    XMLMAP = {
+      "SwitchID" => "id",
+      "SwitchMode" => "mode",
+      "SwitchName" => "name"
+    }.freeze
+  
+    def initialize(doc)
+      super(doc)
+      info = doc.elements["content/VirtualSwitch:VirtualSwitch"]
+      get_values(info, XMLMAP)
+    end
+
+    def to_s
+      "id = #{@id} mode = #{@mode} name = #{@name}"
+    end
+  end
+    
+
   # Logical Partition information
   class LogicalPartition < HmcObject
     attr_reader :sys_uuid

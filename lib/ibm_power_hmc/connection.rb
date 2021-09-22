@@ -316,6 +316,38 @@ module IbmPowerHmc
     end
 
     ##
+    # @!method virtual_switches(sys_uuid)
+    # Retrieve the list of virtual switchs from a specified managed system
+    # @param sys_uuid [string] The UUID of the managed system
+    # @return [Array<IbmPowerHmc::VirtualSwitch] The list of virtual switch.
+    ##
+    def virtual_switches(sys_uuid)
+      method_url = "/rest/api/uom/ManagedSystem/#{sys_uuid}/VirtualSwitch"
+      response = request(:get, method_url)
+      doc = REXML::Document.new(response.body)
+      parse_feed(doc, VirtualSwitch)
+    end
+   
+
+    ##
+    # @!method virtual_switch(vswitch_uuid, sys_uuid = nil, group_name = nil)
+    # @param vswitch_uuid [string] The UUID of the virtual switch
+    # @param  sys_uuid [String] The UUID of the managed system.
+    # @param group_name [String] The extended group attributes.
+    # @return [IbmPowerHmc::VirtualSwitch] The virtual switch.
+    ## 
+    def virtual_switch(vswitch_uuid, sys_uuid, group_name=nil)
+      method_url = "/rest/api/uom/ManagedSystem/#{sys_uuid}/VirtualSwitch/#{vswitch_uuid}"
+
+      method_url += "?group=#{group_name}" unless group_name.nil?
+
+      response = request(:get, method_url)
+      doc = REXML::Document.new(response.body)
+      entry = doc.elements["entry"]
+      VirtualSwitch.new(entry)
+    end
+
+    ##
     # @!method next_events(wait = true)
     # Retrieve a list of events that occured since last call.
     # @param wait [Boolean] If no event is available, block until new events occur.
