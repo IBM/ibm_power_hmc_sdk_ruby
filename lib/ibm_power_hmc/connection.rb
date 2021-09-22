@@ -347,23 +347,26 @@ module IbmPowerHmc
     # @return [RestClient::Response] The response from the HMC.
     def request(method, url, headers = {}, payload = nil)
       logon if @api_session_token.nil?
-
-      headers = headers.merge({"X-API-Session" => @api_session_token})
-      # Damien: use URI module and prepare in initialize?
-      response = RestClient::Request.execute(
-        :method => method,
-        :url => "https://" + @hostname + url,
-        :verify_ssl => @verify_ssl,
-        :payload => payload,
-        :headers => headers
-      )
-      if response.code == 403
-        # Damien: if token expires, reauth?
-        @api_session_token = nil
-        logon
-        # Damien: retry TBD
+      reauth = false
+      begin
+        headers = headers.merge({"X-API-Session" => @api_session_token})
+        RestClient::Request.execute(
+          :method => method,
+          :url => "https://" + @hostname + url,
+          :verify_ssl => @verify_ssl,
+          :payload => payload,
+          :headers => headers
+        )
+      rescue RestClient::Exception => e
+        if e.http_code == 401 && !reauth
+          # Try to reauth
+          reauth = true
+          @api_session_token = nil
+          logon
+          retry
+        end
+        raise
       end
-      response
     end
   end
 end
