@@ -330,11 +330,7 @@ module IbmPowerHmc
         break if response.code != 204 || !wait
       end
       doc = REXML::Document.new(response.body)
-      events = []
-      doc.each_element("feed/entry") do |entry|
-        events << Event.new(entry)
-      end
-      events
+      parse_feed(doc, Event)
     end
 
     ##
