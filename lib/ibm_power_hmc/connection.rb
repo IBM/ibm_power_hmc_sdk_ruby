@@ -2,6 +2,8 @@
 
 # Module for IBM HMC Rest API Client
 module IbmPowerHmc
+  class Error < StandardError; end
+
   ##
   # HMC REST Client connection.
   class Connection
@@ -40,19 +42,28 @@ module IbmPowerHmc
       doc.root.add_element("UserID").text = @username
       doc.root.add_element("Password").text = @password
 
-      # Damien: begin/rescue
       @api_session_token = ""
       response = request(:put, method_url, headers, doc.to_s)
       doc = REXML::Document.new(response.body)
-      @api_session_token = doc.root.elements["X-API-Session"].text
+      elem = doc.elements["LogonResponse/X-API-Session"]
+      raise Error, "LogonResponse/X-API-Session not found" if elem.nil?
+
+      @api_session_token = elem.text
     end
 
     ##
     # @!method logoff
     # Close the session.
     def logoff
+      # Don't want to trigger automatic logon here!
+      return if @api_session_token.nil?
+
       method_url = "/rest/api/web/Logon"
-      request(:delete, method_url)
+      begin
+        request(:delete, method_url)
+      rescue
+        # Ignore exceptions as this is best effort attempt to log off.
+      end
       @api_session_token = nil
     end
 
