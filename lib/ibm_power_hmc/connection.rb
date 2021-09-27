@@ -349,10 +349,10 @@ module IbmPowerHmc
           :headers => headers
         )
       rescue RestClient::Exception => e
-        if e.http_code == 401 && !reauth
+        # Do not retry on failed logon attempts
+        if e.http_code == 401 && @api_session_token != "" && !reauth
           # Try to reauth
           reauth = true
-          @api_session_token = nil
           logon
           retry
         end
