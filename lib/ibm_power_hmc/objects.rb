@@ -25,10 +25,6 @@ module IbmPowerHmc
         get_value(doc, key, value)
       end
     end
-
-    def to_s
-      "uuid=#{@uuid}"
-    end
   end
 
   # HMC information
@@ -43,10 +39,6 @@ module IbmPowerHmc
       super(doc)
       info = doc.elements["content/ManagementConsole:ManagementConsole"]
       get_values(info, XMLMAP)
-    end
-
-    def to_s
-      "hmc name=#{@name} version=#{@version} build_level=#{@build_level}"
     end
   end
 
@@ -70,10 +62,6 @@ module IbmPowerHmc
       super(doc)
       info = doc.elements["content/ManagedSystem:ManagedSystem"]
       get_values(info, XMLMAP)
-    end
-
-    def to_s
-      "sys name=#{@name} state=#{@state} ip=#{@ipaddr} mem=#{@memory}MB avail=#{@avail_mem}MB CPUs=#{@cpus} avail=#{@avail_cpus}"
     end
   end
 
@@ -99,10 +87,6 @@ module IbmPowerHmc
       @sys_uuid = URI(sys_href).path.split('/').last
       get_values(info, XMLMAP)
     end
-
-    def to_s
-      "lpar name=#{@name} id=#{@id} state=#{@state} type=#{@type} memory=#{@memory}MB dedicated cpus=#{@dedicated}"
-    end
   end
 
   # VIOS information
@@ -125,10 +109,6 @@ module IbmPowerHmc
       @sys_uuid = URI(sys_href).path.split('/').last
       get_values(info, XMLMAP)
     end
-
-    def to_s
-      "vios name=#{@name} id=#{@id} state=#{@state} type=#{@type} memory=#{@memory}MB dedicated cpus=#{@dedicated}"
-    end
   end
 
   # HMC Event
@@ -147,10 +127,6 @@ module IbmPowerHmc
       @published = doc.elements["published"].text
       info = doc.elements["content/Event:Event"]
       get_values(info, XMLMAP)
-    end
-
-    def to_s
-      "event id=#{@id} type=#{@type} data=#{@data} detail=#{@detail}"
     end
   end
 end
