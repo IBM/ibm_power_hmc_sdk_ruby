@@ -205,18 +205,6 @@ module IbmPowerHmc
       VirtualIOServer.new(entry)
     end
 
-    # Damien: share the same method for VIOS and LPAR?
-    def lpar_profiles(lpar_uuid)
-      method_url = "/rest/api/uom/LogicalPartition/#{lpar_uuid}/LogicalPartitionProfile"
-      begin
-        response = request(:get, method_url)
-      rescue
-        return []
-      end
-      doc = REXML::Document.new(response.body)
-      parse_feed(doc, LogicalPartitionProfile)
-    end
-
     ##
     # @!method poweron_lpar(lpar_uuid, params = {}, sync = true)
     # Power on a logical partition.

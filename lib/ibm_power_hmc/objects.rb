@@ -131,13 +131,6 @@ module IbmPowerHmc
     end
   end
 
-  # LPAR profile
-  class LogicalPartitionProfile < HmcObject
-    attr_reader :lpar_uuid
-
-    # Damien: TBD
-  end
-
   # HMC Event
   class Event < HmcObject
     attr_reader :published
