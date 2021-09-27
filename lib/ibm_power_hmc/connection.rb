@@ -56,18 +56,6 @@ module IbmPowerHmc
       @api_session_token = nil
     end
 
-    ##
-    # @!method management_console
-    # Retrieve information about the management console.
-    # @return [IbmPowerHmc::ManagementConsole] The management console.
-    def management_console
-      method_url = "/rest/api/uom/ManagementConsole"
-      response = request(:get, method_url)
-      doc = REXML::Document.new(response.body)
-      entry = doc.root.elements["entry"]
-      ManagementConsole.new(entry)
-    end
-
     def parse_feed(doc, myclass)
       objs = []
       doc.each_element("feed/entry") do |entry|
@@ -76,6 +64,18 @@ module IbmPowerHmc
       objs
     end
     private :parse_feed
+
+    ##
+    # @!method management_console
+    # Retrieve information about the management console.
+    # @return [IbmPowerHmc::ManagementConsole] The management console.
+    def management_console
+      method_url = "/rest/api/uom/ManagementConsole"
+      response = request(:get, method_url)
+      doc = REXML::Document.new(response.body)
+      # This request returns a feed with a single entry.
+      parse_feed(doc, ManagementConsole).first
+    end
 
     ##
     # @!method managed_systems
