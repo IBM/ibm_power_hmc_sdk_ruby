@@ -175,11 +175,7 @@ module IbmPowerHmc
       else
         method_url = "/rest/api/uom/ManagedSystem/#{sys_uuid}/VirtualIOServer"
       end
-      begin
-        response = request(:get, method_url)
-      rescue
-        return []
-      end
+      response = request(:get, method_url)
       doc = REXML::Document.new(response.body)
       parse_feed(doc, VirtualIOServer)
     end
