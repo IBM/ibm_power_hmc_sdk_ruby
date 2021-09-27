@@ -129,4 +129,20 @@ module IbmPowerHmc
       get_values(info, XMLMAP)
     end
   end
+
+  # Error response from HMC
+  class HttpErrorResponse < HmcObject
+    XMLMAP = {
+      "HTTPStatus" => "status",
+      "RequestURI" => "uri",
+      "ReasonCode" => "reason",
+      "Message" => "message",
+    }.freeze
+
+    def initialize(doc)
+      super(doc)
+      info = doc.elements["content/HttpErrorResponse:HttpErrorResponse"]
+      get_values(info, XMLMAP)
+    end
+  end
 end

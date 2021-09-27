@@ -328,6 +328,29 @@ module IbmPowerHmc
       parse_feed(doc, Event)
     end
 
+    class HttpError < Error
+      attr_reader :status, :uri, :reason, :message
+
+      ##
+      # @!method initialize(err)
+      # Create a new HttpError exception.
+      # @param err [RestClient::Exception] The REST client exception.
+      def initialize(err)
+        super
+        @status = err.http_code
+
+        # Try to parse body as an HttpErrorResponse
+        doc = REXML::Document.new(err.response.body)
+        entry = doc.elements["entry"]
+        unless entry.nil?
+          resp = HttpErrorResponse.new(entry)
+          @uri = resp.uri
+          @reason = resp.reason
+          @message = resp.message
+        end
+      end
+    end
+
     ##
     # @!method request(method, url, headers = {}, payload = nil)
     # Perform a REST API request.
@@ -356,7 +379,7 @@ module IbmPowerHmc
           logon
           retry
         end
-        raise
+        raise HttpError.new(e)
       end
     end
   end
