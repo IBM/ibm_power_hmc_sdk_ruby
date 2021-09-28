@@ -2,6 +2,8 @@
 
 # Module for IBM HMC Rest API Client
 module IbmPowerHmc
+  require_relative 'pcm.rb'
+
   class Error < StandardError; end
 
   ##
@@ -379,7 +381,7 @@ module IbmPowerHmc
           logon
           retry
         end
-        raise HttpError.new(e)
+        raise HttpError.new(e), "REST request failed"
       end
     end
   end
