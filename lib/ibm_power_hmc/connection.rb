@@ -331,7 +331,7 @@ module IbmPowerHmc
     end
 
     class HttpError < Error
-      attr_reader :status, :uri, :reason, :message
+      attr_reader :status, :uri, :reason, :message, :original_exception
 
       ##
       # @!method initialize(err)
@@ -339,17 +339,25 @@ module IbmPowerHmc
       # @param err [RestClient::Exception] The REST client exception.
       def initialize(err)
         super
+        @original_exception = err
         @status = err.http_code
+        @message = err.message
 
         # Try to parse body as an HttpErrorResponse
-        doc = REXML::Document.new(err.response.body)
-        entry = doc.elements["entry"]
-        unless entry.nil?
-          resp = HttpErrorResponse.new(entry)
-          @uri = resp.uri
-          @reason = resp.reason
-          @message = resp.message
+        unless err.response.nil?
+          doc = REXML::Document.new(err.response.body)
+          entry = doc.elements["entry"]
+          unless entry.nil?
+            resp = HttpErrorResponse.new(entry)
+            @uri = resp.uri
+            @reason = resp.reason
+            @message = resp.message
+          end
         end
+      end
+
+      def to_s
+        "msg=#{@message} status=#{@status} reason=#{@reason} uri=#{@uri}"
       end
     end
 
