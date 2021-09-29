@@ -383,11 +383,13 @@ module IbmPowerHmc
     def request(method, url, headers = {}, payload = nil)
       logon if @api_session_token.nil?
       reauth = false
+      # Check for relative URLs
+      url = "https://#{@hostname}#{url}" if url.start_with?("/")
       begin
         headers = headers.merge({"X-API-Session" => @api_session_token})
         RestClient::Request.execute(
           :method => method,
-          :url => "https://" + @hostname + url,
+          :url => url,
           :verify_ssl => @verify_ssl,
           :payload => payload,
           :headers => headers

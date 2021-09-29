@@ -37,15 +37,6 @@ module IbmPowerHmc
         href = link.attributes["href"]
         next if href.nil?
 
-        # Validate URI
-        begin
-          href = URI(href)
-        rescue
-          next
-        end
-        # Remove https://hostname:port prefix.
-        href.scheme = href.host = href.port = nil
-
         response = request(:get, href.to_s)
         metrics << JSON.parse(response.body)
       end
