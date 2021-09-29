@@ -6,10 +6,11 @@ require 'uri'
 module IbmPowerHmc
   # HMC generic object
   class HmcObject
-    attr_reader :uuid
+    attr_reader :uuid, :xml
 
     def initialize(doc)
       @uuid = doc.elements["id"].text
+      @xml = doc
     end
 
     def get_value(doc, xpath, varname)
@@ -49,6 +50,7 @@ module IbmPowerHmc
       "State" => "state",
       "Hostname" => "hostname",
       "PrimaryIPAddress" => "ipaddr",
+      "SystemFirmware" => "fwversion",
       "AssociatedSystemMemoryConfiguration/InstalledSystemMemory" => "memory",
       "AssociatedSystemMemoryConfiguration/CurrentAvailableSystemMemory" => "avail_mem",
       "AssociatedSystemProcessorConfiguration/InstalledSystemProcessorUnits" => "cpus",
