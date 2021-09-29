@@ -337,7 +337,8 @@ module IbmPowerHmc
     # @return [REXML::Document] The XML schema file.
     def schema(type)
       method_url = "/rest/api/web/schema/#{type}.xsd"
-      request(:get, method_url).body
+      response = request(:get, method_url)
+      REXML::Document.new(response.body)
     end
 
     class HttpError < Error
