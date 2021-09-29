@@ -330,6 +330,16 @@ module IbmPowerHmc
       parse_feed(doc, Event)
     end
 
+    ##
+    # @!method schema(type)
+    # Retrieve the XML schema file for a given object type.
+    # @param type [String] The object type (e.g. "LogicalPartition", "inc/Types")
+    # @return [REXML::Document] The XML schema file.
+    def schema(type)
+      method_url = "/rest/api/web/schema/#{type}.xsd"
+      request(:get, method_url).body
+    end
+
     class HttpError < Error
       attr_reader :status, :uri, :reason, :message, :original_exception
 
