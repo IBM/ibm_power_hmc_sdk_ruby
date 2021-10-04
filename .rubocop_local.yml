@@ -4,4 +4,4 @@ AllCops:
 Layout/HashAlignment:
   EnforcedHashRocketStyle: key
 Style/ConditionalAssignment:
-  EnforcedStyle: assign_inside_condition
+  Enabled: false

@@ -19,14 +19,10 @@ module IbmPowerHmc
     # @param start_ts [Time] Start timestamp.
     # @param end_ts [Time] End timestamp.
     # @param short_term [Boolean] Retrieve short term monitor metrics (default to long term).
-    # @return [Array<Hash>] The long term monitor metrics for the managed system.
+    # @return [Array<Hash>] The PowerVM metrics for the managed system.
     def phyp_metrics(sys_uuid:, start_ts: nil, end_ts: nil, short_term: false)
-      method_url = "/rest/api/pcm/ManagedSystem/#{sys_uuid}/RawMetrics/"
-      if short_term
-        method_url += "ShortTermMonitor"
-      else
-        method_url += "LongTermMonitor"
-      end
+      type = short_term ? "ShortTermMonitor" : "LongTermMonitor"
+      method_url = "/rest/api/pcm/ManagedSystem/#{sys_uuid}/RawMetrics/#{type}"
       query = {}
       query["StartTS"] = self.class.format_time(start_ts) unless start_ts.nil?
       query["EndTS"] = self.class.format_time(end_ts) unless end_ts.nil?
@@ -42,7 +38,7 @@ module IbmPowerHmc
         href = link.attributes["href"]
         next if href.nil?
 
-        response = request(:get, href.to_s)
+        response = request(:get, href)
         metrics << JSON.parse(response.body)
       end
       metrics
@@ -56,14 +52,10 @@ module IbmPowerHmc
     # @param end_ts [Time] End timestamp.
     # @param no_samples [Integer] Number of samples.
     # @param aggregated [Boolean] Retrieve aggregated metrics (default to Processed).
-    # @return [Array<Hash>] The processed metrics for the managed system.
+    # @return [Array<Hash>] The metrics for the managed system.
     def managed_system_metrics(sys_uuid:, start_ts: nil, end_ts: nil, no_samples: nil, aggregated: false)
-      method_url = "/rest/api/pcm/ManagedSystem/#{sys_uuid}/"
-      if aggregated
-        method_url += "AggregatedMetrics"
-      else
-        method_url += "ProcessedMetrics"
-      end
+      type = aggregated ? "AggregatedMetrics" : "ProcessedMetrics"
+      method_url = "/rest/api/pcm/ManagedSystem/#{sys_uuid}/#{type}"
       query = {}
       query["StartTS"] = self.class.format_time(start_ts) unless start_ts.nil?
       query["EndTS"] = self.class.format_time(end_ts) unless end_ts.nil?
@@ -86,7 +78,7 @@ module IbmPowerHmc
         href = link.attributes["href"]
         next if href.nil?
 
-        response = request(:get, href.to_s)
+        response = request(:get, href)
         metrics << JSON.parse(response.body)
       end
       metrics
@@ -94,21 +86,17 @@ module IbmPowerHmc
 
     ##
     # @!method lpar_metrics(sys_uuid:, lpar_uuid:, start_ts: nil, end_ts: nil, no_samples: nil, aggregated: false)
-    # Retrieve metrics for a managed system.
+    # Retrieve metrics for a logical partition.
     # @param sys_uuid [String] The managed system UUID.
     # @param lpar_uuid [String] The logical partition UUID.
     # @param start_ts [Time] Start timestamp.
     # @param end_ts [Time] End timestamp.
     # @param no_samples [Integer] Number of samples.
     # @param aggregated [Boolean] Retrieve aggregated metrics (default to Processed).
-    # @return [Array<Hash>] The processed metrics for the logical partition.
+    # @return [Array<Hash>] The metrics for the logical partition.
     def lpar_metrics(sys_uuid:, lpar_uuid:, start_ts: nil, end_ts: nil, no_samples: nil, aggregated: false)
-      method_url = "/rest/api/pcm/ManagedSystem/#{sys_uuid}/LogicalPartition/#{lpar_uuid}/"
-      if aggregated
-        method_url += "AggregatedMetrics"
-      else
-        method_url += "ProcessedMetrics"
-      end
+      type = aggregated ? "AggregatedMetrics" : "ProcessedMetrics"
+      method_url = "/rest/api/pcm/ManagedSystem/#{sys_uuid}/LogicalPartition/#{lpar_uuid}/#{type}"
       query = {}
       query["StartTS"] = self.class.format_time(start_ts) unless start_ts.nil?
       query["EndTS"] = self.class.format_time(end_ts) unless end_ts.nil?
@@ -125,7 +113,7 @@ module IbmPowerHmc
         href = link.attributes["href"]
         next if href.nil?
 
-        response = request(:get, href.to_s)
+        response = request(:get, href)
         metrics << JSON.parse(response.body)
       end
       metrics
@@ -137,7 +125,7 @@ module IbmPowerHmc
     # @param time [Time] The ruby time to convert.
     # @return [String] The time in HMC format.
     def self.format_time(time)
-      time.strftime("%Y-%m-%dT%H:%M:%SZ")
+      time.utc.strftime("%Y-%m-%dT%H:%M:%SZ")
     end
   end
 end
