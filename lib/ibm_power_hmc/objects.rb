@@ -4,6 +4,25 @@ require 'uri'
 
 # Module for IBM HMC Rest API Client
 module IbmPowerHmc
+  # Parser for HMC feeds and entries.
+  class Parser
+    def initialize(body)
+      @doc = REXML::Document.new(body)
+    end
+
+    def entries
+      objs = []
+      @doc.each_element("feed/entry") do |entry|
+        objs << yield(entry)
+      end
+      objs
+    end
+
+    def entry
+      @doc.elements["entry"]
+    end
+  end
+
   # HMC generic object
   class HmcObject
     attr_reader :uuid, :xml
