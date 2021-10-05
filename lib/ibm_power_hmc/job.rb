@@ -24,7 +24,7 @@ module IbmPowerHmc
     end
 
     ##
-    # @!method status
+    # @!method start
     # Start the job asynchronously.
     # @return [String] The ID of the job.
     def start
