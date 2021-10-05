@@ -19,7 +19,6 @@ module IbmPowerHmc
     # @param port [Integer] TCP port number.
     # @param validate_ssl [Boolean] Verify SSL certificates.
     def initialize(host:, username: "hscroot", password:, port: 12_443, validate_ssl: true)
-      # Damien: use URI::HTTPS
       @hostname = "#{host}:#{port}"
       @username = username
       @password = password
@@ -69,15 +68,6 @@ module IbmPowerHmc
       @api_session_token = nil
     end
 
-    def parse_feed(doc, myclass)
-      objs = []
-      doc.each_element("feed/entry") do |entry|
-        objs << myclass.new(entry)
-      end
-      objs
-    end
-    private :parse_feed
-
     ##
     # @!method management_console
     # Retrieve information about the management console.
@@ -85,9 +75,10 @@ module IbmPowerHmc
     def management_console
       method_url = "/rest/api/uom/ManagementConsole"
       response = request(:get, method_url)
-      doc = REXML::Document.new(response.body)
       # This request returns a feed with a single entry.
-      parse_feed(doc, ManagementConsole).first
+      Parser.new(response.body).entries do |entry|
+        ManagementConsole.new(entry)
+      end.first
     end
 
     ##
@@ -97,8 +88,9 @@ module IbmPowerHmc
     def managed_systems
       method_url = "/rest/api/uom/ManagedSystem"
       response = request(:get, method_url)
-      doc = REXML::Document.new(response.body)
-      parse_feed(doc, ManagedSystem)
+      Parser.new(response.body).entries do |entry|
+        ManagedSystem.new(entry)
+      end
     end
 
     ##
@@ -112,9 +104,8 @@ module IbmPowerHmc
       method_url += "?group=#{group_name}" unless group_name.nil?
 
       response = request(:get, method_url)
-      doc = REXML::Document.new(response.body)
-      entry = doc.elements["entry"]
-      ManagedSystem.new(entry)
+      entry = Parser.new(response.body).entry
+      ManagedSystem.new(entry) unless entry.nil?
     end
 
     ##
@@ -129,8 +120,9 @@ module IbmPowerHmc
         method_url = "/rest/api/uom/ManagedSystem/#{sys_uuid}/LogicalPartition"
       end
       response = request(:get, method_url)
-      doc = REXML::Document.new(response.body)
-      parse_feed(doc, LogicalPartition)
+      Parser.new(response.body).entries do |entry|
+        LogicalPartition.new(entry)
+      end
     end
 
     ##
@@ -149,9 +141,8 @@ module IbmPowerHmc
       method_url += "?group=#{group_name}" unless group_name.nil?
 
       response = request(:get, method_url)
-      doc = REXML::Document.new(response.body)
-      entry = doc.elements["entry"]
-      LogicalPartition.new(entry)
+      entry = Parser.new(response.body).entry
+      LogicalPartition.new(entry) unless entry.nil?
     end
 
     ##
@@ -178,8 +169,9 @@ module IbmPowerHmc
         method_url = "/rest/api/uom/ManagedSystem/#{sys_uuid}/VirtualIOServer"
       end
       response = request(:get, method_url)
-      doc = REXML::Document.new(response.body)
-      parse_feed(doc, VirtualIOServer)
+      Parser.new(response.body).entries do |entry|
+        VirtualIOServer.new(entry)
+      end
     end
 
     ##
@@ -198,9 +190,8 @@ module IbmPowerHmc
       method_url += "?group=#{group_name}" unless group_name.nil?
 
       response = request(:get, method_url)
-      doc = REXML::Document.new(response.body)
-      entry = doc.elements["entry"]
-      VirtualIOServer.new(entry)
+      entry = Parser.new(response.body).entry
+      VirtualIOServer.new(entry) unless entry.nil?
     end
 
     ##
@@ -326,8 +317,9 @@ module IbmPowerHmc
         # No need to sleep as the HMC already waits a bit before returning 204
         break if response.code != 204 || !wait
       end
-      doc = REXML::Document.new(response.body)
-      parse_feed(doc, Event)
+      Parser.new(response.body).entries do |entry|
+        Event.new(entry)
+      end
     end
 
     ##
@@ -356,8 +348,7 @@ module IbmPowerHmc
 
         # Try to parse body as an HttpErrorResponse
         unless err.response.nil?
-          doc = REXML::Document.new(err.response.body)
-          entry = doc.elements["entry"]
+          entry = Parser.new(err.response.body).entry
           unless entry.nil?
             resp = HttpErrorResponse.new(entry)
             @uri = resp.uri
