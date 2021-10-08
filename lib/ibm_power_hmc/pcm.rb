@@ -32,10 +32,7 @@ module IbmPowerHmc
       doc = REXML::Document.new(response.body)
       metrics = []
       doc.each_element("feed/entry") do |entry|
-        link = entry.elements["link"]
-        next if link.nil?
-
-        href = link.attributes["href"]
+        href = entry.elements["link"]&.attributes["href"]
         next if href.nil?
 
         response = request(:get, href)
@@ -66,16 +63,10 @@ module IbmPowerHmc
       doc = REXML::Document.new(response.body)
       metrics = []
       doc.each_element("feed/entry") do |entry|
-        category = entry.elements["category"]
-        next if category.nil?
-
-        term = category.attributes["term"]
+        term = entry.elements["category"]&.attributes["term"]
         next if term.nil? || term != "ManagedSystem"
 
-        link = entry.elements["link"]
-        next if link.nil?
-
-        href = link.attributes["href"]
+        href = entry.elements["link"]&.attributes["href"]
         next if href.nil?
 
         response = request(:get, href)
@@ -107,10 +98,7 @@ module IbmPowerHmc
       doc = REXML::Document.new(response.body)
       metrics = []
       doc.each_element("feed/entry") do |entry|
-        link = entry.elements["link"]
-        next if link.nil?
-
-        href = link.attributes["href"]
+        href = entry.elements["link"]&.attributes["href"]
         next if href.nil?
 
         response = request(:get, href)
@@ -125,7 +113,7 @@ module IbmPowerHmc
     # @param time [Time] The ruby time to convert.
     # @return [String] The time in HMC format.
     def self.format_time(time)
-      time.utc.strftime("%Y-%m-%dT%H:%M:%SZ")
+      time.utc.xmlschema
     end
   end
 end

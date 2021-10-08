@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require 'time'
 require 'uri'
 
 # Module for IBM HMC Rest API Client
@@ -23,19 +24,18 @@ module IbmPowerHmc
     end
   end
 
-  # HMC generic object
-  class HmcObject
-    attr_reader :uuid, :xml
+  # HMC generic XML entry
+  class AbstractRest
+    attr_reader :uuid, :published, :xml
 
     def initialize(doc)
-      @uuid = doc.elements["id"].text
+      @uuid = doc.elements["id"]&.text
+      @published = Time.xmlschema(doc.elements["published"]&.text)
       @xml = doc
     end
 
     def get_value(doc, xpath, varname)
-      value = doc.elements[xpath]
-      value = value.text unless value.nil?
-      value = value.strip unless value.nil?
+      value = doc.elements[xpath]&.text&.strip
       self.class.__send__(:attr_reader, varname)
       instance_variable_set("@#{varname}", value)
     end
@@ -48,7 +48,7 @@ module IbmPowerHmc
   end
 
   # HMC information
-  class ManagementConsole < HmcObject
+  class ManagementConsole < AbstractRest
     XMLMAP = {
       "ManagementConsoleName" => "name",
       "VersionInfo/BuildLevel" => "build_level",
@@ -63,7 +63,7 @@ module IbmPowerHmc
   end
 
   # Managed System information
-  class ManagedSystem < HmcObject
+  class ManagedSystem < AbstractRest
     XMLMAP = {
       "SystemName" => "name",
       "State" => "state",
@@ -86,8 +86,8 @@ module IbmPowerHmc
     end
   end
 
-  # Logical Partition information
-  class LogicalPartition < HmcObject
+  # Common class for LPAR and VIOS
+  class BasePartition < AbstractRest
     attr_reader :sys_uuid
 
     XMLMAP = {
@@ -101,41 +101,31 @@ module IbmPowerHmc
       "ResourceMonitoringIPAddress" => "rmc_ipaddr"
     }.freeze
 
-    def initialize(doc)
+    def initialize(doc, type)
       super(doc)
-      info = doc.elements["content/LogicalPartition:LogicalPartition"]
+      info = doc.elements["content/#{type}"]
       sys_href = info.elements["AssociatedManagedSystem"].attributes["href"]
       @sys_uuid = URI(sys_href).path.split('/').last
       get_values(info, XMLMAP)
+    end
+  end
+
+  # Logical Partition information
+  class LogicalPartition < BasePartition
+    def initialize(doc)
+      super(doc, "LogicalPartition:LogicalPartition")
     end
   end
 
   # VIOS information
-  class VirtualIOServer < HmcObject
-    attr_reader :sys_uuid
-
-    XMLMAP = {
-      "PartitionName" => "name",
-      "PartitionID" => "id",
-      "PartitionState" => "state",
-      "PartitionType" => "type",
-      "PartitionMemoryConfiguration/CurrentMemory" => "memory",
-      "PartitionProcessorConfiguration/HasDedicatedProcessors" => "dedicated"
-    }.freeze
-
+  class VirtualIOServer < BasePartition
     def initialize(doc)
-      super(doc)
-      info = doc.elements["content/VirtualIOServer:VirtualIOServer"]
-      sys_href = info.elements["AssociatedManagedSystem"].attributes["href"]
-      @sys_uuid = URI(sys_href).path.split('/').last
-      get_values(info, XMLMAP)
+      super(doc, "VirtualIOServer:VirtualIOServer")
     end
   end
 
   # HMC Event
-  class Event < HmcObject
-    attr_reader :published
-
+  class Event < AbstractRest
     XMLMAP = {
       "EventID" => "id",
       "EventType" => "type",
@@ -145,14 +135,13 @@ module IbmPowerHmc
 
     def initialize(doc)
       super(doc)
-      @published = doc.elements["published"].text
       info = doc.elements["content/Event:Event"]
       get_values(info, XMLMAP)
     end
   end
 
   # Error response from HMC
-  class HttpErrorResponse < HmcObject
+  class HttpErrorResponse < AbstractRest
     XMLMAP = {
       "HTTPStatus" => "status",
       "RequestURI" => "uri",

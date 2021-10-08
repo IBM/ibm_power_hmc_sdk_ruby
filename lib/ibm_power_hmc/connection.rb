@@ -2,8 +2,6 @@
 
 # Module for IBM HMC Rest API Client
 module IbmPowerHmc
-  require_relative 'pcm.rb'
-
   class Error < StandardError; end
 
   ##
@@ -82,11 +80,13 @@ module IbmPowerHmc
     end
 
     ##
-    # @!method managed_systems
+    # @!method managed_systems(search = {})
     # Retrieve the list of systems managed by the HMC.
+    # @param search [Hash] The optional property name and value to match.
     # @return [Array<IbmPowerHmc::ManagedSystem>] The list of managed systems.
-    def managed_systems
+    def managed_systems(search = {})
       method_url = "/rest/api/uom/ManagedSystem"
+      search.each { |key, value| method_url += "/search/(#{key}==#{value})" }
       response = request(:get, method_url)
       Parser.new(response.body).entries do |entry|
         ManagedSystem.new(entry)
@@ -109,13 +109,15 @@ module IbmPowerHmc
     end
 
     ##
-    # @!method lpars(sys_uuid = nil)
+    # @!method lpars(sys_uuid = nil, search = {})
     # Retrieve the list of logical partitions managed by the HMC.
     # @param sys_uuid [String] The UUID of the managed system.
+    # @param search [Hash] The optional property name and value to match.
     # @return [Array<IbmPowerHmc::LogicalPartition>] The list of logical partitions.
-    def lpars(sys_uuid = nil)
+    def lpars(sys_uuid = nil, search = {})
       if sys_uuid.nil?
         method_url = "/rest/api/uom/LogicalPartition"
+        search.each { |key, value| method_url += "/search/(#{key}==#{value})" }
       else
         method_url = "/rest/api/uom/ManagedSystem/#{sys_uuid}/LogicalPartition"
       end
@@ -158,13 +160,15 @@ module IbmPowerHmc
     end
 
     ##
-    # @!method vioses(sys_uuid = nil)
+    # @!method vioses(sys_uuid = nil, search = {})
     # Retrieve the list of virtual I/O servers managed by the HMC.
     # @param sys_uuid [String] The UUID of the managed system.
+    # @param search [Hash] The optional property name and value to match.
     # @return [Array<IbmPowerHmc::VirtualIOServer>] The list of virtual I/O servers.
-    def vioses(sys_uuid = nil)
+    def vioses(sys_uuid = nil, search = {})
       if sys_uuid.nil?
         method_url = "/rest/api/uom/VirtualIOServer"
+        search.each { |key, value| method_url += "/search/(#{key}==#{value})" }
       else
         method_url = "/rest/api/uom/ManagedSystem/#{sys_uuid}/VirtualIOServer"
       end
