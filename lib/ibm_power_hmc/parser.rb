@@ -30,131 +30,155 @@ module IbmPowerHmc
   class AbstractRest
     attr_reader :uuid, :published, :xml
 
-    def initialize(doc)
+    def initialize(doc, type)
       @uuid = doc.elements["id"]&.text
       @published = Time.xmlschema(doc.elements["published"]&.text)
-      @xml = doc
+      @xml = doc.elements["content/#{type}:#{type}"]
     end
 
-    def get_value(doc, xpath, varname)
-      value = doc.elements[xpath]&.text&.strip
+    def define_attr(varname, xpath)
+      value = xml.elements[xpath]&.text&.strip
       self.class.__send__(:attr_reader, varname)
       instance_variable_set("@#{varname}", value)
     end
 
-    def get_values(doc, hash)
+    def define_attrs(hash)
       hash.each do |key, value|
-        get_value(doc, key, value)
+        define_attr(key, value)
       end
+    end
+
+    def extract_uuid_from_href(href)
+      URI(href).path.split('/').last
     end
   end
 
   # HMC information
   class ManagementConsole < AbstractRest
     XMLMAP = {
-      "ManagementConsoleName" => "name",
-      "VersionInfo/BuildLevel" => "build_level",
-      "BaseVersion" => "version"
+      :name => "ManagementConsoleName",
+      :build_level => "VersionInfo/BuildLevel",
+      :version => "BaseVersion"
     }.freeze
 
     def initialize(doc)
-      super(doc)
-      info = doc.elements["content/ManagementConsole:ManagementConsole"]
-      get_values(info, XMLMAP)
+      super(doc, :ManagementConsole)
+      define_attrs(XMLMAP)
+    end
+
+    def managed_systems_uuids
+      uuids = []
+      xml.each_element("ManagedSystems/link") do |link|
+        uuids << extract_uuid_from_href(link.attributes["href"])
+      end
+      uuids.compact
     end
   end
 
   # Managed System information
   class ManagedSystem < AbstractRest
     XMLMAP = {
-      "SystemName" => "name",
-      "State" => "state",
-      "Hostname" => "hostname",
-      "PrimaryIPAddress" => "ipaddr",
-      "SystemFirmware" => "fwversion",
-      "AssociatedSystemMemoryConfiguration/InstalledSystemMemory" => "memory",
-      "AssociatedSystemMemoryConfiguration/CurrentAvailableSystemMemory" => "avail_mem",
-      "AssociatedSystemProcessorConfiguration/InstalledSystemProcessorUnits" => "cpus",
-      "AssociatedSystemProcessorConfiguration/CurrentAvailableSystemProcessorUnits" => "avail_cpus",
-      "MachineTypeModelAndSerialNumber/MachineType" => "mtype",
-      "MachineTypeModelAndSerialNumber/Model" => "model",
-      "MachineTypeModelAndSerialNumber/SerialNumber" => "serial",
+      :name => "SystemName",
+      :state => "State",
+      :hostname => "Hostname",
+      :ipaddr => "PrimaryIPAddress",
+      :fwversion => "SystemFirmware",
+      :memory => "AssociatedSystemMemoryConfiguration/InstalledSystemMemory",
+      :avail_mem => "AssociatedSystemMemoryConfiguration/CurrentAvailableSystemMemory",
+      :cpus => "AssociatedSystemProcessorConfiguration/InstalledSystemProcessorUnits",
+      :avail_cpus => "AssociatedSystemProcessorConfiguration/CurrentAvailableSystemProcessorUnits",
+      :mtype => "MachineTypeModelAndSerialNumber/MachineType",
+      :model => "MachineTypeModelAndSerialNumber/Model",
+      :serial => "MachineTypeModelAndSerialNumber/SerialNumber"
     }.freeze
 
     def initialize(doc)
-      super(doc)
-      info = doc.elements["content/ManagedSystem:ManagedSystem"]
-      get_values(info, XMLMAP)
+      super(doc, :ManagedSystem)
+      define_attrs(XMLMAP)
+    end
+
+    def lpars_uuids
+      uuids = []
+      xml.each_element("AssociatedLogicalPartitions/link") do |link|
+        uuids << extract_uuid_from_href(link.attributes["href"])
+      end
+      uuids.compact
+    end
+
+    def vioses_uuids
+      uuids = []
+      xml.each_element("AssociatedVirtualIOServers/link") do |link|
+        uuids << extract_uuid_from_href(link.attributes["href"])
+      end
+      uuids.compact
     end
   end
 
   # Common class for LPAR and VIOS
   class BasePartition < AbstractRest
-    attr_reader :sys_uuid
-
     XMLMAP = {
-      "PartitionName" => "name",
-      "PartitionID" => "id",
-      "PartitionState" => "state",
-      "PartitionType" => "type",
-      "PartitionMemoryConfiguration/CurrentMemory" => "memory",
-      "PartitionProcessorConfiguration/HasDedicatedProcessors" => "dedicated",
-      "ResourceMonitoringControlState" => "rmc_state",
-      "ResourceMonitoringIPAddress" => "rmc_ipaddr"
+      :name => "PartitionName",
+      :id => "PartitionID",
+      :state => "PartitionState",
+      :type => "PartitionType",
+      :memory => "PartitionMemoryConfiguration/CurrentMemory",
+      :dedicated => "PartitionProcessorConfiguration/HasDedicatedProcessors",
+      :rmc_state => "ResourceMonitoringControlState",
+      :rmc_ipaddr => "ResourceMonitoringIPAddress"
     }.freeze
 
     def initialize(doc, type)
-      super(doc)
-      info = doc.elements["content/#{type}"]
-      sys_href = info.elements["AssociatedManagedSystem"].attributes["href"]
-      @sys_uuid = URI(sys_href).path.split('/').last
-      get_values(info, XMLMAP)
+      super(doc, type)
+      define_attrs(XMLMAP)
+    end
+
+    def sys_uuid
+      sys_href = xml.elements["AssociatedManagedSystem"].attributes["href"]
+      extract_uuid_from_href(sys_href)
     end
   end
 
   # Logical Partition information
   class LogicalPartition < BasePartition
     def initialize(doc)
-      super(doc, "LogicalPartition:LogicalPartition")
+      super(doc, :LogicalPartition)
     end
   end
 
   # VIOS information
   class VirtualIOServer < BasePartition
     def initialize(doc)
-      super(doc, "VirtualIOServer:VirtualIOServer")
+      super(doc, :VirtualIOServer)
     end
   end
 
   # HMC Event
   class Event < AbstractRest
     XMLMAP = {
-      "EventID" => "id",
-      "EventType" => "type",
-      "EventData" => "data",
-      "EventDetail" => "detail",
+      :id     => "EventID",
+      :type   => "EventType",
+      :data   => "EventData",
+      :detail => "EventDetail"
     }.freeze
 
     def initialize(doc)
-      super(doc)
-      info = doc.elements["content/Event:Event"]
-      get_values(info, XMLMAP)
+      super(doc, :Event)
+      define_attrs(XMLMAP)
     end
   end
 
   # Error response from HMC
   class HttpErrorResponse < AbstractRest
     XMLMAP = {
-      "HTTPStatus" => "status",
-      "RequestURI" => "uri",
-      "ReasonCode" => "reason",
-      "Message" => "message",
+      :status  => "HTTPStatus",
+      :uri     => "RequestURI",
+      :reason  => "ReasonCode",
+      :message => "Message"
     }.freeze
 
     def initialize(doc)
-      super(doc)
-      info = doc.elements["content/HttpErrorResponse:HttpErrorResponse"]
-      get_values(info, XMLMAP)
+      super(doc, :HttpErrorResponse)
+      define_attrs(XMLMAP)
     end
   end
 end
