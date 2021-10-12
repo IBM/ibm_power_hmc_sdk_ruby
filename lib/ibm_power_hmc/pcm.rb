@@ -29,16 +29,13 @@ module IbmPowerHmc
       method_url += "?" + query.map { |h| h.join("=") }.join("&") unless query.empty?
 
       response = request(:get, method_url)
-      doc = REXML::Document.new(response.body)
-      metrics = []
-      doc.each_element("feed/entry") do |entry|
+      FeedParser.new(response.body).entries do |entry|
         href = entry.elements["link"]&.attributes["href"]
         next if href.nil?
 
         response = request(:get, href)
-        metrics << JSON.parse(response.body)
-      end
-      metrics
+        JSON.parse(response.body)
+      end.compact
     end
 
     ##
@@ -60,9 +57,7 @@ module IbmPowerHmc
       method_url += "?" + query.map { |h| h.join("=") }.join("&") unless query.empty?
 
       response = request(:get, method_url)
-      doc = REXML::Document.new(response.body)
-      metrics = []
-      doc.each_element("feed/entry") do |entry|
+      FeedParser.new(response.body).entries do |entry|
         term = entry.elements["category"]&.attributes["term"]
         next if term.nil? || term != "ManagedSystem"
 
@@ -70,9 +65,8 @@ module IbmPowerHmc
         next if href.nil?
 
         response = request(:get, href)
-        metrics << JSON.parse(response.body)
-      end
-      metrics
+        JSON.parse(response.body)
+      end.compact
     end
 
     ##
@@ -95,16 +89,13 @@ module IbmPowerHmc
       method_url += "?" + query.map { |h| h.join("=") }.join("&") unless query.empty?
 
       response = request(:get, method_url)
-      doc = REXML::Document.new(response.body)
-      metrics = []
-      doc.each_element("feed/entry") do |entry|
+      FeedParser(response.body).entries do |entry|
         href = entry.elements["link"]&.attributes["href"]
         next if href.nil?
 
         response = request(:get, href)
-        metrics << JSON.parse(response.body)
-      end
-      metrics
+        JSON.parse(response.body)
+      end.compact
     end
 
     ##

@@ -11,16 +11,18 @@ module IbmPowerHmc
       @doc = REXML::Document.new(body)
     end
 
+    def entry
+      @doc.elements["entry"]
+    end
+  end
+
+  class FeedParser < Parser
     def entries
       objs = []
       @doc.each_element("feed/entry") do |entry|
         objs << yield(entry)
       end
       objs
-    end
-
-    def entry
-      @doc.elements["entry"]
     end
   end
 
