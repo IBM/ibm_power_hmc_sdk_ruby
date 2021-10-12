@@ -30,7 +30,10 @@ module IbmPowerHmc
 
       response = request(:get, method_url)
       FeedParser.new(response.body).entries do |entry|
-        href = entry.elements["link"]&.attributes["href"]
+        link = entry.elements["link"]
+        next if link.nil?
+
+        href = link.attributes["href"]
         next if href.nil?
 
         response = request(:get, href)
@@ -58,10 +61,16 @@ module IbmPowerHmc
 
       response = request(:get, method_url)
       FeedParser.new(response.body).entries do |entry|
-        term = entry.elements["category"]&.attributes["term"]
+        category = entry.elements["category"]
+        next if category.nil?
+
+        term = category.attributes["term"]
         next if term.nil? || term != "ManagedSystem"
 
-        href = entry.elements["link"]&.attributes["href"]
+        link = entry.elements["link"]
+        next if link.nil?
+
+        href = link.attributes["href"]
         next if href.nil?
 
         response = request(:get, href)
@@ -90,7 +99,10 @@ module IbmPowerHmc
 
       response = request(:get, method_url)
       FeedParser(response.body).entries do |entry|
-        href = entry.elements["link"]&.attributes["href"]
+        link = entry.elements["link"]
+        next if link.nil?
+
+        href = link.attributes["href"]
         next if href.nil?
 
         response = request(:get, href)
