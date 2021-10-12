@@ -34,10 +34,8 @@ module IbmPowerHmc
         :content_type => "application/vnd.ibm.powervm.web+xml; type=LogonRequest"
       }
       doc = REXML::Document.new("")
-      doc.add_element("LogonRequest", {
-                        "xmlns" => "http://www.ibm.com/xmlns/systems/power/firmware/web/mc/2012_10/",
-                        "schemaVersion" => "V1_1_0"
-                      })
+      doc.add_element("LogonRequest", "schemaVersion" => "V1_1_0")
+      doc.root.add_namespace("http://www.ibm.com/xmlns/systems/power/firmware/web/mc/2012_10/")
       doc.root.add_element("UserID").text = @username
       doc.root.add_element("Password").text = @password
 
@@ -74,7 +72,7 @@ module IbmPowerHmc
       method_url = "/rest/api/uom/ManagementConsole"
       response = request(:get, method_url)
       # This request returns a feed with a single entry.
-      Parser.new(response.body).entries do |entry|
+      FeedParser.new(response.body).entries do |entry|
         ManagementConsole.new(entry)
       end.first
     end
@@ -88,7 +86,7 @@ module IbmPowerHmc
       method_url = "/rest/api/uom/ManagedSystem"
       search.each { |key, value| method_url += "/search/(#{key}==#{value})" }
       response = request(:get, method_url)
-      Parser.new(response.body).entries do |entry|
+      FeedParser.new(response.body).entries do |entry|
         ManagedSystem.new(entry)
       end
     end
@@ -98,7 +96,7 @@ module IbmPowerHmc
     # Retrieve information about a managed system.
     # @param sys_uuid [String] The UUID of the managed system.
     # @param group_name [String] The extended group attributes.
-    # @return [IbmPowerHmc::ManagedSystem] The logical partition.
+    # @return [IbmPowerHmc::ManagedSystem] The managed system.
     def managed_system(sys_uuid, group_name = nil)
       method_url = "/rest/api/uom/ManagedSystem/#{sys_uuid}"
       method_url += "?group=#{group_name}" unless group_name.nil?
@@ -122,7 +120,7 @@ module IbmPowerHmc
         method_url = "/rest/api/uom/ManagedSystem/#{sys_uuid}/LogicalPartition"
       end
       response = request(:get, method_url)
-      Parser.new(response.body).entries do |entry|
+      FeedParser.new(response.body).entries do |entry|
         LogicalPartition.new(entry)
       end
     end
@@ -173,7 +171,7 @@ module IbmPowerHmc
         method_url = "/rest/api/uom/ManagedSystem/#{sys_uuid}/VirtualIOServer"
       end
       response = request(:get, method_url)
-      Parser.new(response.body).entries do |entry|
+      FeedParser.new(response.body).entries do |entry|
         VirtualIOServer.new(entry)
       end
     end
@@ -321,7 +319,7 @@ module IbmPowerHmc
         # No need to sleep as the HMC already waits a bit before returning 204
         break if response.code != 204 || !wait
       end
-      Parser.new(response.body).entries do |entry|
+      FeedParser.new(response.body).entries do |entry|
         Event.new(entry)
       end
     end
