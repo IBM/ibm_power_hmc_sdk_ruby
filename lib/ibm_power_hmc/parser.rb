@@ -67,11 +67,9 @@ module IbmPowerHmc
     end
 
     def managed_systems_uuids
-      uuids = []
-      xml.each_element("ManagedSystems/link") do |link|
-        uuids << extract_uuid_from_href(link.attributes["href"])
-      end
-      uuids.compact
+      xml.get_elements("ManagedSystems/link").map do |link|
+        extract_uuid_from_href(link.attributes["href"])
+      end.compact
     end
   end
 
@@ -98,19 +96,15 @@ module IbmPowerHmc
     end
 
     def lpars_uuids
-      uuids = []
-      xml.each_element("AssociatedLogicalPartitions/link") do |link|
-        uuids << extract_uuid_from_href(link.attributes["href"])
-      end
-      uuids.compact
+      xml.get_elements("AssociatedLogicalPartitions/link").map do |link|
+        extract_uuid_from_href(link.attributes["href"])
+      end.compact
     end
 
     def vioses_uuids
-      uuids = []
-      xml.each_element("AssociatedVirtualIOServers/link") do |link|
-        uuids << extract_uuid_from_href(link.attributes["href"])
-      end
-      uuids.compact
+      xml.get_elements("AssociatedVirtualIOServers/link").map do |link|
+        extract_uuid_from_href(link.attributes["href"])
+      end.compact
     end
   end
 
