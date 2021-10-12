@@ -98,7 +98,7 @@ module IbmPowerHmc
     # Retrieve information about a managed system.
     # @param sys_uuid [String] The UUID of the managed system.
     # @param group_name [String] The extended group attributes.
-    # @return [IbmPowerHmc::ManagedSystem] The logical partition.
+    # @return [IbmPowerHmc::ManagedSystem] The managed system.
     def managed_system(sys_uuid, group_name = nil)
       method_url = "/rest/api/uom/ManagedSystem/#{sys_uuid}"
       method_url += "?group=#{group_name}" unless group_name.nil?
