@@ -46,9 +46,8 @@ module IbmPowerHmc
         jobparam.add_element("ParameterValue").text = value
       end
       response = @conn.request(:put, @method_url, headers, doc.to_s)
-      doc = REXML::Document.new(response.body)
-      info = doc.root.elements["content/JobResponse:JobResponse"]
-      @id = info.elements["JobID"].text
+      jobresp = Parser.new(response.body).object(:JobResponse)
+      @id = jobresp.id
     end
 
     # @return [Hash] The job results returned by the HMC.
@@ -66,20 +65,9 @@ module IbmPowerHmc
         :content_type => "application/vnd.ibm.powervm.web+xml; type=JobRequest"
       }
       response = @conn.request(:get, method_url, headers)
-      doc = REXML::Document.new(response.body)
-      info = doc.root.elements["content/JobResponse:JobResponse"]
-      status = info.elements["Status"].text
-      # Damien: also retrieve "ResponseException/Message"?
-
-      # Gather Job results returned by the HMC.
-      @results = {}
-      info.each_element("Results/JobParameter") do |result|
-        name = result.elements["ParameterName"].text.strip
-        value = result.elements["ParameterValue"].text.strip
-        @results[name] = value
-      end
-
-      status
+      jobresp = Parser.new(response.body).object(:JobResponse)
+      @results = jobresp.results
+      jobresp.status
     end
 
     ##
@@ -110,8 +98,7 @@ module IbmPowerHmc
     # @return [String] The status of the job.
     def run(timeout = 120, poll_interval = 0)
       start
-      status = wait(timeout, poll_interval)
-      status
+      wait(timeout, poll_interval)
     ensure
       delete if defined?(@id)
     end

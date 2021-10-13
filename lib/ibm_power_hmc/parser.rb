@@ -3,7 +3,6 @@
 require 'time'
 require 'uri'
 
-# Module for IBM HMC Rest API Client
 module IbmPowerHmc
   # Parser for HMC feeds and entries.
   class Parser
@@ -13,6 +12,25 @@ module IbmPowerHmc
 
     def entry
       @doc.elements["entry"]
+    end
+
+    def object(filter_type = nil)
+      self.class.to_obj(entry, filter_type)
+    end
+
+    def self.to_obj(entry, filter_type = nil)
+      return if entry.nil?
+
+      content = entry.elements["content"]
+      return if content.nil?
+
+      type = content.attributes["type"]
+      return if type.nil?
+
+      type = type.split("=").last
+      return unless filter_type.nil? || filter_type.to_s == type
+
+      Module.const_get("IbmPowerHmc::#{type}").new(entry)
     end
   end
 
@@ -24,7 +42,16 @@ module IbmPowerHmc
       end
       objs
     end
+
+    def objects(filter_type = nil)
+      entries do |entry|
+        self.class.to_obj(entry, filter_type)
+      end.compact
+    end
   end
+
+  private_constant :Parser
+  private_constant :FeedParser
 
   # HMC generic XML entry
   class AbstractRest
@@ -40,7 +67,7 @@ module IbmPowerHmc
     end
 
     def define_attr(varname, xpath)
-      value = xml.elements[xpath]&.text&.strip
+      value = text_element(xpath)
       self.class.__send__(:attr_reader, varname)
       instance_variable_set("@#{varname}", value)
     end
@@ -49,6 +76,10 @@ module IbmPowerHmc
       hash.each do |key, value|
         define_attr(key, value)
       end
+    end
+
+    def text_element(xpath)
+      xml.elements[xpath]&.text&.strip
     end
 
     def extract_uuid_from_href(href)
@@ -146,5 +177,24 @@ module IbmPowerHmc
       :reason  => "ReasonCode",
       :message => "Message"
     }.freeze
+  end
+
+  # Job Response
+  class JobResponse < AbstractRest
+    ATTRS = {
+      :id      => "JobID",
+      :status  => "Status",
+      :message => "ResponseException/Message"
+    }.freeze
+
+    def results
+      results = {}
+      xml.each_element("Results/JobParameter") do |result|
+        name = result.elements["ParameterName"]&.text&.strip
+        value = result.elements["ParameterValue"]&.text&.strip
+        results[name] = value unless name.nil?
+      end
+      results
+    end
   end
 end
