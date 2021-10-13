@@ -72,9 +72,7 @@ module IbmPowerHmc
       method_url = "/rest/api/uom/ManagementConsole"
       response = request(:get, method_url)
       # This request returns a feed with a single entry.
-      FeedParser.new(response.body).entries do |entry|
-        ManagementConsole.new(entry)
-      end.first
+      FeedParser.new(response.body).objects(:ManagementConsole).first
     end
 
     ##
@@ -86,9 +84,7 @@ module IbmPowerHmc
       method_url = "/rest/api/uom/ManagedSystem"
       search.each { |key, value| method_url += "/search/(#{key}==#{value})" }
       response = request(:get, method_url)
-      FeedParser.new(response.body).entries do |entry|
-        ManagedSystem.new(entry)
-      end
+      FeedParser.new(response.body).objects(:ManagedSystem)
     end
 
     ##
@@ -102,8 +98,7 @@ module IbmPowerHmc
       method_url += "?group=#{group_name}" unless group_name.nil?
 
       response = request(:get, method_url)
-      entry = Parser.new(response.body).entry
-      ManagedSystem.new(entry) unless entry.nil?
+      Parser.new(response.body).object(:ManagedSystem)
     end
 
     ##
@@ -120,9 +115,7 @@ module IbmPowerHmc
         method_url = "/rest/api/uom/ManagedSystem/#{sys_uuid}/LogicalPartition"
       end
       response = request(:get, method_url)
-      FeedParser.new(response.body).entries do |entry|
-        LogicalPartition.new(entry)
-      end
+      FeedParser.new(response.body).objects(:LogicalPartition)
     end
 
     ##
@@ -141,8 +134,7 @@ module IbmPowerHmc
       method_url += "?group=#{group_name}" unless group_name.nil?
 
       response = request(:get, method_url)
-      entry = Parser.new(response.body).entry
-      LogicalPartition.new(entry) unless entry.nil?
+      Parser.new(response.body).object(:LogicalPartition)
     end
 
     ##
@@ -171,9 +163,7 @@ module IbmPowerHmc
         method_url = "/rest/api/uom/ManagedSystem/#{sys_uuid}/VirtualIOServer"
       end
       response = request(:get, method_url)
-      FeedParser.new(response.body).entries do |entry|
-        VirtualIOServer.new(entry)
-      end
+      FeedParser.new(response.body).objects(:VirtualIOServer)
     end
 
     ##
@@ -192,8 +182,7 @@ module IbmPowerHmc
       method_url += "?group=#{group_name}" unless group_name.nil?
 
       response = request(:get, method_url)
-      entry = Parser.new(response.body).entry
-      VirtualIOServer.new(entry) unless entry.nil?
+      Parser.new(response.body).object(:VirtualIOServer)
     end
 
     ##
@@ -334,9 +323,7 @@ module IbmPowerHmc
         # No need to sleep as the HMC already waits a bit before returning 204
         break if response.code != 204 || !wait
       end
-      FeedParser.new(response.body).entries do |entry|
-        Event.new(entry)
-      end
+      FeedParser.new(response.body).objects(:Event)
     end
 
     ##
@@ -365,9 +352,8 @@ module IbmPowerHmc
 
         # Try to parse body as an HttpErrorResponse
         unless err.response.nil?
-          entry = Parser.new(err.response.body).entry
-          unless entry.nil?
-            resp = HttpErrorResponse.new(entry)
+          resp = Parser.new(err.response.body).object(:HttpErrorResponse)
+          unless resp.nil?
             @uri = resp.uri
             @reason = resp.reason
             @message = resp.message
@@ -376,7 +362,7 @@ module IbmPowerHmc
       end
 
       def to_s
-        "msg=#{@message} status=#{@status} reason=#{@reason} uri=#{@uri}"
+        "msg=\"#{@message}\" status=\"#{@status}\" reason=\"#{@reason}\" uri=#{@uri}"
       end
     end
 
