@@ -28,12 +28,15 @@ module IbmPowerHmc
 
   # HMC generic XML entry
   class AbstractRest
+    ATTRS = {}.freeze
     attr_reader :uuid, :published, :xml
 
-    def initialize(doc, type)
+    def initialize(doc)
       @uuid = doc.elements["id"]&.text
       @published = Time.xmlschema(doc.elements["published"]&.text)
+      type = self.class.name.split("::").last
       @xml = doc.elements["content/#{type}:#{type}"]
+      define_attrs(self.class::ATTRS)
     end
 
     def define_attr(varname, xpath)
@@ -55,16 +58,11 @@ module IbmPowerHmc
 
   # HMC information
   class ManagementConsole < AbstractRest
-    XMLMAP = {
+    ATTRS = {
       :name => "ManagementConsoleName",
       :build_level => "VersionInfo/BuildLevel",
       :version => "BaseVersion"
     }.freeze
-
-    def initialize(doc)
-      super(doc, :ManagementConsole)
-      define_attrs(XMLMAP)
-    end
 
     def managed_systems_uuids
       xml.get_elements("ManagedSystems/link").map do |link|
@@ -75,7 +73,7 @@ module IbmPowerHmc
 
   # Managed System information
   class ManagedSystem < AbstractRest
-    XMLMAP = {
+    ATTRS = {
       :name => "SystemName",
       :state => "State",
       :hostname => "Hostname",
@@ -89,11 +87,6 @@ module IbmPowerHmc
       :model => "MachineTypeModelAndSerialNumber/Model",
       :serial => "MachineTypeModelAndSerialNumber/SerialNumber"
     }.freeze
-
-    def initialize(doc)
-      super(doc, :ManagedSystem)
-      define_attrs(XMLMAP)
-    end
 
     def lpars_uuids
       xml.get_elements("AssociatedLogicalPartitions/link").map do |link|
@@ -110,7 +103,7 @@ module IbmPowerHmc
 
   # Common class for LPAR and VIOS
   class BasePartition < AbstractRest
-    XMLMAP = {
+    ATTRS = {
       :name => "PartitionName",
       :id => "PartitionID",
       :state => "PartitionState",
@@ -121,11 +114,6 @@ module IbmPowerHmc
       :rmc_ipaddr => "ResourceMonitoringIPAddress"
     }.freeze
 
-    def initialize(doc, type)
-      super(doc, type)
-      define_attrs(XMLMAP)
-    end
-
     def sys_uuid
       sys_href = xml.elements["AssociatedManagedSystem"].attributes["href"]
       extract_uuid_from_href(sys_href)
@@ -134,45 +122,29 @@ module IbmPowerHmc
 
   # Logical Partition information
   class LogicalPartition < BasePartition
-    def initialize(doc)
-      super(doc, :LogicalPartition)
-    end
   end
 
   # VIOS information
   class VirtualIOServer < BasePartition
-    def initialize(doc)
-      super(doc, :VirtualIOServer)
-    end
   end
 
   # HMC Event
   class Event < AbstractRest
-    XMLMAP = {
+    ATTRS = {
       :id     => "EventID",
       :type   => "EventType",
       :data   => "EventData",
       :detail => "EventDetail"
     }.freeze
-
-    def initialize(doc)
-      super(doc, :Event)
-      define_attrs(XMLMAP)
-    end
   end
 
   # Error response from HMC
   class HttpErrorResponse < AbstractRest
-    XMLMAP = {
+    ATTRS = {
       :status  => "HTTPStatus",
       :uri     => "RequestURI",
       :reason  => "ReasonCode",
       :message => "Message"
     }.freeze
-
-    def initialize(doc)
-      super(doc, :HttpErrorResponse)
-      define_attrs(XMLMAP)
-    end
   end
 end

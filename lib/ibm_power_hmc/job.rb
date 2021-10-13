@@ -35,13 +35,13 @@ module IbmPowerHmc
       doc.add_element("JobRequest:JobRequest", "schemaVersion" => "V1_1_0")
       doc.root.add_namespace("http://www.ibm.com/xmlns/systems/power/firmware/web/mc/2012_10/")
       doc.root.add_namespace("JobRequest", "http://www.ibm.com/xmlns/systems/power/firmware/web/mc/2012_10/")
-      op = doc.root.add_element("RequestedOperation", {"schemaVersion" => "V1_1_0"})
+      op = doc.root.add_element("RequestedOperation", "schemaVersion" => "V1_1_0")
       op.add_element("OperationName").text = @operation
       op.add_element("GroupName").text = @group
 
-      jobparams = doc.root.add_element("JobParameters", {"schemaVersion" => "V1_1_0"})
+      jobparams = doc.root.add_element("JobParameters", "schemaVersion" => "V1_1_0")
       @params.each do |key, value|
-        jobparam = jobparams.add_element("JobParameter", {"schemaVersion" => "V1_1_0"})
+        jobparam = jobparams.add_element("JobParameter", "schemaVersion" => "V1_1_0")
         jobparam.add_element("ParameterName").text = key
         jobparam.add_element("ParameterValue").text = value
       end

@@ -394,7 +394,7 @@ module IbmPowerHmc
       # Check for relative URLs
       url = "https://#{@hostname}#{url}" if url.start_with?("/")
       begin
-        headers = headers.merge({"X-API-Session" => @api_session_token})
+        headers = headers.merge("X-API-Session" => @api_session_token)
         RestClient::Request.execute(
           :method => method,
           :url => url,
