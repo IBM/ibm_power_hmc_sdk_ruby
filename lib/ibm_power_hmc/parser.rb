@@ -136,6 +136,7 @@ module IbmPowerHmc
   # Common class for LPAR and VIOS
   class BasePartition < AbstractRest
     ATTRS = {
+      :os_version => "OperatingSystemVersion",
       :name => "PartitionName",
       :id => "PartitionID",
       :state => "PartitionState",
@@ -150,6 +151,14 @@ module IbmPowerHmc
     def sys_uuid
       sys_href = xml.elements["AssociatedManagedSystem"].attributes["href"]
       extract_uuid_from_href(sys_href)
+    end
+
+    def os(field)
+      case field
+      when :product_name    then os_version.split[0]
+      when :version         then os_version.split[1]
+      when :build_number    then os_version.split[2]
+      end
     end
   end
 
