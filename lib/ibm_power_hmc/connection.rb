@@ -151,11 +151,11 @@ module IbmPowerHmc
     end
 
     ##
-    # @!method lpar_rename(lpar_uuid, newname)
+    # @!method rename_lpar(lpar_uuid, newname)
     # Rename a logical partition.
     # @param lpar_uuid [String] The UUID of the logical partition.
     # @param newname [String] The new name of the logical partition.
-    def lpar_rename(lpar_uuid, newname)
+    def rename_lpar(lpar_uuid, newname)
       method_url = "/rest/api/uom/LogicalPartition/#{lpar_uuid}"
       headers = {
         :content_type => "application/vnd.ibm.powervm.uom+xml; type=LogicalPartition",
