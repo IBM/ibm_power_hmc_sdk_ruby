@@ -56,11 +56,12 @@ module IbmPowerHmc
   # HMC generic XML entry
   class AbstractRest
     ATTRS = {}.freeze
-    attr_reader :uuid, :published, :xml
+    attr_reader :uuid, :published, :etag, :xml
 
     def initialize(doc)
       @uuid = doc.elements["id"]&.text
       @published = Time.xmlschema(doc.elements["published"]&.text)
+      @etag = doc.elements["etag:etag"]&.text&.strip
       type = self.class.name.split("::").last
       @xml = doc.elements["content/#{type}:#{type}"]
       define_attrs(self.class::ATTRS)
@@ -142,7 +143,8 @@ module IbmPowerHmc
       :memory => "PartitionMemoryConfiguration/CurrentMemory",
       :dedicated => "PartitionProcessorConfiguration/HasDedicatedProcessors",
       :rmc_state => "ResourceMonitoringControlState",
-      :rmc_ipaddr => "ResourceMonitoringIPAddress"
+      :rmc_ipaddr => "ResourceMonitoringIPAddress",
+      :ref_code => "ReferenceCode"
     }.freeze
 
     def sys_uuid
