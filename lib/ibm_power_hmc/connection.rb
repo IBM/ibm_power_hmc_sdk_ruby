@@ -141,12 +141,28 @@ module IbmPowerHmc
     # @!method lpar_quick_property(lpar_uuid, property_name)
     # Retrieve a quick property of a logical partition.
     # @param lpar_uuid [String] The UUID of the logical partition.
+    # @param property_name [String] The quick property name.
     # @return [String] The quick property value.
     def lpar_quick_property(lpar_uuid, property_name)
       method_url = "/rest/api/uom/LogicalPartition/#{lpar_uuid}/quick/#{property_name}"
 
       response = request(:get, method_url)
       response.body[1..-2]
+    end
+
+    ##
+    # @!method lpar_rename(lpar_uuid, newname)
+    # Rename a logical partition.
+    # @param lpar_uuid [String] The UUID of the logical partition.
+    # @param newname [String] The new name of the logical partition.
+    def lpar_rename(lpar_uuid, newname)
+      method_url = "/rest/api/uom/LogicalPartition/#{lpar_uuid}"
+      headers = {
+        :content_type => "application/vnd.ibm.powervm.uom+xml; type=LogicalPartition",
+      }
+      modify_object(method_url, headers) do |lpar|
+        lpar.xml.elements["PartitionName"].text = newname
+      end
     end
 
     ##
@@ -397,6 +413,28 @@ module IbmPowerHmc
           retry
         end
         raise HttpError.new(e), "REST request failed"
+      end
+    end
+
+    private
+
+    def modify_object(method_url, headers = {}, attempts = 5)
+      while attempts > 0
+        response = request(:get, method_url)
+        obj = Parser.new(response.body).object
+
+        yield obj
+
+        # Use ETag to ensure object has not changed.
+        headers = headers.merge("If-Match" => obj.etag)
+        begin
+          request(:post, method_url, headers, obj.xml.to_s)
+          break
+        rescue HttpError => e
+          attempts -= 1
+          # Will get 412 ("Precondition Failed" if ETag mismatches)
+          raise if e.status != 412 || attempts == 0
+        end
       end
     end
   end
