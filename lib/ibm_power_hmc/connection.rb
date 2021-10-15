@@ -2,7 +2,7 @@
 
 # Module for IBM HMC Rest API Client
 module IbmPowerHmc
-  require_relative 'pcm.rb'
+  require_relative 'pcm'
 
   class Error < StandardError; end
 
@@ -411,6 +411,8 @@ module IbmPowerHmc
     # @return [RestClient::Response] The response from the HMC.
     def request(method, url, headers = {}, payload = nil)
       logon if @api_session_token.nil?
+      reauth = false
+      # Check for relative URLs
       url = "https://#{@hostname}#{url}" if url.start_with?("/")
       begin
         headers = headers.merge({"X-API-Session" => @api_session_token})
