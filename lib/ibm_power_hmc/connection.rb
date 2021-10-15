@@ -2,6 +2,10 @@
 
 # Module for IBM HMC Rest API Client
 module IbmPowerHmc
+  require_relative 'pcm.rb'
+
+  class Error < StandardError; end
+
   ##
   # HMC REST Client connection.
   class Connection
@@ -40,32 +44,29 @@ module IbmPowerHmc
       doc.root.add_element("UserID").text = @username
       doc.root.add_element("Password").text = @password
 
-      # Damien: begin/rescue
       @api_session_token = ""
       response = request(:put, method_url, headers, doc.to_s)
       doc = REXML::Document.new(response.body)
-      @api_session_token = doc.root.elements["X-API-Session"].text
+      elem = doc.elements["LogonResponse/X-API-Session"]
+      raise Error, "LogonResponse/X-API-Session not found" if elem.nil?
+
+      @api_session_token = elem.text
     end
 
     ##
     # @!method logoff
     # Close the session.
     def logoff
-      method_url = "/rest/api/web/Logon"
-      request(:delete, method_url)
-      @api_session_token = nil
-    end
+      # Don't want to trigger automatic logon here!
+      return if @api_session_token.nil?
 
-    ##
-    # @!method management_console
-    # Retrieve information about the management console.
-    # @return [IbmPowerHmc::ManagementConsole] The management console.
-    def management_console
-      method_url = "/rest/api/uom/ManagementConsole"
-      response = request(:get, method_url)
-      doc = REXML::Document.new(response.body)
-      entry = doc.root.elements["entry"]
-      ManagementConsole.new(entry)
+      method_url = "/rest/api/web/Logon"
+      begin
+        request(:delete, method_url)
+      rescue
+        # Ignore exceptions as this is best effort attempt to log off.
+      end
+      @api_session_token = nil
     end
 
     def parse_feed(doc, myclass)
@@ -76,6 +77,18 @@ module IbmPowerHmc
       objs
     end
     private :parse_feed
+
+    ##
+    # @!method management_console
+    # Retrieve information about the management console.
+    # @return [IbmPowerHmc::ManagementConsole] The management console.
+    def management_console
+      method_url = "/rest/api/uom/ManagementConsole"
+      response = request(:get, method_url)
+      doc = REXML::Document.new(response.body)
+      # This request returns a feed with a single entry.
+      parse_feed(doc, ManagementConsole).first
+    end
 
     ##
     # @!method managed_systems
@@ -164,11 +177,7 @@ module IbmPowerHmc
       else
         method_url = "/rest/api/uom/ManagedSystem/#{sys_uuid}/VirtualIOServer"
       end
-      begin
-        response = request(:get, method_url)
-      rescue
-        return []
-      end
+      response = request(:get, method_url)
       doc = REXML::Document.new(response.body)
       parse_feed(doc, VirtualIOServer)
     end
@@ -192,18 +201,6 @@ module IbmPowerHmc
       doc = REXML::Document.new(response.body)
       entry = doc.elements["entry"]
       VirtualIOServer.new(entry)
-    end
-
-    # Damien: share the same method for VIOS and LPAR?
-    def lpar_profiles(lpar_uuid)
-      method_url = "/rest/api/uom/LogicalPartition/#{lpar_uuid}/LogicalPartitionProfile"
-      begin
-        response = request(:get, method_url)
-      rescue
-        return []
-      end
-      doc = REXML::Document.new(response.body)
-      parse_feed(doc, LogicalPartitionProfile)
     end
 
     ##
@@ -359,11 +356,49 @@ module IbmPowerHmc
         break if response.code != 204 || !wait
       end
       doc = REXML::Document.new(response.body)
-      events = []
-      doc.each_element("feed/entry") do |entry|
-        events << Event.new(entry)
+      parse_feed(doc, Event)
+    end
+
+    ##
+    # @!method schema(type)
+    # Retrieve the XML schema file for a given object type.
+    # @param type [String] The object type (e.g. "LogicalPartition", "inc/Types")
+    # @return [REXML::Document] The XML schema file.
+    def schema(type)
+      method_url = "/rest/api/web/schema/#{type}.xsd"
+      response = request(:get, method_url)
+      REXML::Document.new(response.body)
+    end
+
+    class HttpError < Error
+      attr_reader :status, :uri, :reason, :message, :original_exception
+
+      ##
+      # @!method initialize(err)
+      # Create a new HttpError exception.
+      # @param err [RestClient::Exception] The REST client exception.
+      def initialize(err)
+        super
+        @original_exception = err
+        @status = err.http_code
+        @message = err.message
+
+        # Try to parse body as an HttpErrorResponse
+        unless err.response.nil?
+          doc = REXML::Document.new(err.response.body)
+          entry = doc.elements["entry"]
+          unless entry.nil?
+            resp = HttpErrorResponse.new(entry)
+            @uri = resp.uri
+            @reason = resp.reason
+            @message = resp.message
+          end
+        end
       end
-      events
+
+      def to_s
+        "msg=#{@message} status=#{@status} reason=#{@reason} uri=#{@uri}"
+      end
     end
 
     ##
@@ -376,23 +411,26 @@ module IbmPowerHmc
     # @return [RestClient::Response] The response from the HMC.
     def request(method, url, headers = {}, payload = nil)
       logon if @api_session_token.nil?
-
-      headers = headers.merge({"X-API-Session" => @api_session_token})
-      # Damien: use URI module and prepare in initialize?
-      response = RestClient::Request.execute(
-        :method => method,
-        :url => "https://#{@hostname}#{url}",
-        :verify_ssl => @verify_ssl,
-        :payload => payload,
-        :headers => headers
-      )
-      if response.code == 403
-        # Damien: if token expires, reauth?
-        @api_session_token = nil
-        logon
-        # Damien: retry TBD
+      url = "https://#{@hostname}#{url}" if url.start_with?("/")
+      begin
+        headers = headers.merge({"X-API-Session" => @api_session_token})
+        RestClient::Request.execute(
+          :method => method,
+          :url => url,
+          :verify_ssl => @verify_ssl,
+          :payload => payload,
+          :headers => headers
+        )
+      rescue RestClient::Exception => e
+        # Do not retry on failed logon attempts
+        if e.http_code == 401 && @api_session_token != "" && !reauth
+          # Try to reauth
+          reauth = true
+          logon
+          retry
+        end
+        raise HttpError.new(e), "REST request failed"
       end
-      response
     end
   end
 end

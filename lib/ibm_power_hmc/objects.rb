@@ -6,10 +6,11 @@ require 'uri'
 module IbmPowerHmc
   # HMC generic object
   class HmcObject
-    attr_reader :uuid
+    attr_reader :uuid, :xml
 
     def initialize(doc)
       @uuid = doc.elements["id"].text
+      @xml = doc
     end
 
     def get_value(doc, xpath, varname)
@@ -24,10 +25,6 @@ module IbmPowerHmc
       hash.each do |key, value|
         get_value(doc, key, value)
       end
-    end
-
-    def to_s
-      "uuid=#{@uuid}"
     end
   end
 
@@ -44,10 +41,6 @@ module IbmPowerHmc
       info = doc.elements["content/ManagementConsole:ManagementConsole"]
       get_values(info, XMLMAP)
     end
-
-    def to_s
-      "hmc name=#{@name} version=#{@version} build_level=#{@build_level}"
-    end
   end
 
   # Managed System information
@@ -57,6 +50,7 @@ module IbmPowerHmc
       "State" => "state",
       "Hostname" => "hostname",
       "PrimaryIPAddress" => "ipaddr",
+      "SystemFirmware" => "fwversion",
       "AssociatedSystemMemoryConfiguration/InstalledSystemMemory" => "memory",
       "AssociatedSystemMemoryConfiguration/CurrentAvailableSystemMemory" => "avail_mem",
       "AssociatedSystemProcessorConfiguration/InstalledSystemProcessorUnits" => "cpus",
@@ -70,10 +64,6 @@ module IbmPowerHmc
       super(doc)
       info = doc.elements["content/ManagedSystem:ManagedSystem"]
       get_values(info, XMLMAP)
-    end
-
-    def to_s
-      "sys name=#{@name} state=#{@state} ip=#{@ipaddr} mem=#{@memory}MB avail=#{@avail_mem}MB CPUs=#{@cpus} avail=#{@avail_cpus}"
     end
   end
 
@@ -118,10 +108,6 @@ module IbmPowerHmc
       @sys_uuid = URI(sys_href).path.split('/').last
       get_values(info, XMLMAP)
     end
-
-    def to_s
-      "lpar name=#{@name} id=#{@id} state=#{@state} type=#{@type} memory=#{@memory}MB dedicated cpus=#{@dedicated}"
-    end
   end
 
   # VIOS information
@@ -144,17 +130,6 @@ module IbmPowerHmc
       @sys_uuid = URI(sys_href).path.split('/').last
       get_values(info, XMLMAP)
     end
-
-    def to_s
-      "vios name=#{@name} id=#{@id} state=#{@state} type=#{@type} memory=#{@memory}MB dedicated cpus=#{@dedicated}"
-    end
-  end
-
-  # LPAR profile
-  class LogicalPartitionProfile < HmcObject
-    attr_reader :lpar_uuid
-
-    # Damien: TBD
   end
 
   # HMC Event
@@ -174,9 +149,21 @@ module IbmPowerHmc
       info = doc.elements["content/Event:Event"]
       get_values(info, XMLMAP)
     end
+  end
 
-    def to_s
-      "event id=#{@id} type=#{@type} data=#{@data} detail=#{@detail}"
+  # Error response from HMC
+  class HttpErrorResponse < HmcObject
+    XMLMAP = {
+      "HTTPStatus" => "status",
+      "RequestURI" => "uri",
+      "ReasonCode" => "reason",
+      "Message" => "message",
+    }.freeze
+
+    def initialize(doc)
+      super(doc)
+      info = doc.elements["content/HttpErrorResponse:HttpErrorResponse"]
+      get_values(info, XMLMAP)
     end
   end
 end
