@@ -24,7 +24,7 @@ module IbmPowerHmc
     end
 
     ##
-    # @!method status
+    # @!method start
     # Start the job asynchronously.
     # @return [String] The ID of the job.
     def start
@@ -32,25 +32,22 @@ module IbmPowerHmc
         :content_type => "application/vnd.ibm.powervm.web+xml; type=JobRequest"
       }
       doc = REXML::Document.new("")
-      doc.add_element("JobRequest:JobRequest", {
-                        "xmlns:JobRequest" => "http://www.ibm.com/xmlns/systems/power/firmware/web/mc/2012_10/",
-                        "xmlns" => "http://www.ibm.com/xmlns/systems/power/firmware/web/mc/2012_10/",
-                        "schemaVersion" => "V1_1_0"
-                      })
-      op = doc.root.add_element("RequestedOperation", {"schemaVersion" => "V1_1_0"})
+      doc.add_element("JobRequest:JobRequest", "schemaVersion" => "V1_1_0")
+      doc.root.add_namespace("http://www.ibm.com/xmlns/systems/power/firmware/web/mc/2012_10/")
+      doc.root.add_namespace("JobRequest", "http://www.ibm.com/xmlns/systems/power/firmware/web/mc/2012_10/")
+      op = doc.root.add_element("RequestedOperation", "schemaVersion" => "V1_1_0")
       op.add_element("OperationName").text = @operation
       op.add_element("GroupName").text = @group
-      # Damien: ProgressType?
-      jobparams = doc.root.add_element("JobParameters", {"schemaVersion" => "V1_1_0"})
+
+      jobparams = doc.root.add_element("JobParameters", "schemaVersion" => "V1_1_0")
       @params.each do |key, value|
-        jobparam = jobparams.add_element("JobParameter", {"schemaVersion" => "V1_1_0"})
+        jobparam = jobparams.add_element("JobParameter", "schemaVersion" => "V1_1_0")
         jobparam.add_element("ParameterName").text = key
         jobparam.add_element("ParameterValue").text = value
       end
       response = @conn.request(:put, @method_url, headers, doc.to_s)
-      doc = REXML::Document.new(response.body)
-      info = doc.root.elements["content/JobResponse:JobResponse"]
-      @id = info.elements["JobID"].text
+      jobresp = Parser.new(response.body).object(:JobResponse)
+      @id = jobresp.id
     end
 
     # @return [Hash] The job results returned by the HMC.
@@ -68,20 +65,9 @@ module IbmPowerHmc
         :content_type => "application/vnd.ibm.powervm.web+xml; type=JobRequest"
       }
       response = @conn.request(:get, method_url, headers)
-      doc = REXML::Document.new(response.body)
-      info = doc.root.elements["content/JobResponse:JobResponse"]
-      status = info.elements["Status"].text
-      # Damien: also retrieve "ResponseException/Message"?
-
-      # Gather Job results returned by the HMC.
-      @results = {}
-      info.each_element("Results/JobParameter") do |result|
-        name = result.elements["ParameterName"].text.strip
-        value = result.elements["ParameterValue"].text.strip
-        @results[name] = value
-      end
-
-      status
+      jobresp = Parser.new(response.body).object(:JobResponse)
+      @results = jobresp.results
+      jobresp.status
     end
 
     ##
@@ -112,8 +98,7 @@ module IbmPowerHmc
     # @return [String] The status of the job.
     def run(timeout = 120, poll_interval = 0)
       start
-      status = wait(timeout, poll_interval)
-      status
+      wait(timeout, poll_interval)
     ensure
       delete if defined?(@id)
     end

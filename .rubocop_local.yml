@@ -2,6 +2,6 @@ AllCops:
   Exclude:
   - '*.gemspec'
 Layout/HashAlignment:
-  EnforcedHashRocketStyle: key
+  Enabled: false
 Style/ConditionalAssignment:
-  EnforcedStyle: assign_inside_condition
+  Enabled: false

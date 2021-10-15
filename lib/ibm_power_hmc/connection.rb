@@ -2,8 +2,6 @@
 
 # Module for IBM HMC Rest API Client
 module IbmPowerHmc
-  require_relative 'pcm'
-
   class Error < StandardError; end
 
   ##
@@ -19,7 +17,6 @@ module IbmPowerHmc
     # @param port [Integer] TCP port number.
     # @param validate_ssl [Boolean] Verify SSL certificates.
     def initialize(host:, password:, username: "hscroot", port: 12_443, validate_ssl: true)
-      # Damien: use URI::HTTPS
       @hostname = "#{host}:#{port}"
       @username = username
       @password = password
@@ -37,10 +34,8 @@ module IbmPowerHmc
         :content_type => "application/vnd.ibm.powervm.web+xml; type=LogonRequest"
       }
       doc = REXML::Document.new("")
-      doc.add_element("LogonRequest", {
-                        "xmlns" => "http://www.ibm.com/xmlns/systems/power/firmware/web/mc/2012_10/",
-                        "schemaVersion" => "V1_1_0"
-                      })
+      doc.add_element("LogonRequest", "schemaVersion" => "V1_1_0")
+      doc.root.add_namespace("http://www.ibm.com/xmlns/systems/power/firmware/web/mc/2012_10/")
       doc.root.add_element("UserID").text = @username
       doc.root.add_element("Password").text = @password
 
@@ -69,15 +64,6 @@ module IbmPowerHmc
       @api_session_token = nil
     end
 
-    def parse_feed(doc, myclass)
-      objs = []
-      doc.each_element("feed/entry") do |entry|
-        objs << myclass.new(entry)
-      end
-      objs
-    end
-    private :parse_feed
-
     ##
     # @!method management_console
     # Retrieve information about the management console.
@@ -85,20 +71,20 @@ module IbmPowerHmc
     def management_console
       method_url = "/rest/api/uom/ManagementConsole"
       response = request(:get, method_url)
-      doc = REXML::Document.new(response.body)
       # This request returns a feed with a single entry.
-      parse_feed(doc, ManagementConsole).first
+      FeedParser.new(response.body).objects(:ManagementConsole).first
     end
 
     ##
-    # @!method managed_systems
+    # @!method managed_systems(search = {})
     # Retrieve the list of systems managed by the HMC.
+    # @param search [Hash] The optional property name and value to match.
     # @return [Array<IbmPowerHmc::ManagedSystem>] The list of managed systems.
-    def managed_systems
+    def managed_systems(search = {})
       method_url = "/rest/api/uom/ManagedSystem"
+      search.each { |key, value| method_url += "/search/(#{key}==#{value})" }
       response = request(:get, method_url)
-      doc = REXML::Document.new(response.body)
-      parse_feed(doc, ManagedSystem)
+      FeedParser.new(response.body).objects(:ManagedSystem)
     end
 
     ##
@@ -106,31 +92,30 @@ module IbmPowerHmc
     # Retrieve information about a managed system.
     # @param sys_uuid [String] The UUID of the managed system.
     # @param group_name [String] The extended group attributes.
-    # @return [IbmPowerHmc::ManagedSystem] The logical partition.
+    # @return [IbmPowerHmc::ManagedSystem] The managed system.
     def managed_system(sys_uuid, group_name = nil)
       method_url = "/rest/api/uom/ManagedSystem/#{sys_uuid}"
       method_url += "?group=#{group_name}" unless group_name.nil?
 
       response = request(:get, method_url)
-      doc = REXML::Document.new(response.body)
-      entry = doc.elements["entry"]
-      ManagedSystem.new(entry)
+      Parser.new(response.body).object(:ManagedSystem)
     end
 
     ##
-    # @!method lpars(sys_uuid = nil)
+    # @!method lpars(sys_uuid = nil, search = {})
     # Retrieve the list of logical partitions managed by the HMC.
     # @param sys_uuid [String] The UUID of the managed system.
+    # @param search [Hash] The optional property name and value to match.
     # @return [Array<IbmPowerHmc::LogicalPartition>] The list of logical partitions.
-    def lpars(sys_uuid = nil)
+    def lpars(sys_uuid = nil, search = {})
       if sys_uuid.nil?
         method_url = "/rest/api/uom/LogicalPartition"
+        search.each { |key, value| method_url += "/search/(#{key}==#{value})" }
       else
         method_url = "/rest/api/uom/ManagedSystem/#{sys_uuid}/LogicalPartition"
       end
       response = request(:get, method_url)
-      doc = REXML::Document.new(response.body)
-      parse_feed(doc, LogicalPartition)
+      FeedParser.new(response.body).objects(:LogicalPartition)
     end
 
     ##
@@ -149,15 +134,14 @@ module IbmPowerHmc
       method_url += "?group=#{group_name}" unless group_name.nil?
 
       response = request(:get, method_url)
-      doc = REXML::Document.new(response.body)
-      entry = doc.elements["entry"]
-      LogicalPartition.new(entry)
+      Parser.new(response.body).object(:LogicalPartition)
     end
 
     ##
     # @!method lpar_quick_property(lpar_uuid, property_name)
     # Retrieve a quick property of a logical partition.
     # @param lpar_uuid [String] The UUID of the logical partition.
+    # @param property_name [String] The quick property name.
     # @return [String] The quick property value.
     def lpar_quick_property(lpar_uuid, property_name)
       method_url = "/rest/api/uom/LogicalPartition/#{lpar_uuid}/quick/#{property_name}"
@@ -167,19 +151,35 @@ module IbmPowerHmc
     end
 
     ##
-    # @!method vioses(sys_uuid = nil)
+    # @!method rename_lpar(lpar_uuid, newname)
+    # Rename a logical partition.
+    # @param lpar_uuid [String] The UUID of the logical partition.
+    # @param newname [String] The new name of the logical partition.
+    def rename_lpar(lpar_uuid, newname)
+      method_url = "/rest/api/uom/LogicalPartition/#{lpar_uuid}"
+      headers = {
+        :content_type => "application/vnd.ibm.powervm.uom+xml; type=LogicalPartition",
+      }
+      modify_object(method_url, headers) do |lpar|
+        lpar.xml.elements["PartitionName"].text = newname
+      end
+    end
+
+    ##
+    # @!method vioses(sys_uuid = nil, search = {})
     # Retrieve the list of virtual I/O servers managed by the HMC.
     # @param sys_uuid [String] The UUID of the managed system.
+    # @param search [Hash] The optional property name and value to match.
     # @return [Array<IbmPowerHmc::VirtualIOServer>] The list of virtual I/O servers.
-    def vioses(sys_uuid = nil)
+    def vioses(sys_uuid = nil, search = {})
       if sys_uuid.nil?
         method_url = "/rest/api/uom/VirtualIOServer"
+        search.each { |key, value| method_url += "/search/(#{key}==#{value})" }
       else
         method_url = "/rest/api/uom/ManagedSystem/#{sys_uuid}/VirtualIOServer"
       end
       response = request(:get, method_url)
-      doc = REXML::Document.new(response.body)
-      parse_feed(doc, VirtualIOServer)
+      FeedParser.new(response.body).objects(:VirtualIOServer)
     end
 
     ##
@@ -198,9 +198,7 @@ module IbmPowerHmc
       method_url += "?group=#{group_name}" unless group_name.nil?
 
       response = request(:get, method_url)
-      doc = REXML::Document.new(response.body)
-      entry = doc.elements["entry"]
-      VirtualIOServer.new(entry)
+      Parser.new(response.body).object(:VirtualIOServer)
     end
 
     ##
@@ -294,6 +292,21 @@ module IbmPowerHmc
     end
 
     ##
+    # @!method remove_connection(hmc_uuid, sys_uuid, sync = true)
+    # Remove a managed system from the management console.
+    # @param hmc_uuid [String] The UUID of the management console.
+    # @param sys_uuid [String] The UUID of the managed system.
+    # @param sync [Boolean] Start the job and wait for its completion.
+    # @return [IbmPowerHmc::HmcJob] The HMC job.
+    def remove_connection(hmc_uuid, sys_uuid, sync = true)
+      method_url = "/rest/api/uom/ManagementConsole/#{hmc_uuid}/ManagedSystem/#{sys_uuid}/do/RemoveConnection"
+
+      job = HmcJob.new(self, method_url, "RemoveConnection", "ManagedSystem")
+      job.run if sync
+      job
+    end
+
+    ##
     # @!method cli_run(hmc_uuid, cmd, sync = true)
     # Run a CLI command on the HMC as a job.
     # @param hmc_uuid [String] The UUID of the management console.
@@ -355,8 +368,7 @@ module IbmPowerHmc
         # No need to sleep as the HMC already waits a bit before returning 204
         break if response.code != 204 || !wait
       end
-      doc = REXML::Document.new(response.body)
-      parse_feed(doc, Event)
+      FeedParser.new(response.body).objects(:Event)
     end
 
     ##
@@ -385,10 +397,8 @@ module IbmPowerHmc
 
         # Try to parse body as an HttpErrorResponse
         unless err.response.nil?
-          doc = REXML::Document.new(err.response.body)
-          entry = doc.elements["entry"]
-          unless entry.nil?
-            resp = HttpErrorResponse.new(entry)
+          resp = Parser.new(err.response.body).object(:HttpErrorResponse)
+          unless resp.nil?
             @uri = resp.uri
             @reason = resp.reason
             @message = resp.message
@@ -397,7 +407,7 @@ module IbmPowerHmc
       end
 
       def to_s
-        "msg=#{@message} status=#{@status} reason=#{@reason} uri=#{@uri}"
+        "msg=\"#{@message}\" status=\"#{@status}\" reason=\"#{@reason}\" uri=#{@uri}"
       end
     end
 
@@ -415,7 +425,7 @@ module IbmPowerHmc
       # Check for relative URLs
       url = "https://#{@hostname}#{url}" if url.start_with?("/")
       begin
-        headers = headers.merge({"X-API-Session" => @api_session_token})
+        headers = headers.merge("X-API-Session" => @api_session_token)
         RestClient::Request.execute(
           :method => method,
           :url => url,
@@ -432,6 +442,28 @@ module IbmPowerHmc
           retry
         end
         raise HttpError.new(e), "REST request failed"
+      end
+    end
+
+    private
+
+    def modify_object(method_url, headers = {}, attempts = 5)
+      while attempts > 0
+        response = request(:get, method_url)
+        obj = Parser.new(response.body).object
+
+        yield obj
+
+        # Use ETag to ensure object has not changed.
+        headers = headers.merge("If-Match" => obj.etag)
+        begin
+          request(:post, method_url, headers, obj.xml.to_s)
+          break
+        rescue HttpError => e
+          attempts -= 1
+          # Will get 412 ("Precondition Failed" if ETag mismatches)
+          raise if e.status != 412 || attempts == 0
+        end
       end
     end
   end
