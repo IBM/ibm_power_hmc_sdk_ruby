@@ -69,6 +69,8 @@ module IbmPowerHmc
 
   # virtualSwitch information
   class VirtualSwitch < HmcObject
+    attr_reader :sys_uuid
+
     XMLMAP = {
       "SwitchID" => "id",
       "SwitchMode" => "mode",
@@ -77,6 +79,8 @@ module IbmPowerHmc
 
     def initialize(doc)
       super(doc)
+      sys_href = doc.elements["link[@rel='SELF']"].attributes["href"]
+      @sys_uuid = URI(sys_href).path.split('/')[-3]
       info = doc.elements["content/VirtualSwitch:VirtualSwitch"]
       get_values(info, XMLMAP)
     end
