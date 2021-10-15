@@ -136,6 +136,7 @@ module IbmPowerHmc
   # Common class for LPAR and VIOS
   class BasePartition < AbstractRest
     ATTRS = {
+      :os => "OperatingSystemVersion",
       :name => "PartitionName",
       :id => "PartitionID",
       :state => "PartitionState",
