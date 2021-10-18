@@ -16,7 +16,7 @@ module IbmPowerHmc
     # @param password [String] Password.
     # @param port [Integer] TCP port number.
     # @param validate_ssl [Boolean] Verify SSL certificates.
-    def initialize(host:, username: "hscroot", password:, port: 12_443, validate_ssl: true)
+    def initialize(host:, password:, username: "hscroot", port: 12_443, validate_ssl: true)
       @hostname = "#{host}:#{port}"
       @username = username
       @password = password
@@ -323,6 +323,29 @@ module IbmPowerHmc
       job = HmcJob.new(self, method_url, "CLIRunner", "ManagementConsole", params)
       job.run if sync
       job
+    end
+
+    ##
+    # @!method virtual_switches(sys_uuid)
+    # Retrieve the list of virtual switchs from a specified managed system
+    # @param sys_uuid [string] The UUID of the managed system
+    # @return [Array<IbmPowerHmc::VirtualSwitch] The list of virtual switch.
+    def virtual_switches(sys_uuid)
+      method_url = "/rest/api/uom/ManagedSystem/#{sys_uuid}/VirtualSwitch"
+      response = request(:get, method_url)
+      FeedParser.new(response.body).objects(:VirtualSwitch)
+    end
+
+    ##
+    # @!method virtual_switch(vswitch_uuid, sys_uuid)
+    # @param vswitch_uuid [string] The UUID of the virtual switch
+    # @param  sys_uuid [String] The UUID of the managed system.
+    # @return [IbmPowerHmc::VirtualSwitch] The virtual switch.
+    def virtual_switch(vswitch_uuid, sys_uuid)
+      method_url = "/rest/api/uom/ManagedSystem/#{sys_uuid}/VirtualSwitch/#{vswitch_uuid}"
+
+      response = request(:get, method_url)
+      Parser.new(response.body).object(:VirtualSwitch)
     end
 
     ##
