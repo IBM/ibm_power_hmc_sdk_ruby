@@ -5,3 +5,5 @@ Layout/HashAlignment:
   Enabled: false
 Style/ConditionalAssignment:
   Enabled: false
+Style/OptionalBooleanParameter:
+  Enabled: false

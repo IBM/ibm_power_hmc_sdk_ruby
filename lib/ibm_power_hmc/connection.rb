@@ -298,7 +298,7 @@ module IbmPowerHmc
     # @param sys_uuid [String] The UUID of the managed system.
     # @param sync [Boolean] Start the job and wait for its completion.
     # @return [IbmPowerHmc::HmcJob] The HMC job.
-    def remove_connection(hmc_uuid, sys_uuid, sync: true)
+    def remove_connection(hmc_uuid, sys_uuid, sync = true)
       method_url = "/rest/api/uom/ManagementConsole/#{hmc_uuid}/ManagedSystem/#{sys_uuid}/do/RemoveConnection"
 
       job = HmcJob.new(self, method_url, "RemoveConnection", "ManagedSystem")
