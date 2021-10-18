@@ -344,12 +344,8 @@ module IbmPowerHmc
     def virtual_switch(vswitch_uuid, sys_uuid)
       method_url = "/rest/api/uom/ManagedSystem/#{sys_uuid}/VirtualSwitch/#{vswitch_uuid}"
 
-      method_url += "?group=#{group_name}" unless group_name.nil?
-
       response = request(:get, method_url)
-      doc = REXML::Document.new(response.body)
-      entry = doc.elements["entry"]
-      VirtualSwitch.new(entry)
+      Parser.new(response.body).object(:VirtualSwitch)
     end
 
     ##

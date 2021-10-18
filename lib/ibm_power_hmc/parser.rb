@@ -164,7 +164,7 @@ module IbmPowerHmc
 
   # VirtualSwitch information
   class VirtualSwitch < AbstractRest
-
+    attr_reader :sys_uuid
     ATTRS = {
       "SwitchID" => "id",
       "SwitchMode" => "mode",
