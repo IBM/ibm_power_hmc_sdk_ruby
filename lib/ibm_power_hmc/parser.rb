@@ -164,7 +164,6 @@ module IbmPowerHmc
 
   # VirtualSwitch information
   class VirtualSwitch < AbstractRest
-    attr_reader :sys_uuid
 
     ATTRS = {
       "SwitchID" => "id",
@@ -172,15 +171,10 @@ module IbmPowerHmc
       "SwitchName" => "name"
     }.freeze
 
-    def sys_uuid
-      sys_href = doc.elements["link[@rel='SELF']"].attributes["href"]
-      @sys_uuid = URI(sys_href).path.split('/')[-3]
-    end
-
     def initialize(doc)
       super(doc)
-      sys_href = doc.elements["link[@rel='SELF']"].attributes["href"]
       @sys_uuid = URI(sys_href).path.split('/')[-3]
+      sys_href = doc.elements["link[@rel='SELF']"].attributes["href"]
     end
   end
 

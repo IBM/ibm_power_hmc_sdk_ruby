@@ -208,7 +208,7 @@ module IbmPowerHmc
     # @param params [Hash] Job parameters.
     # @param sync [Boolean] Start the job and wait for its completion.
     # @return [IbmPowerHmc::HmcJob] The HMC job.
-    def poweron_lpar(lpar_uuid, params = {}, sync: true)
+    def poweron_lpar(lpar_uuid, params = {}, sync = true)
       method_url = "/rest/api/uom/LogicalPartition/#{lpar_uuid}/do/PowerOn"
 
       job = HmcJob.new(self, method_url, "PowerOn", "LogicalPartition", params)
@@ -223,7 +223,7 @@ module IbmPowerHmc
     # @param params [Hash] Job parameters.
     # @param sync [Boolean] Start the job and wait for its completion.
     # @return [IbmPowerHmc::HmcJob] The HMC job.
-    def poweroff_lpar(lpar_uuid, params = {}, sync: true)
+    def poweroff_lpar(lpar_uuid, params = {}, sync = true)
       method_url = "/rest/api/uom/LogicalPartition/#{lpar_uuid}/do/PowerOff"
 
       job = HmcJob.new(self, method_url, "PowerOff", "LogicalPartition", params)
@@ -238,7 +238,7 @@ module IbmPowerHmc
     # @param params [Hash] Job parameters.
     # @param sync [Boolean] Start the job and wait for its completion.
     # @return [IbmPowerHmc::HmcJob] The HMC job.
-    def poweron_vios(vios_uuid, params = {}, sync: true)
+    def poweron_vios(vios_uuid, params = {}, sync = true)
       method_url = "/rest/api/uom/VirtualIOServer/#{vios_uuid}/do/PowerOn"
 
       job = HmcJob.new(self, method_url, "PowerOn", "VirtualIOServer", params)
@@ -253,7 +253,7 @@ module IbmPowerHmc
     # @param params [Hash] Job parameters.
     # @param sync [Boolean] Start the job and wait for its completion.
     # @return [IbmPowerHmc::HmcJob] The HMC job.
-    def poweroff_vios(vios_uuid, params = {}, sync: true)
+    def poweroff_vios(vios_uuid, params = {}, sync = true)
       method_url = "/rest/api/uom/VirtualIOServer/#{vios_uuid}/do/PowerOff"
 
       job = HmcJob.new(self, method_url, "PowerOff", "VirtualIOServer", params)
@@ -268,7 +268,7 @@ module IbmPowerHmc
     # @param params [Hash] Job parameters.
     # @param sync [Boolean] Start the job and wait for its completion.
     # @return [IbmPowerHmc::HmcJob] The HMC job.
-    def poweron_managed_system(sys_uuid, params = {}, sync: true)
+    def poweron_managed_system(sys_uuid, params = {}, sync = true)
       method_url = "/rest/api/uom/ManagedSystem/#{sys_uuid}/do/PowerOn"
 
       job = HmcJob.new(self, method_url, "PowerOn", "ManagedSystem", params)
@@ -283,7 +283,7 @@ module IbmPowerHmc
     # @param params [Hash] Job parameters.
     # @param sync [Boolean] Start the job and wait for its completion.
     # @return [IbmPowerHmc::HmcJob] The HMC job.
-    def poweroff_managed_system(sys_uuid, params = {}, sync: true)
+    def poweroff_managed_system(sys_uuid, params = {}, sync = true)
       method_url = "/rest/api/uom/ManagedSystem/#{sys_uuid}/do/PowerOff"
 
       job = HmcJob.new(self, method_url, "PowerOff", "ManagedSystem", params)
@@ -313,7 +313,7 @@ module IbmPowerHmc
     # @param cmd [String] The command to run.
     # @param sync [Boolean] Start the job and wait for its completion.
     # @return [IbmPowerHmc::HmcJob] The HMC job.
-    def cli_run(hmc_uuid, cmd, sync: true)
+    def cli_run(hmc_uuid, cmd, sync = true)
       method_url = "/rest/api/uom/ManagementConsole/#{hmc_uuid}/do/CLIRunner"
 
       params = {
@@ -333,16 +333,15 @@ module IbmPowerHmc
     def virtual_switches(sys_uuid)
       method_url = "/rest/api/uom/ManagedSystem/#{sys_uuid}/VirtualSwitch"
       response = request(:get, method_url)
-      FeedParser.new(response.body).objects(:VirtualSwitch)
+      Parser.new(response.body).objects(:VirtualSwitch)
     end
 
     ##
-    # @!method virtual_switch(vswitch_uuid, sys_uuid = nil, group_name = nil)
+    # @!method virtual_switch(vswitch_uuid, sys_uuid)
     # @param vswitch_uuid [string] The UUID of the virtual switch
     # @param  sys_uuid [String] The UUID of the managed system.
-    # @param group_name [String] The extended group attributes.
     # @return [IbmPowerHmc::VirtualSwitch] The virtual switch.
-    def virtual_switch(vswitch_uuid, sys_uuid, group_name = nil)
+    def virtual_switch(vswitch_uuid, sys_uuid)
       method_url = "/rest/api/uom/ManagedSystem/#{sys_uuid}/VirtualSwitch/#{vswitch_uuid}"
 
       method_url += "?group=#{group_name}" unless group_name.nil?
@@ -358,7 +357,7 @@ module IbmPowerHmc
     # Retrieve a list of events that occured since last call.
     # @param wait [Boolean] If no event is available, block until new events occur.
     # @return [Array<IbmPowerHmc::Event>] The list of events.
-    def next_events(wait: true)
+    def next_events(wait = true)
       method_url = "/rest/api/uom/Event"
 
       response = nil
