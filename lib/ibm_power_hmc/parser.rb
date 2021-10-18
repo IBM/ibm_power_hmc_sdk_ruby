@@ -163,28 +163,26 @@ module IbmPowerHmc
   end
 
   # VirtualSwitch information
-  class VirtualSwitch < HmcObject
+  class VirtualSwitch < AbstractRest
     attr_reader :sys_uuid
 
-    XMLMAP = {
+    ATTRS = {
       "SwitchID" => "id",
       "SwitchMode" => "mode",
       "SwitchName" => "name"
     }.freeze
 
+    def sys_uuid
+      sys_href = doc.elements["link[@rel='SELF']"].attributes["href"]
+      @sys_uuid = URI(sys_href).path.split('/')[-3]
+    end
+
     def initialize(doc)
       super(doc)
       sys_href = doc.elements["link[@rel='SELF']"].attributes["href"]
       @sys_uuid = URI(sys_href).path.split('/')[-3]
-      info = doc.elements["content/VirtualSwitch:VirtualSwitch"]
-      get_values(info, XMLMAP)
-    end
-
-    def to_s
-      "id = #{@id} mode = #{@mode} name = #{@name}"
     end
   end
-
 
   # HMC Event
   class Event < AbstractRest
