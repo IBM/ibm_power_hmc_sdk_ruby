@@ -8,12 +8,12 @@ module IbmPowerHmc
   # HMC REST Client connection.
   class Connection
     ##
-    # @!method initialize(host:, username: "hscroot", password:, port: 12_443, validate_ssl: true)
+    # @!method initialize(host:, password:, username: "hscroot", port: 12_443, validate_ssl: true)
     # Create a new HMC connection.
     #
     # @param host [String] Hostname of the HMC.
-    # @param username [String] User name.
     # @param password [String] Password.
+    # @param username [String] User name.
     # @param port [Integer] TCP port number.
     # @param validate_ssl [Boolean] Verify SSL certificates.
     def initialize(host:, password:, username: "hscroot", port: 12_443, validate_ssl: true)
@@ -327,9 +327,9 @@ module IbmPowerHmc
 
     ##
     # @!method virtual_switches(sys_uuid)
-    # Retrieve the list of virtual switchs from a specified managed system
-    # @param sys_uuid [string] The UUID of the managed system
-    # @return [Array<IbmPowerHmc::VirtualSwitch] The list of virtual switch.
+    # Retrieve the list of virtual switches from a specified managed system.
+    # @param sys_uuid [string] The UUID of the managed system.
+    # @return [Array<IbmPowerHmc::VirtualSwitch] The list of virtual switches.
     def virtual_switches(sys_uuid)
       method_url = "/rest/api/uom/ManagedSystem/#{sys_uuid}/VirtualSwitch"
       response = request(:get, method_url)
@@ -338,12 +338,11 @@ module IbmPowerHmc
 
     ##
     # @!method virtual_switch(vswitch_uuid, sys_uuid)
-    # @param vswitch_uuid [string] The UUID of the virtual switch
-    # @param  sys_uuid [String] The UUID of the managed system.
+    # @param vswitch_uuid [string] The UUID of the virtual switch.
+    # @param sys_uuid [String] The UUID of the managed system.
     # @return [IbmPowerHmc::VirtualSwitch] The virtual switch.
     def virtual_switch(vswitch_uuid, sys_uuid)
       method_url = "/rest/api/uom/ManagedSystem/#{sys_uuid}/VirtualSwitch/#{vswitch_uuid}"
-
       response = request(:get, method_url)
       Parser.new(response.body).object(:VirtualSwitch)
     end
@@ -455,7 +454,7 @@ module IbmPowerHmc
           break
         rescue HttpError => e
           attempts -= 1
-          # Will get 412 ("Precondition Failed" if ETag mismatches)
+          # Will get 412 ("Precondition Failed") if ETag mismatches
           raise if e.status != 412 || attempts == 0
         end
       end
