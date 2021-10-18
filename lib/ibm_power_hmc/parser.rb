@@ -162,11 +162,12 @@ module IbmPowerHmc
   class VirtualIOServer < BasePartition
   end
 
-  # VirtualSwitch information
+  # Virtual Switch information
   class VirtualSwitch < AbstractRest
     attr_reader :sys_uuid
+
     ATTRS = {
-      "SwitchID" => "id",
+      "SwitchID"   => "id",
       "SwitchMode" => "mode",
       "SwitchName" => "name"
     }.freeze
