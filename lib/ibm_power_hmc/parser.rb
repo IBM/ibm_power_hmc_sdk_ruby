@@ -173,8 +173,8 @@ module IbmPowerHmc
 
     def initialize(doc)
       super(doc)
-      @sys_uuid = URI(sys_href).path.split('/')[-3]
       sys_href = doc.elements["link[@rel='SELF']"].attributes["href"]
+      @sys_uuid = URI(sys_href).path.split('/')[-3]
     end
   end
 
