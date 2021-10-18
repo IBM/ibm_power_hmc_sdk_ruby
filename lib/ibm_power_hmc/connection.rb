@@ -333,7 +333,7 @@ module IbmPowerHmc
     def virtual_switches(sys_uuid)
       method_url = "/rest/api/uom/ManagedSystem/#{sys_uuid}/VirtualSwitch"
       response = request(:get, method_url)
-      Parser.new(response.body).objects(:VirtualSwitch)
+      FeedParser.new(response.body).objects(:VirtualSwitch)
     end
 
     ##
