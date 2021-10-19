@@ -217,9 +217,7 @@ module IbmPowerHmc
     ##
     # @!method poweroff_lpar(lpar_uuid, params = {}, sync = true)
     # Power off a logical partition.
-    # @param lpar_uuid [String] The UUID of the logical partition.
-    # @param params [Hash] Job parameters.
-    # @param sync [Boolean] Start the job and wait for its completion.
+    # @param (see #poweron_lpar)
     # @return [IbmPowerHmc::HmcJob] The HMC job.
     def poweroff_lpar(lpar_uuid, params = {}, sync = true)
       method_url = "/rest/api/uom/LogicalPartition/#{lpar_uuid}/do/PowerOff"
@@ -247,9 +245,7 @@ module IbmPowerHmc
     ##
     # @!method poweroff_vios(vios_uuid, params = {}, sync = true)
     # Power off a virtual I/O server.
-    # @param vios_uuid [String] The UUID of the virtual I/O server.
-    # @param params [Hash] Job parameters.
-    # @param sync [Boolean] Start the job and wait for its completion.
+    # @param (see #poweron_vios)
     # @return [IbmPowerHmc::HmcJob] The HMC job.
     def poweroff_vios(vios_uuid, params = {}, sync = true)
       method_url = "/rest/api/uom/VirtualIOServer/#{vios_uuid}/do/PowerOff"
@@ -277,9 +273,7 @@ module IbmPowerHmc
     ##
     # @!method poweroff_managed_system(sys_uuid, params = {}, sync = true)
     # Power off a managed system.
-    # @param sys_uuid [String] The UUID of the managed system.
-    # @param params [Hash] Job parameters.
-    # @param sync [Boolean] Start the job and wait for its completion.
+    # @param (see #poweron_managed_system)
     # @return [IbmPowerHmc::HmcJob] The HMC job.
     def poweroff_managed_system(sys_uuid, params = {}, sync = true)
       method_url = "/rest/api/uom/ManagedSystem/#{sys_uuid}/do/PowerOff"
@@ -439,6 +433,13 @@ module IbmPowerHmc
 
     private
 
+    # @!method modify_object(method_url, headers = {}, attempts = 5)
+    # Modify an object at a specified URI.
+    # @param method_url [String] The URL of the object to modify.
+    # @param headers [Hash] HTTP headers.
+    # @param attempts [Integer] Maximum number of retries.
+    # @yield [obj] The object to modify.
+    # @yieldparam obj [IbmPowerHmc::AbstractRest] The object to modify.
     def modify_object(method_url, headers = {}, attempts = 5)
       while attempts > 0
         response = request(:get, method_url)
