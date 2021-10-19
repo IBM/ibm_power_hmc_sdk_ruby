@@ -4,16 +4,26 @@ require 'time'
 require 'uri'
 
 module IbmPowerHmc
-  # Parser for HMC feeds and entries.
+  ##
+  # Generic parser for HMC XML responses.
   class Parser
     def initialize(body)
       @doc = REXML::Document.new(body)
     end
 
+    ##
+    # @!method entry
+    # Return the first entry element in the response.
+    # @return [REXML::Element, nil] The first entry element.
     def entry
       @doc.elements["entry"]
     end
 
+    ##
+    # @!method object(filter_type = nil)
+    # Parse the first entry element into an object.
+    # @param filter_type [String] Entry type must match the specified type.
+    # @return [IbmPowerHmc::AbstractRest, nil] The parsed object.
     def object(filter_type = nil)
       self.class.to_obj(entry, filter_type)
     end
@@ -34,6 +44,18 @@ module IbmPowerHmc
     end
   end
 
+  ##
+  # Parser for HMC feeds.
+  # A feed encapsulates a list of entries like this:
+  # <feed>
+  #   <entry>
+  #     <!-- entry #1 -->
+  #   </entry>
+  #   <entry>
+  #     <!-- entry #2 -->
+  #   </entry>
+  #   ...
+  # </feed>
   class FeedParser < Parser
     def entries
       objs = []
@@ -43,6 +65,11 @@ module IbmPowerHmc
       objs
     end
 
+    ##
+    # @!method objects(filter_type = nil)
+    # Parse feed entries into objects.
+    # @param filter_type [String] Filter entries based on content type.
+    # @return [Array<IbmPowerHmc::AbstractRest>] The list of objects.
     def objects(filter_type = nil)
       entries do |entry|
         self.class.to_obj(entry, filter_type)
@@ -53,7 +80,25 @@ module IbmPowerHmc
   private_constant :Parser
   private_constant :FeedParser
 
-  # HMC generic XML entry
+  ##
+  # HMC generic XML entry.
+  # Encapsulate data for a single object.
+  # The XML looks like this:
+  # <entry>
+  #   <id>uuid</id>
+  #   <published>timestamp</published>
+  #   <etag:etag>ETag</etag:etag>
+  #   <content type="type">
+  #     <!-- actual content here -->
+  #   </content>
+  # </entry>
+  #
+  # @abstract
+  # @attr_reader [String] uuid The UUID of the object contained in the entry.
+  # @attr_reader [Time] published The time at which the entry was published.
+  # @attr_reader [String] etag The entity tag of the entry.
+  # @attr_reader [String] content_type The content type of the object contained in the entry.
+  # @attr_reader [REXML::Document] xml The XML document representing this object.
   class AbstractRest
     ATTRS = {}.freeze
     attr_reader :uuid, :published, :etag, :content_type, :xml
@@ -68,18 +113,34 @@ module IbmPowerHmc
       define_attrs(self.class::ATTRS)
     end
 
+    ##
+    # @!method define_attr(varname, xpath)
+    # Define an instance variable using the text of an XML element as value.
+    # @param varname [String] The name of the instance variable.
+    # @param xpath [String] The XPath of the XML element containing the text.
     def define_attr(varname, xpath)
       value = text_element(xpath)
       self.class.__send__(:attr_reader, varname)
       instance_variable_set("@#{varname}", value)
     end
 
+    ##
+    # @!method define_attrs(hash)
+    # Define instance variables using the texts of XML elements as values.
+    # @param hash [Hash] The name of the instance variables and the XPaths
+    #   of the XML elements containing the values.
     def define_attrs(hash)
       hash.each do |key, value|
         define_attr(key, value)
       end
     end
 
+    ##
+    # @!method text_element(xpath)
+    # Get the text of an XML element.
+    # @param xpath [String] The XPath of the XML element.
+    # @return [String, nil] The text of the XML element or nil.
+    # @example lpar.text_element("PartitionProcessorConfiguration/MaximumVirtualProcessors").to_i
     def text_element(xpath)
       xml.elements[xpath]&.text&.strip
     end
@@ -137,7 +198,6 @@ module IbmPowerHmc
   # Common class for LPAR and VIOS
   class BasePartition < AbstractRest
     ATTRS = {
-      :os => "OperatingSystemVersion",
       :name => "PartitionName",
       :id => "PartitionID",
       :state => "PartitionState",
@@ -146,6 +206,7 @@ module IbmPowerHmc
       :dedicated => "PartitionProcessorConfiguration/HasDedicatedProcessors",
       :rmc_state => "ResourceMonitoringControlState",
       :rmc_ipaddr => "ResourceMonitoringIPAddress",
+      :os => "OperatingSystemVersion",
       :ref_code => "ReferenceCode"
     }.freeze
 
