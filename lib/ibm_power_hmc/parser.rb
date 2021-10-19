@@ -56,14 +56,15 @@ module IbmPowerHmc
   # HMC generic XML entry
   class AbstractRest
     ATTRS = {}.freeze
-    attr_reader :uuid, :published, :etag, :xml
+    attr_reader :uuid, :published, :etag, :content_type, :xml
 
     def initialize(doc)
       @uuid = doc.elements["id"]&.text
       @published = Time.xmlschema(doc.elements["published"]&.text)
       @etag = doc.elements["etag:etag"]&.text&.strip
-      type = self.class.name.split("::").last
-      @xml = doc.elements["content/#{type}:#{type}"]
+      content = doc.elements["content"]
+      @content_type = content.attributes["type"]
+      @xml = content.elements.first
       define_attrs(self.class::ATTRS)
     end
 
