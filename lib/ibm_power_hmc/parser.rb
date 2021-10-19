@@ -167,9 +167,9 @@ module IbmPowerHmc
     attr_reader :sys_uuid
 
     ATTRS = {
-      "SwitchID"   => "id",
-      "SwitchMode" => "mode",
-      "SwitchName" => "name"
+      :id   => "SwitchID",
+      :mode => "SwitchMode",
+      :name => "SwitchName"
     }.freeze
 
     def initialize(doc)
