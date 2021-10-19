@@ -151,17 +151,17 @@ module IbmPowerHmc
     end
 
     ##
-    # @!method rename_lpar(lpar_uuid, newname)
+    # @!method rename_lpar(lpar_uuid, new_name)
     # Rename a logical partition.
     # @param lpar_uuid [String] The UUID of the logical partition.
-    # @param newname [String] The new name of the logical partition.
-    def rename_lpar(lpar_uuid, newname)
+    # @param new_name [String] The new name of the logical partition.
+    def rename_lpar(lpar_uuid, new_name)
       method_url = "/rest/api/uom/LogicalPartition/#{lpar_uuid}"
       headers = {
         :content_type => "application/vnd.ibm.powervm.uom+xml; type=LogicalPartition",
       }
       modify_object(method_url, headers) do |lpar|
-        lpar.xml.elements["PartitionName"].text = newname
+        lpar.xml.elements["PartitionName"].text = new_name
       end
     end
 
@@ -328,8 +328,8 @@ module IbmPowerHmc
     ##
     # @!method virtual_switches(sys_uuid)
     # Retrieve the list of virtual switches from a specified managed system.
-    # @param sys_uuid [string] The UUID of the managed system.
-    # @return [Array<IbmPowerHmc::VirtualSwitch] The list of virtual switches.
+    # @param sys_uuid [String] The UUID of the managed system.
+    # @return [Array<IbmPowerHmc::VirtualSwitch>] The list of virtual switches.
     def virtual_switches(sys_uuid)
       method_url = "/rest/api/uom/ManagedSystem/#{sys_uuid}/VirtualSwitch"
       response = request(:get, method_url)
@@ -338,7 +338,7 @@ module IbmPowerHmc
 
     ##
     # @!method virtual_switch(vswitch_uuid, sys_uuid)
-    # @param vswitch_uuid [string] The UUID of the virtual switch.
+    # @param vswitch_uuid [String] The UUID of the virtual switch.
     # @param sys_uuid [String] The UUID of the managed system.
     # @return [IbmPowerHmc::VirtualSwitch] The virtual switch.
     def virtual_switch(vswitch_uuid, sys_uuid)
