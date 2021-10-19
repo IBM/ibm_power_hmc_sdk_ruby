@@ -157,10 +157,8 @@ module IbmPowerHmc
     # @param new_name [String] The new name of the logical partition.
     def rename_lpar(lpar_uuid, new_name)
       method_url = "/rest/api/uom/LogicalPartition/#{lpar_uuid}"
-      headers = {
-        :content_type => "application/vnd.ibm.powervm.uom+xml; type=LogicalPartition",
-      }
-      modify_object(method_url, headers) do |lpar|
+
+      modify_object(method_url) do |lpar|
         lpar.xml.elements["PartitionName"].text = new_name
       end
     end
@@ -338,6 +336,7 @@ module IbmPowerHmc
 
     ##
     # @!method virtual_switch(vswitch_uuid, sys_uuid)
+    # Retrieve information about a virtual switch.
     # @param vswitch_uuid [String] The UUID of the virtual switch.
     # @param sys_uuid [String] The UUID of the managed system.
     # @return [IbmPowerHmc::VirtualSwitch] The virtual switch.
@@ -448,7 +447,7 @@ module IbmPowerHmc
         yield obj
 
         # Use ETag to ensure object has not changed.
-        headers = headers.merge("If-Match" => obj.etag)
+        headers = headers.merge("If-Match" => obj.etag, :content_type => obj.content_type)
         begin
           request(:post, method_url, headers, obj.xml.to_s)
           break
