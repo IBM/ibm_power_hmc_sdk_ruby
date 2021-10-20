@@ -13,7 +13,7 @@ module IbmPowerHmc
 
     ##
     # @!method entry
-    # Return the first entry element in the response.
+    # Return the first K2 entry element in the response.
     # @return [REXML::Element, nil] The first entry element.
     def entry
       @doc.elements["entry"]
@@ -21,7 +21,7 @@ module IbmPowerHmc
 
     ##
     # @!method object(filter_type = nil)
-    # Parse the first entry element into an object.
+    # Parse the first K2 entry element into an object.
     # @param filter_type [String] Entry type must match the specified type.
     # @return [IbmPowerHmc::AbstractRest, nil] The parsed object.
     def object(filter_type = nil)
@@ -215,6 +215,11 @@ module IbmPowerHmc
       sys_href = singleton("AssociatedManagedSystem", "href")
       extract_uuid_from_href(sys_href)
     end
+
+    def name=(name)
+      xml.elements[ATTRS[:name]].text = name
+      @name = name
+    end
   end
 
   # Logical Partition information
@@ -272,9 +277,9 @@ module IbmPowerHmc
 
     def results
       results = {}
-      xml.each_element("Results/JobParameter") do |result|
-        name = result.elements["ParameterName"]&.text&.strip
-        value = result.elements["ParameterValue"]&.text&.strip
+      xml.each_element("Results/JobParameter") do |jobparam|
+        name = jobparam.elements["ParameterName"]&.text&.strip
+        value = jobparam.elements["ParameterValue"]&.text&.strip
         results[name] = value unless name.nil?
       end
       results

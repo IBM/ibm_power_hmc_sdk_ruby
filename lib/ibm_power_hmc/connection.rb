@@ -158,9 +158,7 @@ module IbmPowerHmc
     def rename_lpar(lpar_uuid, new_name)
       method_url = "/rest/api/uom/LogicalPartition/#{lpar_uuid}"
 
-      modify_object(method_url) do |lpar|
-        lpar.xml.elements["PartitionName"].text = new_name
-      end
+      modify_object(method_url) { |lpar| lpar.name = new_name }
     end
 
     ##
