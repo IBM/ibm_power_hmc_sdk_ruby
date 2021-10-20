@@ -92,16 +92,19 @@ module IbmPowerHmc
   #
   # @abstract
   # @attr_reader [String] uuid The UUID of the object contained in the entry.
+  # @attr_reader [URI::HTTPS] href The URL of the object itself.
   # @attr_reader [Time] published The time at which the entry was published.
   # @attr_reader [String] etag The entity tag of the entry.
   # @attr_reader [String] content_type The content type of the object contained in the entry.
   # @attr_reader [REXML::Document] xml The XML document representing this object.
   class AbstractRest
     ATTRS = {}.freeze
-    attr_reader :uuid, :published, :etag, :content_type, :xml
+    attr_reader :uuid, :href, :published, :etag, :content_type, :xml
 
     def initialize(doc)
       @uuid = doc.elements["id"]&.text
+      link = doc.elements["link[@rel='SELF']"]
+      @href = URI(link.attributes["href"]) unless link.nil?
       @published = Time.xmlschema(doc.elements["published"]&.text)
       @etag = doc.elements["etag:etag"]&.text&.strip
       content = doc.elements["content"]
@@ -232,18 +235,14 @@ module IbmPowerHmc
 
   # Virtual Switch information
   class VirtualSwitch < AbstractRest
-    attr_reader :sys_uuid
-
     ATTRS = {
       :id   => "SwitchID",
       :mode => "SwitchMode",
       :name => "SwitchName"
     }.freeze
 
-    def initialize(doc)
-      super(doc)
-      sys_href = doc.elements["link[@rel='SELF']"].attributes["href"]
-      @sys_uuid = URI(sys_href).path.split('/')[-3]
+    def sys_uuid
+      href.path.split('/')[-3]
     end
   end
 
