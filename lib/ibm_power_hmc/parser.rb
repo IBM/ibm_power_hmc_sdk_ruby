@@ -5,7 +5,7 @@ require 'uri'
 
 module IbmPowerHmc
   ##
-  # Generic parser for HMC XML responses.
+  # Generic parser for HMC K2 XML responses.
   class Parser
     def initialize(body)
       @doc = REXML::Document.new(body)
@@ -31,13 +31,10 @@ module IbmPowerHmc
     def self.to_obj(entry, filter_type = nil)
       return if entry.nil?
 
-      content = entry.elements["content"]
+      content = entry.elements["content[@type]"]
       return if content.nil?
 
-      type = content.attributes["type"]
-      return if type.nil?
-
-      type = type.split("=").last
+      type = content.attributes["type"].split("=").last
       return unless filter_type.nil? || filter_type.to_s == type
 
       Module.const_get("IbmPowerHmc::#{type}").new(entry)
@@ -45,7 +42,7 @@ module IbmPowerHmc
   end
 
   ##
-  # Parser for HMC feeds.
+  # Parser for HMC K2 feeds.
   # A feed encapsulates a list of entries like this:
   # <feed>
   #   <entry>
@@ -81,7 +78,7 @@ module IbmPowerHmc
   private_constant :FeedParser
 
   ##
-  # HMC generic XML entry.
+  # HMC generic K2 XML entry.
   # Encapsulate data for a single object.
   # The XML looks like this:
   # <entry>
@@ -119,7 +116,7 @@ module IbmPowerHmc
     # @param varname [String] The name of the instance variable.
     # @param xpath [String] The XPath of the XML element containing the text.
     def define_attr(varname, xpath)
-      value = text_element(xpath)
+      value = singleton(xpath)
       self.class.__send__(:attr_reader, varname)
       instance_variable_set("@#{varname}", value)
     end
@@ -136,13 +133,17 @@ module IbmPowerHmc
     end
 
     ##
-    # @!method text_element(xpath)
-    # Get the text of an XML element.
+    # @!method singleton(xpath, attr = nil)
+    # Get the text (or the value of a specified attribute) of an XML element.
     # @param xpath [String] The XPath of the XML element.
-    # @return [String, nil] The text of the XML element or nil.
-    # @example lpar.text_element("PartitionProcessorConfiguration/MaximumVirtualProcessors").to_i
-    def text_element(xpath)
-      xml.elements[xpath]&.text&.strip
+    # @param attr [String] The name of the attribute.
+    # @return [String, nil] The text or attribute value of the XML element or nil.
+    # @example lpar.singleton("PartitionProcessorConfiguration/*/MaximumVirtualProcessors").to_i
+    def singleton(xpath, attr = nil)
+      elem = xml.elements[xpath]
+      return if elem.nil?
+
+      attr.nil? ? elem.text&.strip : elem.attributes[attr]
     end
 
     def extract_uuid_from_href(href)
@@ -211,7 +212,7 @@ module IbmPowerHmc
     }.freeze
 
     def sys_uuid
-      sys_href = xml.elements["AssociatedManagedSystem"].attributes["href"]
+      sys_href = singleton("AssociatedManagedSystem", "href")
       extract_uuid_from_href(sys_href)
     end
   end
