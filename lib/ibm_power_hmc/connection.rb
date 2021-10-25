@@ -199,9 +199,9 @@ module IbmPowerHmc
 
     ##
     # @!method network_adapter_lpar(lpar_uuid, netadap_uuid = nil)
-    # Retrieve one or all virtual ethernet network adapter attached to a logical partition.
+    # Retrieve one or all virtual ethernet network adapters attached to a logical partition.
     # @param lpar_uuid [String] UUID of the logical partition.
-    # @param netadap_uuid [String] UUID of the adapter to match (returns all adapter if omitted).
+    # @param netadap_uuid [String] UUID of the adapter to match (returns all adapters if omitted).
     # @return [Array<IbmPowerHmc::ClientNetworkAdapter>] The list of network adapters.
     def network_adapter_lpar(lpar_uuid, netadap_uuid = nil)
       network_adapter("LogicalPartition", lpar_uuid, netadap_uuid)
@@ -209,9 +209,9 @@ module IbmPowerHmc
 
     ##
     # @!method network_adapter_vios(vios_uuid, netadap_uuid = nil)
-    # Retrieve one or all virtual ethernet network adapter attached to a Virtual I/O Server.
+    # Retrieve one or all virtual ethernet network adapters attached to a Virtual I/O Server.
     # @param vios_uuid [String] UUID of the Virtual I/O Server.
-    # @param netadap_uuid [String] UUID of the adapter to match (returns all adapter if omitted).
+    # @param netadap_uuid [String] UUID of the adapter to match (returns all adapters if omitted).
     # @return [Array<IbmPowerHmc::ClientNetworkAdapter>] The list of network adapters.
     def network_adapter_vios(vios_uuid, netadap_uuid = nil)
       network_adapter("VirtualIOServer", vios_uuid, netadap_uuid)
@@ -480,10 +480,10 @@ module IbmPowerHmc
 
     ##
     # @!method network_adapter_lpar(lpar_uuid, netadap_uuid = nil)
-    # Retrieve one or all virtual ethernet network adapter attached to a Logical Partition or a Virtual I/O Server.
+    # Retrieve one or all virtual ethernet network adapters attached to a Logical Partition or a Virtual I/O Server.
     # @param vm_type [String] "Logical Partition" or "VirtualIOServer".
     # @param lpar_uuid [String] UUID of the Logical Partition or the Virtual I/O Server.
-    # @param netadap_uuid [String] UUID of the adapter to match (returns all adapter if nil).
+    # @param netadap_uuid [String] UUID of the adapter to match (returns all adapters if nil).
     # @return [Array<IbmPowerHmc::ClientNetworkAdapter>] The list of network adapters.
     def network_adapter(vm_type, lpar_uuid, netadap_uuid)
       if netadap_uuid.nil?
