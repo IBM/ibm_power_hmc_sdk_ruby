@@ -219,6 +219,12 @@ module IbmPowerHmc
       extract_uuid_from_href(sys_href)
     end
 
+    def net_adap_uuids
+      xml.get_elements("ClientNetworkAdapters/link").map do |link|
+        extract_uuid_from_href(link.attributes["href"])
+      end
+    end
+
     def name=(name)
       xml.elements[ATTRS[:name]].text = name
       @name = name
@@ -253,6 +259,15 @@ module IbmPowerHmc
       :type   => "EventType",
       :data   => "EventData",
       :detail => "EventDetail"
+    }.freeze
+  end
+
+  # Network adapter information
+  class ClientNetworkAdapter < AbstractRest
+    ATTRS = {
+      :macaddr      => "MACAddress",
+      :vswitch_id   => "VirtualSwitchID",
+      :vlan_id      => "PortVLANID"
     }.freeze
   end
 

@@ -198,6 +198,26 @@ module IbmPowerHmc
     end
 
     ##
+    # @!method network_adapter_lpar(lpar_uuid, netadap_uuid = nil)
+    # Retrieve one or all virtual ethernet network adapters attached to a logical partition.
+    # @param lpar_uuid [String] UUID of the logical partition.
+    # @param netadap_uuid [String] UUID of the adapter to match (returns all adapters if omitted).
+    # @return [Array<IbmPowerHmc::ClientNetworkAdapter>] The list of network adapters.
+    def network_adapter_lpar(lpar_uuid, netadap_uuid = nil)
+      network_adapter("LogicalPartition", lpar_uuid, netadap_uuid)
+    end
+
+    ##
+    # @!method network_adapter_vios(vios_uuid, netadap_uuid = nil)
+    # Retrieve one or all virtual ethernet network adapters attached to a Virtual I/O Server.
+    # @param vios_uuid [String] UUID of the Virtual I/O Server.
+    # @param netadap_uuid [String] UUID of the adapter to match (returns all adapters if omitted).
+    # @return [Array<IbmPowerHmc::ClientNetworkAdapter>] The list of network adapters.
+    def network_adapter_vios(vios_uuid, netadap_uuid = nil)
+      network_adapter("VirtualIOServer", vios_uuid, netadap_uuid)
+    end
+
+    ##
     # @!method poweron_lpar(lpar_uuid, params = {}, sync = true)
     # Power on a logical partition.
     # @param lpar_uuid [String] The UUID of the logical partition.
@@ -456,6 +476,24 @@ module IbmPowerHmc
           raise if e.status != 412 || attempts == 0
         end
       end
+    end
+
+    ##
+    # @!method network_adapter_lpar(lpar_uuid, netadap_uuid = nil)
+    # Retrieve one or all virtual ethernet network adapters attached to a Logical Partition or a Virtual I/O Server.
+    # @param vm_type [String] "Logical Partition" or "VirtualIOServer".
+    # @param lpar_uuid [String] UUID of the Logical Partition or the Virtual I/O Server.
+    # @param netadap_uuid [String] UUID of the adapter to match (returns all adapters if nil).
+    # @return [Array<IbmPowerHmc::ClientNetworkAdapter>] The list of network adapters.
+    def network_adapter(vm_type, lpar_uuid, netadap_uuid)
+      if netadap_uuid.nil?
+        method_url = "/rest/api/uom/#{vm_type}/#{lpar_uuid}/ClientNetworkAdapter"
+      else
+        method_url = "/rest/api/uom/#{vm_type}/#{lpar_uuid}/ClientNetworkAdapter/#{netadap_uuid}"
+      end
+
+      response = request(:get, method_url)
+      Parser.new(response.body).object(:ClientNetworkAdapter)
     end
   end
 end
