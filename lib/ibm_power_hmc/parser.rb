@@ -256,6 +256,7 @@ module IbmPowerHmc
   # Virtual I/O Adapter information
   class VirtualIOAdapter < AbstractRest
     ATTRS = {
+      :type     => "AdapterType", # "Server", "Client", "Unknown"
       :location => "LocationCode",
       :slot     => "VirtualSlotNumber",
       :required => "RequiredAdapter"
@@ -269,10 +270,20 @@ module IbmPowerHmc
       :vswitch_id => "VirtualSwitchID",
       :vlan_id    => "PortVLANID"
     }.freeze)
+
+    def vswitch_uuid
+      href = singleton("AssociatedVirtualSwitch/link", "href")
+      extract_uuid_from_href(href)
+    end
   end
 
-  # Network adapter information
+  # Client Network Adapter information
   class ClientNetworkAdapter < VirtualEthernetAdapter
+    def networks_uuids
+      xml.get_elements("VirtualNetworks/link").map do |link|
+        extract_uuid_from_href(link.attributes["href"])
+      end.compact
+    end
   end
 
   # Error response from HMC
