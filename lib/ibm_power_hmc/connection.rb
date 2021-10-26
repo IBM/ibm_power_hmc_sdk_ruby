@@ -157,7 +157,6 @@ module IbmPowerHmc
     # @param new_name [String] The new name of the logical partition.
     def rename_lpar(lpar_uuid, new_name)
       method_url = "/rest/api/uom/LogicalPartition/#{lpar_uuid}"
-
       modify_object(method_url) { |lpar| lpar.name = new_name }
     end
 
@@ -481,7 +480,7 @@ module IbmPowerHmc
     ##
     # @!method network_adapter_lpar(lpar_uuid, netadap_uuid = nil)
     # Retrieve one or all virtual ethernet network adapters attached to a Logical Partition or a Virtual I/O Server.
-    # @param vm_type [String] "Logical Partition" or "VirtualIOServer".
+    # @param vm_type [String] "LogicalPartition" or "VirtualIOServer".
     # @param lpar_uuid [String] UUID of the Logical Partition or the Virtual I/O Server.
     # @param netadap_uuid [String] UUID of the adapter to match (returns all adapters if nil).
     # @return [Array<IbmPowerHmc::ClientNetworkAdapter>] The list of network adapters.
