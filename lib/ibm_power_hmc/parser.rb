@@ -84,6 +84,7 @@ module IbmPowerHmc
   # <entry>
   #   <id>uuid</id>
   #   <published>timestamp</published>
+  #   <link rel="SELF" href="https://..."/>
   #   <etag:etag>ETag</etag:etag>
   #   <content type="type">
   #     <!-- actual content here -->
@@ -92,25 +93,25 @@ module IbmPowerHmc
   #
   # @abstract
   # @attr_reader [String] uuid The UUID of the object contained in the entry.
-  # @attr_reader [URI::HTTPS] href The URL of the object itself.
   # @attr_reader [Time] published The time at which the entry was published.
+  # @attr_reader [URI::HTTPS] href The URL of the object itself.
   # @attr_reader [String] etag The entity tag of the entry.
   # @attr_reader [String] content_type The content type of the object contained in the entry.
   # @attr_reader [REXML::Document] xml The XML document representing this object.
   class AbstractRest
     ATTRS = {}.freeze
-    attr_reader :uuid, :href, :published, :etag, :content_type, :xml
+    attr_reader :uuid, :published, :href, :etag, :content_type, :xml
 
     def initialize(doc)
       @uuid = doc.elements["id"]&.text
+      @published = Time.xmlschema(doc.elements["published"]&.text)
       link = doc.elements["link[@rel='SELF']"]
       @href = URI(link.attributes["href"]) unless link.nil?
-      @published = Time.xmlschema(doc.elements["published"]&.text)
       @etag = doc.elements["etag:etag"]&.text&.strip
       content = doc.elements["content"]
       @content_type = content.attributes["type"]
       @xml = content.elements.first
-      define_attrs(self.class::ATTRS)
+      self.class::ATTRS.each { |varname, xpath| define_attr(varname, xpath) }
     end
 
     ##
@@ -123,17 +124,7 @@ module IbmPowerHmc
       self.class.__send__(:attr_reader, varname)
       instance_variable_set("@#{varname}", value)
     end
-
-    ##
-    # @!method define_attrs(hash)
-    # Define instance variables using the texts of XML elements as values.
-    # @param hash [Hash] The name of the instance variables and the XPaths
-    #   of the XML elements containing the values.
-    def define_attrs(hash)
-      hash.each do |key, value|
-        define_attr(key, value)
-      end
-    end
+    private :define_attr
 
     ##
     # @!method singleton(xpath, attr = nil)
@@ -222,7 +213,7 @@ module IbmPowerHmc
     def net_adap_uuids
       xml.get_elements("ClientNetworkAdapters/link").map do |link|
         extract_uuid_from_href(link.attributes["href"])
-      end
+      end.compact
     end
 
     def name=(name)
@@ -262,13 +253,26 @@ module IbmPowerHmc
     }.freeze
   end
 
-  # Network adapter information
-  class ClientNetworkAdapter < AbstractRest
+  # Virtual I/O Adapter information
+  class VirtualIOAdapter < AbstractRest
     ATTRS = {
-      :macaddr      => "MACAddress",
-      :vswitch_id   => "VirtualSwitchID",
-      :vlan_id      => "PortVLANID"
+      :location => "LocationCode",
+      :slot     => "VirtualSlotNumber",
+      :required => "RequiredAdapter"
     }.freeze
+  end
+
+  # Virtual Ethernet Adapter information
+  class VirtualEthernetAdapter < VirtualIOAdapter
+    ATTRS = ATTRS.merge({
+      :macaddr    => "MACAddress",
+      :vswitch_id => "VirtualSwitchID",
+      :vlan_id    => "PortVLANID"
+    }.freeze)
+  end
+
+  # Network adapter information
+  class ClientNetworkAdapter < VirtualEthernetAdapter
   end
 
   # Error response from HMC
