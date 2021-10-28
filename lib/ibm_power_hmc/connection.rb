@@ -197,11 +197,57 @@ module IbmPowerHmc
     end
 
     ##
+    # @!method virtual_switches(sys_uuid)
+    # Retrieve the list of virtual switches from a specified managed system.
+    # @param sys_uuid [String] The UUID of the managed system.
+    # @return [Array<IbmPowerHmc::VirtualSwitch>] The list of virtual switches.
+    def virtual_switches(sys_uuid)
+      method_url = "/rest/api/uom/ManagedSystem/#{sys_uuid}/VirtualSwitch"
+      response = request(:get, method_url)
+      FeedParser.new(response.body).objects(:VirtualSwitch)
+    end
+
+    ##
+    # @!method virtual_switch(vswitch_uuid, sys_uuid)
+    # Retrieve information about a virtual switch.
+    # @param vswitch_uuid [String] The UUID of the virtual switch.
+    # @param sys_uuid [String] The UUID of the managed system.
+    # @return [IbmPowerHmc::VirtualSwitch] The virtual switch.
+    def virtual_switch(vswitch_uuid, sys_uuid)
+      method_url = "/rest/api/uom/ManagedSystem/#{sys_uuid}/VirtualSwitch/#{vswitch_uuid}"
+      response = request(:get, method_url)
+      Parser.new(response.body).object(:VirtualSwitch)
+    end
+
+    ##
+    # @!method virtual_networks(sys_uuid)
+    # Retrieve the list of virtual networks from a specified managed system.
+    # @param sys_uuid [String] The UUID of the managed system.
+    # @return [Array<IbmPowerHmc::VirtualNetwork>] The list of virtual networks.
+    def virtual_networks(sys_uuid)
+      method_url = "/rest/api/uom/ManagedSystem/#{sys_uuid}/VirtualNetwork"
+      response = request(:get, method_url)
+      FeedParser.new(response.body).objects(:VirtualNetwork)
+    end
+
+    ##
+    # @!method virtual_network(vnet_uuid, sys_uuid)
+    # Retrieve information about a virtual network.
+    # @param vnet_uuid [String] The UUID of the virtual network.
+    # @param sys_uuid [String] The UUID of the managed system.
+    # @return [IbmPowerHmc::VirtualNetwork] The virtual network.
+    def virtual_network(vnet_uuid, sys_uuid)
+      method_url = "/rest/api/uom/ManagedSystem/#{sys_uuid}/VirtualNetwork/#{vnet_uuid}"
+      response = request(:get, method_url)
+      Parser.new(response.body).object(:VirtualNetwork)
+    end
+
+    ##
     # @!method network_adapter_lpar(lpar_uuid, netadap_uuid = nil)
     # Retrieve one or all virtual ethernet network adapters attached to a logical partition.
     # @param lpar_uuid [String] UUID of the logical partition.
     # @param netadap_uuid [String] UUID of the adapter to match (returns all adapters if omitted).
-    # @return [Array<IbmPowerHmc::ClientNetworkAdapter>] The list of network adapters.
+    # @return [Array<IbmPowerHmc::ClientNetworkAdapter>, IbmPowerHmc::ClientNetworkAdapter] The list of network adapters.
     def network_adapter_lpar(lpar_uuid, netadap_uuid = nil)
       network_adapter("LogicalPartition", lpar_uuid, netadap_uuid)
     end
@@ -211,7 +257,7 @@ module IbmPowerHmc
     # Retrieve one or all virtual ethernet network adapters attached to a Virtual I/O Server.
     # @param vios_uuid [String] UUID of the Virtual I/O Server.
     # @param netadap_uuid [String] UUID of the adapter to match (returns all adapters if omitted).
-    # @return [Array<IbmPowerHmc::ClientNetworkAdapter>] The list of network adapters.
+    # @return [Array<IbmPowerHmc::ClientNetworkAdapter>, IbmPowerHmc::ClientNetworkAdapter] The list of network adapters.
     def network_adapter_vios(vios_uuid, netadap_uuid = nil)
       network_adapter("VirtualIOServer", vios_uuid, netadap_uuid)
     end
@@ -335,29 +381,6 @@ module IbmPowerHmc
     end
 
     ##
-    # @!method virtual_switches(sys_uuid)
-    # Retrieve the list of virtual switches from a specified managed system.
-    # @param sys_uuid [String] The UUID of the managed system.
-    # @return [Array<IbmPowerHmc::VirtualSwitch>] The list of virtual switches.
-    def virtual_switches(sys_uuid)
-      method_url = "/rest/api/uom/ManagedSystem/#{sys_uuid}/VirtualSwitch"
-      response = request(:get, method_url)
-      FeedParser.new(response.body).objects(:VirtualSwitch)
-    end
-
-    ##
-    # @!method virtual_switch(vswitch_uuid, sys_uuid)
-    # Retrieve information about a virtual switch.
-    # @param vswitch_uuid [String] The UUID of the virtual switch.
-    # @param sys_uuid [String] The UUID of the managed system.
-    # @return [IbmPowerHmc::VirtualSwitch] The virtual switch.
-    def virtual_switch(vswitch_uuid, sys_uuid)
-      method_url = "/rest/api/uom/ManagedSystem/#{sys_uuid}/VirtualSwitch/#{vswitch_uuid}"
-      response = request(:get, method_url)
-      Parser.new(response.body).object(:VirtualSwitch)
-    end
-
-    ##
     # @!method next_events(wait = true)
     # Retrieve a list of events that occured since last call.
     # @param wait [Boolean] If no event is available, block until new events occur.
@@ -478,21 +501,22 @@ module IbmPowerHmc
     end
 
     ##
-    # @!method network_adapter_lpar(lpar_uuid, netadap_uuid = nil)
+    # @!method network_adapter(vm_type, lpar_uuid, netadap_uuid)
     # Retrieve one or all virtual ethernet network adapters attached to a Logical Partition or a Virtual I/O Server.
     # @param vm_type [String] "LogicalPartition" or "VirtualIOServer".
     # @param lpar_uuid [String] UUID of the Logical Partition or the Virtual I/O Server.
     # @param netadap_uuid [String] UUID of the adapter to match (returns all adapters if nil).
-    # @return [Array<IbmPowerHmc::ClientNetworkAdapter>] The list of network adapters.
+    # @return [Array<IbmPowerHmc::ClientNetworkAdapter>, IbmPowerHmc::ClientNetworkAdapter] The list of network adapters.
     def network_adapter(vm_type, lpar_uuid, netadap_uuid)
       if netadap_uuid.nil?
         method_url = "/rest/api/uom/#{vm_type}/#{lpar_uuid}/ClientNetworkAdapter"
+        response = request(:get, method_url)
+        FeedParser.new(response.body).objects(:ClientNetworkAdapter)
       else
         method_url = "/rest/api/uom/#{vm_type}/#{lpar_uuid}/ClientNetworkAdapter/#{netadap_uuid}"
+        response = request(:get, method_url)
+        Parser.new(response.body).object(:ClientNetworkAdapter)
       end
-
-      response = request(:get, method_url)
-      Parser.new(response.body).object(:ClientNetworkAdapter)
     end
   end
 end
