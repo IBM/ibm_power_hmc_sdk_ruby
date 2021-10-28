@@ -78,39 +78,15 @@ module IbmPowerHmc
   private_constant :FeedParser
 
   ##
-  # HMC generic K2 XML entry.
-  # Encapsulate data for a single object.
-  # The XML looks like this:
-  # <entry>
-  #   <id>uuid</id>
-  #   <published>timestamp</published>
-  #   <link rel="SELF" href="https://..."/>
-  #   <etag:etag>ETag</etag:etag>
-  #   <content type="type">
-  #     <!-- actual content here -->
-  #   </content>
-  # </entry>
-  #
+  # HMC generic K2 non-REST object.
   # @abstract
-  # @attr_reader [String] uuid The UUID of the object contained in the entry.
-  # @attr_reader [Time] published The time at which the entry was published.
-  # @attr_reader [URI::HTTPS] href The URL of the object itself.
-  # @attr_reader [String] etag The entity tag of the entry.
-  # @attr_reader [String] content_type The content type of the object contained in the entry.
   # @attr_reader [REXML::Document] xml The XML document representing this object.
-  class AbstractRest
+  class AbstractNonRest
     ATTRS = {}.freeze
-    attr_reader :uuid, :published, :href, :etag, :content_type, :xml
+    attr_reader :xml
 
-    def initialize(doc)
-      @uuid = doc.elements["id"]&.text
-      @published = Time.xmlschema(doc.elements["published"]&.text)
-      link = doc.elements["link[@rel='SELF']"]
-      @href = URI(link.attributes["href"]) unless link.nil?
-      @etag = doc.elements["etag:etag"]&.text&.strip
-      content = doc.elements["content"]
-      @content_type = content.attributes["type"]
-      @xml = content.elements.first
+    def initialize(xml)
+      @xml = xml
       self.class::ATTRS.each { |varname, xpath| define_attr(varname, xpath) }
     end
 
@@ -142,6 +118,41 @@ module IbmPowerHmc
 
     def extract_uuid_from_href(href)
       URI(href).path.split('/').last
+    end
+  end
+
+  ##
+  # HMC generic K2 REST object.
+  # Encapsulate data for a single REST object.
+  # The XML looks like this:
+  # <entry>
+  #   <id>uuid</id>
+  #   <published>timestamp</published>
+  #   <link rel="SELF" href="https://..."/>
+  #   <etag:etag>ETag</etag:etag>
+  #   <content type="type">
+  #     <!-- actual content here -->
+  #   </content>
+  # </entry>
+  #
+  # @abstract
+  # @attr_reader [String] uuid The UUID of the object contained in the entry.
+  # @attr_reader [Time] published The time at which the entry was published.
+  # @attr_reader [URI::HTTPS] href The URL of the object itself.
+  # @attr_reader [String] etag The entity tag of the entry.
+  # @attr_reader [String] content_type The content type of the object contained in the entry.
+  class AbstractRest < AbstractNonRest
+    attr_reader :uuid, :published, :href, :etag, :content_type
+
+    def initialize(entry)
+      @uuid = entry.elements["id"]&.text
+      @published = Time.xmlschema(entry.elements["published"]&.text)
+      link = entry.elements["link[@rel='SELF']"]
+      @href = URI(link.attributes["href"]) unless link.nil?
+      @etag = entry.elements["etag:etag"]&.text&.strip
+      content = entry.elements["content"]
+      @content_type = content.attributes["type"]
+      super(content.elements.first)
     end
   end
 
