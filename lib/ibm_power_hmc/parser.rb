@@ -241,16 +241,33 @@ module IbmPowerHmc
     def sys_uuid
       href.path.split('/')[-3]
     end
+
+    def networks_uuids
+      xml.get_elements("VirtualNetworks/link").map do |link|
+        extract_uuid_from_href(link.attributes["href"])
+      end.compact
+    end
   end
 
-  # HMC Event
-  class Event < AbstractRest
+  # Virtual Network information
+  class VirtualNetwork < AbstractRest
     ATTRS = {
-      :id     => "EventID",
-      :type   => "EventType",
-      :data   => "EventData",
-      :detail => "EventDetail"
+      :name       => "NetworkName",
+      :vlan_id    => "NetworkVLANID",
+      :vswitch_id => "VswitchID",
+      :tagged     => "TaggedNetwork"
     }.freeze
+
+    def vswitch_uuid
+      href = singleton("AssociatedSwitch", "href")
+      extract_uuid_from_href(href)
+    end
+
+    def lpars_uuids
+      xml.get_elements("ConnectedPartitions/link").map do |link|
+        extract_uuid_from_href(link.attributes["href"])
+      end.compact
+    end
   end
 
   # Virtual I/O Adapter information
@@ -284,6 +301,16 @@ module IbmPowerHmc
         extract_uuid_from_href(link.attributes["href"])
       end.compact
     end
+  end
+
+  # HMC Event
+  class Event < AbstractRest
+    ATTRS = {
+      :id     => "EventID",
+      :type   => "EventType",
+      :data   => "EventData",
+      :detail => "EventDetail"
+    }.freeze
   end
 
   # Error response from HMC
