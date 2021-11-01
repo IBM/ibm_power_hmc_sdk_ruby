@@ -213,7 +213,10 @@ module IbmPowerHmc
       :rmc_state => "ResourceMonitoringControlState",
       :rmc_ipaddr => "ResourceMonitoringIPAddress",
       :os => "OperatingSystemVersion",
-      :ref_code => "ReferenceCode"
+      :ref_code => "ReferenceCode",
+      :procs => "PartitionProcessorConfiguration/CurrentDedicatedProcessorConfiguration/CurrentProcessors",
+      :proc_units => "PartitionProcessorConfiguration/CurrentSharedProcessorConfiguration/CurrentProcessingUnits",
+      :vprocs => "PartitionProcessorConfiguration/CurrentSharedProcessorConfiguration/AllocatedVirtualProcessors"
     }.freeze
 
     def sys_uuid
