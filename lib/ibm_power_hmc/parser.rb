@@ -116,8 +116,14 @@ module IbmPowerHmc
       attr.nil? ? elem.text&.strip : elem.attributes[attr]
     end
 
-    def extract_uuid_from_href(href)
-      URI(href).path.split('/').last
+    def extract_uuid_from_href(href, index = -1)
+      URI(href).path.split('/')[index]
+    end
+
+    def uuids_from_links(elem, index = -1)
+      xml.get_elements("#{elem}/link[@href]").map do |link|
+        extract_uuid_from_href(link.attributes["href"], index)
+      end.compact
     end
   end
 
@@ -165,9 +171,7 @@ module IbmPowerHmc
     }.freeze
 
     def managed_systems_uuids
-      xml.get_elements("ManagedSystems/link").map do |link|
-        extract_uuid_from_href(link.attributes["href"])
-      end.compact
+      uuids_from_links("ManagedSystems")
     end
   end
 
@@ -189,15 +193,19 @@ module IbmPowerHmc
     }.freeze
 
     def lpars_uuids
-      xml.get_elements("AssociatedLogicalPartitions/link").map do |link|
-        extract_uuid_from_href(link.attributes["href"])
-      end.compact
+      uuids_from_links("AssociatedLogicalPartitions")
     end
 
     def vioses_uuids
-      xml.get_elements("AssociatedVirtualIOServers/link").map do |link|
-        extract_uuid_from_href(link.attributes["href"])
-      end.compact
+      uuids_from_links("AssociatedVirtualIOServers")
+    end
+
+    def vswitches_uuids
+      uuids_from_links("AssociatedSystemIOConfiguration/AssociatedSystemVirtualNetwork/VirtualSwitches")
+    end
+
+    def networks_uuids
+      uuids_from_links("AssociatedSystemIOConfiguration/AssociatedSystemVirtualNetwork/VirtualNetworks")
     end
   end
 
@@ -225,9 +233,7 @@ module IbmPowerHmc
     end
 
     def net_adap_uuids
-      xml.get_elements("ClientNetworkAdapters/link").map do |link|
-        extract_uuid_from_href(link.attributes["href"])
-      end.compact
+      uuids_from_links("ClientNetworkAdapters")
     end
 
     def name=(name)
@@ -257,9 +263,7 @@ module IbmPowerHmc
     end
 
     def networks_uuids
-      xml.get_elements("VirtualNetworks/link").map do |link|
-        extract_uuid_from_href(link.attributes["href"])
-      end.compact
+      uuids_from_links("VirtualNetworks")
     end
   end
 
@@ -278,9 +282,7 @@ module IbmPowerHmc
     end
 
     def lpars_uuids
-      xml.get_elements("ConnectedPartitions/link").map do |link|
-        extract_uuid_from_href(link.attributes["href"])
-      end.compact
+      uuids_from_links("ConnectedPartitions")
     end
   end
 
@@ -303,17 +305,14 @@ module IbmPowerHmc
     }.freeze)
 
     def vswitch_uuid
-      href = singleton("AssociatedVirtualSwitch/link", "href")
-      extract_uuid_from_href(href)
+      uuids_from_links("AssociatedVirtualSwitch").first
     end
   end
 
   # Client Network Adapter information
   class ClientNetworkAdapter < VirtualEthernetAdapter
     def networks_uuids
-      xml.get_elements("VirtualNetworks/link").map do |link|
-        extract_uuid_from_href(link.attributes["href"])
-      end.compact
+      uuids_from_links("VirtualNetworks")
     end
   end
 
