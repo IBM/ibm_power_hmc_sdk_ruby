@@ -237,9 +237,7 @@ module IbmPowerHmc
     end
 
     def sriov_elp_uuids
-      xml.get_elements("SRIOVEthernetLogicalPorts/link").map do |link|
-        extract_uuid_from_href(link.attributes["href"])
-      end.compact
+      uuids_from_links("SRIOVEthernetLogicalPorts")
     end
 
     def name=(name)
@@ -251,9 +249,7 @@ module IbmPowerHmc
   # Logical Partition information
   class LogicalPartition < BasePartition
     def vnic_dedicated_uuids
-      xml.get_elements("DedicatedVirtualNICs/link").map do |link|
-        extract_uuid_from_href(link.attributes["href"])
-      end.compact
+      uuids_from_links("DedicatedVirtualNICs")
     end
   end
 
