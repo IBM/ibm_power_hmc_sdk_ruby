@@ -236,6 +236,12 @@ module IbmPowerHmc
       uuids_from_links("ClientNetworkAdapters")
     end
 
+    def sriov_elp_uuids
+      xml.get_elements("SRIOVEthernetLogicalPorts/link").map do |link|
+        extract_uuid_from_href(link.attributes["href"])
+      end.compact
+    end
+
     def name=(name)
       xml.elements[ATTRS[:name]].text = name
       @name = name
@@ -244,6 +250,11 @@ module IbmPowerHmc
 
   # Logical Partition information
   class LogicalPartition < BasePartition
+    def vnic_dedicated_uuids
+      xml.get_elements("DedicatedVirtualNICs/link").map do |link|
+        extract_uuid_from_href(link.attributes["href"])
+      end.compact
+    end
   end
 
   # VIOS information
@@ -301,7 +312,8 @@ module IbmPowerHmc
     ATTRS = ATTRS.merge({
       :macaddr    => "MACAddress",
       :vswitch_id => "VirtualSwitchID",
-      :vlan_id    => "PortVLANID"
+      :vlan_id    => "PortVLANID",
+      :location   => "LocationCode"
     }.freeze)
 
     def vswitch_uuid
@@ -314,6 +326,21 @@ module IbmPowerHmc
     def networks_uuids
       uuids_from_links("VirtualNetworks")
     end
+  end
+
+  class SRIOVEthernetLogicalPort < AbstractRest
+    ATTRS = {
+      :macaddr  => "MACAddress",
+      :location => "LocationCode"
+    }.freeze
+  end
+
+  class VirtualNICDedicated < AbstractRest
+    ATTRS = {
+      :macaddr => "Details/MACAddress",
+      :slot => "VirtualSlotNumber",
+      :location => "DynamicReconfigurationConnectorName"
+    }.freeze
   end
 
   # HMC Event

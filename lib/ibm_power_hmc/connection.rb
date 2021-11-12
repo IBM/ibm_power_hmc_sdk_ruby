@@ -263,6 +263,44 @@ module IbmPowerHmc
     end
 
     ##
+    # @!method sriov_elp_lpar(lpar_uuid, sriov_elp_uuid = nil)
+    # Retrieve one or all SR-IOV ethernet logical ports attached to a logical partition.
+    # @param lpar_uuid [String] UUID of the logical partition.
+    # @param netadap_uuid [String] UUID of the port to match (returns all ports if omitted).
+    # @return [Array<IbmPowerHmc::ClientNetworkAdapter>, IbmPowerHmc::ClientNetworkAdapter] The list of ports.
+    def sriov_elp_lpar(lpar_uuid, sriov_elp_uuid = nil)
+      sriov_ethernet_port("LogicalPartition", lpar_uuid, sriov_elp_uuid)
+    end
+
+    ##
+    # @!method network_adapter_vios(vios_uuid, netadap_uuid = nil)
+    # Retrieve one or all SR-IOV ethernet logical ports attached to a Virtual I/O Server.
+    # @param vios_uuid [String] UUID of the Virtual I/O Server.
+    # @param netadap_uuid [String] UUID of the port to match (returns all ports if omitted).
+    # @return [Array<IbmPowerHmc::ClientNetworkAdapter>, IbmPowerHmc::ClientNetworkAdapter] The list of ports.
+    def sriov_elp_vios(vios_uuid, sriov_elp_uuid = nil)
+      sriov_ethernet_port("VirtualIOServer", vios_uuid, sriov_elp_uuid)
+    end
+
+    ##
+    # @!method vnic_dedicated(lpar_uuid, vnic_uuid = nil)
+    # Retrieve one or all dedicated virtual network interface controller (vNIC) attached to a logical partition.
+    # @param lpar_uuid [String] UUID of the logical partition.
+    # @param netadap_uuid [String] UUID of the vNIC to match (returns all vNICs if omitted).
+    # @return [Array<IbmPowerHmc::ClientNetworkAdapter>, IbmPowerHmc::ClientNetworkAdapter] The list of vNICs.
+    def vnic_dedicated(lpar_uuid, vnic_uuid = nil)
+      if vnic_uuid.nil?
+        method_url = "/rest/api/uom/LogicalPartition/#{lpar_uuid}/VirtualNICDedicated"
+        response = request(:get, method_url)
+        FeedParser.new(response.body).objects(:VirtualNICDedicated)
+      else
+        method_url = "/rest/api/uom/LogicalPartition/#{lpar_uuid}/VirtualNICDedicated/#{vnic_uuid}"
+        response = request(:get, method_url)
+        Parser.new(response.body).object(:VirtualNICDedicated)
+      end
+    end
+
+    ##
     # @!method poweron_lpar(lpar_uuid, params = {}, sync = true)
     # Power on a logical partition.
     # @param lpar_uuid [String] The UUID of the logical partition.
@@ -516,6 +554,25 @@ module IbmPowerHmc
         method_url = "/rest/api/uom/#{vm_type}/#{lpar_uuid}/ClientNetworkAdapter/#{netadap_uuid}"
         response = request(:get, method_url)
         Parser.new(response.body).object(:ClientNetworkAdapter)
+      end
+    end
+
+    ##
+    # @!method sriov_ethernet_port(vm_type, lpar_uuid, sriov_elp_uuid)
+    # Retrieve one or all SR-IOV Ethernet loical ports attached to a Logical Partition or a Virtual I/O Server.
+    # @param vm_type [String] "LogicalPartition" or "VirtualIOServer".
+    # @param lpar_uuid [String] UUID of the Logical Partition or the Virtual I/O Server.
+    # @param netadap_uuid [String] UUID of the port to match (returns all ports if nil).
+    # @return [Array<IbmPowerHmc::ClientNetworkAdapter>, IbmPowerHmc::ClientNetworkAdapter] The list of ports.
+    def sriov_ethernet_port(vm_type, lpar_uuid, sriov_elp_uuid)
+      if sriov_elp_uuid.nil?
+        method_url = "/rest/api/uom/#{vm_type}/#{lpar_uuid}/SRIOVEthernetLogicalPort"
+        response = request(:get, method_url)
+        FeedParser.new(response.body).objects(:SRIOVEthernetLogicalPort)
+      else
+        method_url = "/rest/api/uom/#{vm_type}/#{lpar_uuid}/SRIOVEthernetLogicalPort/#{sriov_elp_uuid}"
+        response = request(:get, method_url)
+        Parser.new(response.body).object(:SRIOVEthernetLogicalPort)
       end
     end
   end
