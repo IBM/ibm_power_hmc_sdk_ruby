@@ -116,13 +116,13 @@ module IbmPowerHmc
       attr.nil? ? elem.text&.strip : elem.attributes[attr]
     end
 
-    def extract_uuid_from_href(href, index = -1)
+    def uuid_from_href(href, index = -1)
       URI(href).path.split('/')[index]
     end
 
     def uuids_from_links(elem, index = -1)
       xml.get_elements("#{elem}/link[@href]").map do |link|
-        extract_uuid_from_href(link.attributes["href"], index)
+        uuid_from_href(link.attributes["href"], index)
       end.compact
     end
   end
@@ -229,7 +229,7 @@ module IbmPowerHmc
 
     def sys_uuid
       sys_href = singleton("AssociatedManagedSystem", "href")
-      extract_uuid_from_href(sys_href)
+      uuid_from_href(sys_href)
     end
 
     def net_adap_uuids
@@ -239,6 +239,8 @@ module IbmPowerHmc
     def sriov_elp_uuids
       uuids_from_links("SRIOVEthernetLogicalPorts")
     end
+
+    # Setters
 
     def name=(name)
       xml.elements[ATTRS[:name]].text = name
@@ -261,7 +263,7 @@ module IbmPowerHmc
   class VirtualSwitch < AbstractRest
     ATTRS = {
       :id   => "SwitchID",
-      :mode => "SwitchMode",
+      :mode => "SwitchMode", # "VEB", "VEPA"
       :name => "SwitchName"
     }.freeze
 
@@ -285,7 +287,7 @@ module IbmPowerHmc
 
     def vswitch_uuid
       href = singleton("AssociatedSwitch", "href")
-      extract_uuid_from_href(href)
+      uuid_from_href(href)
     end
 
     def lpars_uuids
@@ -324,19 +326,37 @@ module IbmPowerHmc
     end
   end
 
-  class SRIOVEthernetLogicalPort < AbstractRest
-    ATTRS = {
-      :macaddr  => "MACAddress",
-      :location => "LocationCode"
-    }.freeze
+  # Virtual NIC dedicated information
+  class VirtualNICDedicated < VirtualIOAdapter
+    ATTRS = ATTRS.merge({
+      :location     => "DynamicReconfigurationConnectorName", # overrides VirtualIOAdapter
+      :macaddr      => "Details/MACAddress",
+      :os_devname   => "Details/OSDeviceName",
+      :port_vlan_id => "Details/PortVLANID"
+    }.freeze)
   end
 
-  class VirtualNICDedicated < AbstractRest
+  # SR-IOV Configured Logical Port information
+  class SRIOVConfiguredLogicalPort < AbstractRest
     ATTRS = {
-      :macaddr => "Details/MACAddress",
-      :slot => "VirtualSlotNumber",
-      :location => "DynamicReconfigurationConnectorName"
+      :port_id      => "LogicalPortID",
+      :port_vlan_id => "PortVLANID",
+      :location     => "LocationCode",
+      :dr_name      => "DynamicReconfigurationConnectorName",
+      :devname      => "DeviceName",
+      :capacity     => "ConfiguredCapacity"
     }.freeze
+
+    def lpars_uuids
+      uuids_from_links("AssociatedLogicalPartitions")
+    end
+  end
+
+  # SR-IOV Ethernet Logical Port information
+  class SRIOVEthernetLogicalPort < SRIOVConfiguredLogicalPort
+    ATTRS = ATTRS.merge({
+      :macaddr => "MACAddress"
+    }.freeze)
   end
 
   # HMC Event
