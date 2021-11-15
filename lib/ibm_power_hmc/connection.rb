@@ -267,7 +267,7 @@ module IbmPowerHmc
     # Retrieve one or all SR-IOV ethernet logical ports attached to a logical partition.
     # @param lpar_uuid [String] UUID of the logical partition.
     # @param netadap_uuid [String] UUID of the port to match (returns all ports if omitted).
-    # @return [Array<IbmPowerHmc::ClientNetworkAdapter>, IbmPowerHmc::ClientNetworkAdapter] The list of ports.
+    # @return [Array<IbmPowerHmc::SRIOVEthernetLogicalPort>, IbmPowerHmc::SRIOVEthernetLogicalPort] The list of ports.
     def sriov_elp_lpar(lpar_uuid, sriov_elp_uuid = nil)
       sriov_ethernet_port("LogicalPartition", lpar_uuid, sriov_elp_uuid)
     end
@@ -277,7 +277,7 @@ module IbmPowerHmc
     # Retrieve one or all SR-IOV ethernet logical ports attached to a Virtual I/O Server.
     # @param vios_uuid [String] UUID of the Virtual I/O Server.
     # @param netadap_uuid [String] UUID of the port to match (returns all ports if omitted).
-    # @return [Array<IbmPowerHmc::ClientNetworkAdapter>, IbmPowerHmc::ClientNetworkAdapter] The list of ports.
+    # @return [Array<IbmPowerHmc::SRIOVEthernetLogicalPort>, IbmPowerHmc::SRIOVEthernetLogicalPort] The list of ports.
     def sriov_elp_vios(vios_uuid, sriov_elp_uuid = nil)
       sriov_ethernet_port("VirtualIOServer", vios_uuid, sriov_elp_uuid)
     end
@@ -287,7 +287,7 @@ module IbmPowerHmc
     # Retrieve one or all dedicated virtual network interface controller (vNIC) attached to a logical partition.
     # @param lpar_uuid [String] UUID of the logical partition.
     # @param netadap_uuid [String] UUID of the vNIC to match (returns all vNICs if omitted).
-    # @return [Array<IbmPowerHmc::ClientNetworkAdapter>, IbmPowerHmc::ClientNetworkAdapter] The list of vNICs.
+    # @return [Array<IbmPowerHmc::VirtualNICDedicated>, IbmPowerHmc::VirtualNICDedicated] The list of vNICs.
     def vnic_dedicated(lpar_uuid, vnic_uuid = nil)
       if vnic_uuid.nil?
         method_url = "/rest/api/uom/LogicalPartition/#{lpar_uuid}/VirtualNICDedicated"
@@ -563,7 +563,7 @@ module IbmPowerHmc
     # @param vm_type [String] "LogicalPartition" or "VirtualIOServer".
     # @param lpar_uuid [String] UUID of the Logical Partition or the Virtual I/O Server.
     # @param netadap_uuid [String] UUID of the port to match (returns all ports if nil).
-    # @return [Array<IbmPowerHmc::ClientNetworkAdapter>, IbmPowerHmc::ClientNetworkAdapter] The list of ports.
+    # @return [Array<IbmPowerHmc::SRIOVEthernetLogicalPort>, IbmPowerHmc::SRIOVEthernetLogicalPort] The list of ports.
     def sriov_ethernet_port(vm_type, lpar_uuid, sriov_elp_uuid)
       if sriov_elp_uuid.nil?
         method_url = "/rest/api/uom/#{vm_type}/#{lpar_uuid}/SRIOVEthernetLogicalPort"
