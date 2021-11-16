@@ -200,6 +200,12 @@ module IbmPowerHmc
       uuids_from_links("AssociatedVirtualIOServers")
     end
 
+    def io_adapters
+      xml.get_elements("AssociatedSystemIOConfiguration/IOSlots/IOSlot/RelatedIOAdapter/IOAdapter").map do |adpt|
+        IOAdapter.new(adpt)
+      end
+    end
+
     def vswitches_uuids
       uuids_from_links("AssociatedSystemIOConfiguration/AssociatedSystemVirtualNetwork/VirtualSwitches")
     end
@@ -207,6 +213,18 @@ module IbmPowerHmc
     def networks_uuids
       uuids_from_links("AssociatedSystemIOConfiguration/AssociatedSystemVirtualNetwork/VirtualNetworks")
     end
+  end
+
+  # I/O Adapter information
+  class IOAdapter < AbstractNonRest
+    ATTRS = {
+      :id => "AdapterID",
+      :description => "Description",
+      :name => "DeviceName",
+      :type => "DeviceType",
+      :dr_name => "DynamicReconfigurationConnectorName",
+      :udid => "UniqueDeviceID"
+    }.freeze
   end
 
   # Common class for LPAR and VIOS
