@@ -280,20 +280,51 @@ module IbmPowerHmc
         PhysicalVolume.new(vol)
       end
     end
+
+    def rep
+      elem = xml.elements["MediaRepositories/VirtualMediaRepository"]
+      VirtualMediaRepository.new(elem) unless elem.nil?
+    end
   end
 
-  # Physical Volume information
+  # Empty parent class to match K2 schema definition
   class VirtualSCSIStorage < AbstractNonRest; end
+
+  # Physical Volume information
   class PhysicalVolume < VirtualSCSIStorage
     ATTRS = {
       :location => "LocationCode",
       :description => "Description",
-      :available => "AvailableForUsage",
+      :is_available => "AvailableForUsage",
       :capacity => "VolumeCapacity",
       :name => "VolumeName",
       :is_fc => "IsFibreChannelBacked",
       :udid => "VolumeUniqueID"
     }.freeze
+  end
+
+  # Virtual CD-ROM information
+  class VirtualOpticalMedia < VirtualSCSIStorage
+    ATTRS = {
+      :name => "MediaName",
+      :udid => "MediaUDID",
+      :mount_opts => "MountType",
+      :size => "Size" # in GiB
+    }.freeze
+  end
+
+  # Virtual Media Repository information
+  class VirtualMediaRepository < AbstractNonRest
+    ATTRS = {
+      :name => "RepositoryName",
+      :size => "RepositorySize" # in GiB
+    }.freeze
+
+    def vopts
+      xml.get_elements("OpticalMedia/VirtualOpticalMedia").map do |vopt|
+        VirtualOpticalMedia.new(vopt)
+      end
+    end
   end
 
   # Virtual Switch information
