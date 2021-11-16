@@ -563,6 +563,18 @@ module IbmPowerHmc
     }.freeze
   end
 
+  class PartitionTemplateSummary < AbstractRest
+    ATTRS = {
+      :name => "partitionTemplateName"
+    }.freeze
+  end
+
+  class PartitionTemplate < AbstractRest
+    ATTRS = {
+      :name => "partitionTemplateName"
+    }.freeze
+  end
+
   # HMC Event
   class Event < AbstractRest
     ATTRS = {

@@ -109,9 +109,12 @@ module IbmPowerHmc
     def delete
       raise JobNotStarted unless defined?(@id)
 
-      method_url = "/rest/api/uom/jobs/#{@id}"
-      @conn.request(:delete, method_url)
-      # Returns HTTP 204 if ok
+      # HMC bug: cannot delete Partition Template capture jobs
+      unless @operation.eql?("Capture") && @group.eql?("PartitionTemplate")
+        method_url = "/rest/api/uom/jobs/#{@id}"
+        @conn.request(:delete, method_url)
+        # Returns HTTP 204 if ok
+      end
     end
   end
 end
