@@ -257,6 +257,25 @@ module IbmPowerHmc
 
   # VIOS information
   class VirtualIOServer < BasePartition
+    def physical_volumes
+      xml.get_elements("PhysicalVolumes/PhysicalVolume").map do |vol|
+        PhysicalVolume.new(vol)
+      end
+    end
+  end
+
+  # Physical Volume information
+  class VirtualSCSIStorage < AbstractNonRest; end
+  class PhysicalVolume < VirtualSCSIStorage
+    ATTRS = {
+      :location => "LocationCode",
+      :description => "Description",
+      :available => "AvailableForUsage",
+      :capacity => "VolumeCapacity",
+      :name => "VolumeName",
+      :is_fc => "IsFibreChannelBacked",
+      :udid => "VolumeUniqueID"
+    }.freeze
   end
 
   # Virtual Switch information
