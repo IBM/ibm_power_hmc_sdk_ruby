@@ -254,6 +254,12 @@ module IbmPowerHmc
       uuids_from_links("ClientNetworkAdapters")
     end
 
+    def lhea_ports
+      xml.get_elements("HostEthernetAdapterLogicalPorts/HostEthernetAdapterLogicalPort").map do |lport|
+        HostEthernetAdapterLogicalPort.new(lport)
+      end
+    end
+
     def sriov_elp_uuids
       uuids_from_links("SRIOVEthernetLogicalPorts")
     end
@@ -392,6 +398,17 @@ module IbmPowerHmc
     def networks_uuids
       uuids_from_links("VirtualNetworks")
     end
+  end
+
+  # LP-HEA information
+  class EthernetBackingDevice < IOAdapter; end
+  class HostEthernetAdapterLogicalPort < EthernetBackingDevice
+    ATTRS = ATTRS.merge({
+      :macaddr  => "MACAddress",
+      :port_id  => "LogicalPortID",
+      :state    => "PortState",
+      :location => "HEALogicalPortPhysicalLocation"
+    }.freeze)
   end
 
   # Virtual NIC dedicated information
