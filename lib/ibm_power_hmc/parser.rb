@@ -116,6 +116,16 @@ module IbmPowerHmc
       attr.nil? ? elem.text&.strip : elem.attributes[attr]
     end
 
+    def to_s
+      str = +"#{self.class.name}:\n"
+      self.class::ATTRS.each do |varname, _|
+        value = instance_variable_get("@#{varname}")
+        str << "  #{varname}: "
+        str << (value.nil? ? "null\n" : "'#{value}'\n")
+      end
+      str
+    end
+
     def uuid_from_href(href, index = -1)
       URI(href).path.split('/')[index]
     end
@@ -159,6 +169,12 @@ module IbmPowerHmc
       content = entry.elements["content"]
       @content_type = content.attributes["type"]
       super(content.elements.first)
+    end
+
+    def to_s
+      str = super
+      str << "  uuid: '#{uuid}'\n"
+      str << "  published: '#{published}'\n"
     end
   end
 
