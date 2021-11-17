@@ -52,9 +52,9 @@ Listing the logical partitions and virtual I/O servers of each managed system:
 
 ```ruby
 hc.managed_systems.each do |sys|
-  puts sys
-  puts hc.lpars(sys.uuid)
-  puts hc.vioses(sys.uuid)
+  puts sys.name
+  hc.lpars(sys.uuid).each { |lpar| puts lpar.name }
+  hc.vioses(sys.uuid).each { |vios| puts vios.name }
 end
 ```
 
@@ -73,9 +73,9 @@ hc.poweroff_lpar(lpar_uuid, { "operation" => "shutdown" })
 Processing events:
 
 ```ruby
-loop
+loop do
   hc.next_events.each do |event|
-    puts event
+    puts event.type
   end
 end
 ```
