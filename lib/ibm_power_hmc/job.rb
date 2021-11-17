@@ -47,7 +47,11 @@ module IbmPowerHmc
       end
       response = @conn.request(:put, @method_url, headers, doc.to_s)
       jobresp = Parser.new(response.body).object(:JobResponse)
-      @id = jobresp.id
+      if @group.eql?("PartitionTemplate")
+        @job_url = "/rest/api/templates/jobs/#{jobresp.id}"
+      else
+        @job_url = "/rest/api/uom/jobs/#{jobresp.id}"
+      end
     end
 
     # @return [Hash] The job results returned by the HMC.
@@ -58,13 +62,12 @@ module IbmPowerHmc
     # Return the status of the job.
     # @return [String] The status of the job.
     def status
-      raise JobNotStarted unless defined?(@id)
+      raise JobNotStarted unless defined?(@job_url)
 
-      method_url = "/rest/api/uom/jobs/#{@id}"
       headers = {
         :content_type => "application/vnd.ibm.powervm.web+xml; type=JobRequest"
       }
-      response = @conn.request(:get, method_url, headers)
+      response = @conn.request(:get, @job_url, headers)
       jobresp = Parser.new(response.body).object(:JobResponse)
       @results = jobresp.results
       jobresp.status
@@ -100,21 +103,17 @@ module IbmPowerHmc
       start
       wait(timeout, poll_interval)
     ensure
-      delete if defined?(@id)
+      delete if defined?(@job_url)
     end
 
     ##
     # @!method delete
     # Delete the job from the HMC.
     def delete
-      raise JobNotStarted unless defined?(@id)
+      raise JobNotStarted unless defined?(@job_url)
 
-      # HMC bug: cannot delete Partition Template capture jobs
-      unless @operation.eql?("Capture") && @group.eql?("PartitionTemplate")
-        method_url = "/rest/api/uom/jobs/#{@id}"
-        @conn.request(:delete, method_url)
-        # Returns HTTP 204 if ok
-      end
+      @conn.request(:delete, @job_url)
+      # Returns HTTP 204 if ok
     end
   end
 end
