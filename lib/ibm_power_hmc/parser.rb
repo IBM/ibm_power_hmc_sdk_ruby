@@ -571,7 +571,10 @@ module IbmPowerHmc
 
   class PartitionTemplate < AbstractRest
     ATTRS = {
-      :name => "partitionTemplateName"
+      :name        => "partitionTemplateName",
+      :description => "description",
+      :os          => "logicalPartitionConfig/osVersion",
+      :memory      => "logicalPartitionConfig/memoryConfiguration/currMemory"
     }.freeze
   end
 
