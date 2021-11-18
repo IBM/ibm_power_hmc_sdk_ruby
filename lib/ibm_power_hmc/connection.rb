@@ -546,7 +546,19 @@ module IbmPowerHmc
         # No need to sleep as the HMC already waits a bit before returning 204
         break if response.code != 204 || !wait
       end
-      FeedParser.new(response.body).objects(:Event)
+      FeedParser.new(response.body).objects(:Event).map do |e|
+        data = e.data.split("/")
+        if data[-2].eql?("UserTask")
+          e.usertask = usertask(data.last)
+        end
+        e
+      end.compact
+    end
+
+    def usertask(uuid)
+      method_url = "/rest/api/ui/UserTask/#{uuid}"
+      response = request(:get, method_url)
+      JSON.parse(response.body)
     end
 
     ##

@@ -577,6 +577,7 @@ module IbmPowerHmc
 
   # HMC Event
   class Event < AbstractRest
+    attr_accessor :usertask
     ATTRS = {
       :id     => "EventID",
       :type   => "EventType",
