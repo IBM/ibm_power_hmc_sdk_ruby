@@ -120,8 +120,8 @@ module IbmPowerHmc
       str = +"#{self.class.name}:\n"
       self.class::ATTRS.each do |varname, _|
         value = instance_variable_get("@#{varname}")
-        str << "  #{varname}: "
-        str << (value.nil? ? "null\n" : "'#{value}'\n")
+        value = value.nil? ? "null" : "'#{value}'"
+        str << "  #{varname}: #{value}\n"
       end
       str
     end
@@ -217,8 +217,8 @@ module IbmPowerHmc
     end
 
     def io_adapters
-      xml.get_elements("AssociatedSystemIOConfiguration/IOSlots/IOSlot/RelatedIOAdapter/IOAdapter").map do |adpt|
-        IOAdapter.new(adpt)
+      xml.get_elements("AssociatedSystemIOConfiguration/IOSlots/IOSlot/RelatedIOAdapter/IOAdapter").map do |elem|
+        IOAdapter.new(elem)
       end
     end
 
@@ -271,8 +271,8 @@ module IbmPowerHmc
     end
 
     def lhea_ports
-      xml.get_elements("HostEthernetAdapterLogicalPorts/HostEthernetAdapterLogicalPort").map do |lport|
-        HostEthernetAdapterLogicalPort.new(lport)
+      xml.get_elements("HostEthernetAdapterLogicalPorts/HostEthernetAdapterLogicalPort").map do |elem|
+        HostEthernetAdapterLogicalPort.new(elem)
       end
     end
 
@@ -297,9 +297,9 @@ module IbmPowerHmc
 
   # VIOS information
   class VirtualIOServer < BasePartition
-    def physical_volumes
-      xml.get_elements("PhysicalVolumes/PhysicalVolume").map do |vol|
-        PhysicalVolume.new(vol)
+    def pvs
+      xml.get_elements("PhysicalVolumes/PhysicalVolume").map do |elem|
+        PhysicalVolume.new(elem)
       end
     end
 
@@ -343,8 +343,8 @@ module IbmPowerHmc
     }.freeze
 
     def vopts
-      xml.get_elements("OpticalMedia/VirtualOpticalMedia").map do |vopt|
-        VirtualOpticalMedia.new(vopt)
+      xml.get_elements("OpticalMedia/VirtualOpticalMedia").map do |elem|
+        VirtualOpticalMedia.new(elem)
       end
     end
   end
@@ -458,6 +458,109 @@ module IbmPowerHmc
     ATTRS = ATTRS.merge({
       :macaddr => "MACAddress"
     }.freeze)
+  end
+
+  # Cluster information
+  class Cluster < AbstractRest
+    ATTRS = {
+      :name => "ClusterName",
+      :id => "ClusterID",
+      :tier_capable => "ClusterCapabilities/IsTierCapable"
+    }.freeze
+
+    def ssp_uuid
+      href = singleton("ClusterSharedStoragePool", "href")
+      uuid_from_href(href)
+    end
+
+    def nodes
+      xml.get_elements("Node/Node").map do |elem|
+        Node.new(elem)
+      end
+    end
+  end
+
+  # Cluster node information
+  class Node < AbstractNonRest
+    ATTRS = {
+      :hostname => "HostName",
+      :lpar_id => "PartitionID",
+      :state => "State",
+      :ioslevel => "VirtualIOServerLevel"
+    }.freeze
+
+    def vios_uuid
+      href = singleton("VirtualIOServer", "href")
+      uuid_from_href(href)
+    end
+  end
+
+  # SSP information
+  class SharedStoragePool < AbstractRest
+    ATTRS = {
+      :name => "StoragePoolName",
+      :udid => "UniqueDeviceID",
+      :capacity => "Capacity",
+      :free_space => "FreeSpace",
+      :overcommit => "OverCommitSpace",
+      :total_lu_size => "TotalLogicalUnitSize",
+      :alert_threshold => "AlertThreshold"
+    }.freeze
+
+    def cluster_uuid
+      href = singleton("AssociatedCluster", "href")
+      uuid_from_href(href)
+    end
+
+    def pvs
+      xml.get_elements("PhysicalVolumes/PhysicalVolume").map do |elem|
+        PhysicalVolume.new(elem)
+      end
+    end
+
+    def tiers_uuids
+      uuids_from_links("AssociatedTiers")
+    end
+
+    def lus
+      xml.get_elements("LogicalUnits/LogicalUnit").map do |elem|
+        LogicalUnit.new(elem)
+      end
+    end
+  end
+
+  # SSP tier information
+  class Tier < AbstractRest
+    ATTRS = {
+      :name => "Name",
+      :udid => "UniqueDeviceID",
+      :type => "Type",
+      :capacity => "Capacity",
+      :total_lu_size => "TotalLogicalUnitSize",
+      :is_default => "IsDefault",
+      :free_space => "FreeSpace"
+    }.freeze
+
+    def ssp_uuid
+      href = singleton("AssociatedSharedStoragePool", "href")
+      uuid_from_href(href)
+    end
+
+    def lus_uuids
+      uuids_from_links("AssociatedLogicalUnits")
+    end
+  end
+
+  # SSP LU information
+  class LogicalUnit < VirtualSCSIStorage
+    ATTRS = {
+      :name => "UnitName",
+      :capacity => "UnitCapacity",
+      :udid => "UniqueDeviceID",
+      :thin => "ThinDevice",
+      :type => "LogicalUnitType",
+      :in_use => "InUse"
+    }.freeze
   end
 
   # HMC Event
