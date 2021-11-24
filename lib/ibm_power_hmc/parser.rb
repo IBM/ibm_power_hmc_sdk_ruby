@@ -205,8 +205,16 @@ module IbmPowerHmc
       :avail_cpus => "AssociatedSystemProcessorConfiguration/CurrentAvailableSystemProcessorUnits",
       :mtype => "MachineTypeModelAndSerialNumber/MachineType",
       :model => "MachineTypeModelAndSerialNumber/Model",
-      :serial => "MachineTypeModelAndSerialNumber/SerialNumber"
+      :serial => "MachineTypeModelAndSerialNumber/SerialNumber",
+      :vtpm_version => "AssociatedSystemSecurity/VirtualTrustedPlatformModuleVersion",
+      :vtpm_lpars => "AssociatedSystemSecurity/AvailableVirtualTrustedPlatformModulePartitions"
     }.freeze
+
+    def cpu_compat_modes
+      xml.get_elements("AssociatedSystemProcessorConfiguration/SupportedPartitionProcessorCompatibilityModes").map do |elem|
+        elem.text&.strip
+      end.compact
+    end
 
     def lpars_uuids
       uuids_from_links("AssociatedLogicalPartitions")
