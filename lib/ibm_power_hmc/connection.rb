@@ -266,17 +266,17 @@ module IbmPowerHmc
     # @!method sriov_elp_lpar(lpar_uuid, sriov_elp_uuid = nil)
     # Retrieve one or all SR-IOV ethernet logical ports attached to a logical partition.
     # @param lpar_uuid [String] UUID of the logical partition.
-    # @param netadap_uuid [String] UUID of the port to match (returns all ports if omitted).
+    # @param sriov_elp_uuid [String] UUID of the port to match (returns all ports if omitted).
     # @return [Array<IbmPowerHmc::SRIOVEthernetLogicalPort>, IbmPowerHmc::SRIOVEthernetLogicalPort] The list of ports.
     def sriov_elp_lpar(lpar_uuid, sriov_elp_uuid = nil)
       sriov_ethernet_port("LogicalPartition", lpar_uuid, sriov_elp_uuid)
     end
 
     ##
-    # @!method network_adapter_vios(vios_uuid, netadap_uuid = nil)
+    # @!method network_adapter_vios(vios_uuid, sriov_elp_uuid = nil)
     # Retrieve one or all SR-IOV ethernet logical ports attached to a Virtual I/O Server.
     # @param vios_uuid [String] UUID of the Virtual I/O Server.
-    # @param netadap_uuid [String] UUID of the port to match (returns all ports if omitted).
+    # @param sriov_elp_uuid [String] UUID of the port to match (returns all ports if omitted).
     # @return [Array<IbmPowerHmc::SRIOVEthernetLogicalPort>, IbmPowerHmc::SRIOVEthernetLogicalPort] The list of ports.
     def sriov_elp_vios(vios_uuid, sriov_elp_uuid = nil)
       sriov_ethernet_port("VirtualIOServer", vios_uuid, sriov_elp_uuid)
@@ -286,7 +286,7 @@ module IbmPowerHmc
     # @!method vnic_dedicated(lpar_uuid, vnic_uuid = nil)
     # Retrieve one or all dedicated virtual network interface controller (vNIC) attached to a logical partition.
     # @param lpar_uuid [String] UUID of the logical partition.
-    # @param netadap_uuid [String] UUID of the vNIC to match (returns all vNICs if omitted).
+    # @param vnic_uuid [String] UUID of the vNIC to match (returns all vNICs if omitted).
     # @return [Array<IbmPowerHmc::VirtualNICDedicated>, IbmPowerHmc::VirtualNICDedicated] The list of vNICs.
     def vnic_dedicated(lpar_uuid, vnic_uuid = nil)
       if vnic_uuid.nil?
@@ -298,6 +298,78 @@ module IbmPowerHmc
         response = request(:get, method_url)
         Parser.new(response.body).object(:VirtualNICDedicated)
       end
+    end
+
+    ##
+    # @!method clusters
+    # Retrieve the list of clusters managed by the HMC.
+    # @return [Array<IbmPowerHmc::Cluster>] The list of clusters.
+    def clusters
+      method_url = "/rest/api/uom/Cluster"
+      response = request(:get, method_url)
+      FeedParser.new(response.body).objects(:Cluster)
+    end
+
+    ##
+    # @!method cluster(cl_uuid)
+    # Retrieve information about a cluster.
+    # @param cl_uuid [String] The UUID of the cluster.
+    # @return [IbmPowerHmc::Cluster] The cluster.
+    def cluster(cl_uuid)
+      method_url = "/rest/api/uom/Cluster/#{cl_uuid}"
+      response = request(:get, method_url)
+      Parser.new(response.body).object(:Cluster)
+    end
+
+    ##
+    # @!method ssps
+    # Retrieve the list of shared storage pools managed by the HMC.
+    # @return [Array<IbmPowerHmc::SharedStoragePool>] The list of shared storage pools.
+    def ssps
+      method_url = "/rest/api/uom/SharedStoragePool"
+      response = request(:get, method_url)
+      FeedParser.new(response.body).objects(:SharedStoragePool)
+    end
+
+    ##
+    # @!method ssp(ssp_uuid)
+    # Retrieve information about a shared storage pool.
+    # @param ssp_uuid [String] The UUID of the shared storage pool.
+    # @return [IbmPowerHmc::SharedStoragePool] The shared storage pool.
+    def ssp(ssp_uuid)
+      method_url = "/rest/api/uom/SharedStoragePool/#{ssp_uuid}"
+      response = request(:get, method_url)
+      Parser.new(response.body).object(:SharedStoragePool)
+    end
+
+    ##
+    # @!method tiers(group_name = nil)
+    # Retrieve the list of tiers that are part of shared storage pools managed by the HMC.
+    # @param group_name [String] The extended group attributes.
+    # @return [Array<IbmPowerHmc::Tier>] The list of tiers.
+    def tiers(group_name = nil)
+      method_url = "/rest/api/uom/Tier"
+      method_url += "?group=#{group_name}" unless group_name.nil?
+      response = request(:get, method_url)
+      FeedParser.new(response.body).objects(:Tier)
+    end
+
+    ##
+    # @!method tier(tier_uuid, ssp_uuid = nil, group_name = nil)
+    # Retrieve information about a tier.
+    # @param ssp_uuid [String] The UUID of the shared storage pool.
+    # @param group_name [String] The extended group attributes.
+    # @return [IbmPowerHmc::Tier] The tier.
+    def tier(tier_uuid, ssp_uuid = nil, group_name = nil)
+      if ssp_uuid.nil?
+        method_url = "/rest/api/uom/Tier/#{tier_uuid}"
+      else
+        method_url = "/rest/api/uom/SharedStoragePool/#{ssp_uuid}/Tier/#{tier_uuid}"
+      end
+      method_url += "?group=#{group_name}" unless group_name.nil?
+
+      response = request(:get, method_url)
+      Parser.new(response.body).object(:Tier)
     end
 
     ##
@@ -562,7 +634,7 @@ module IbmPowerHmc
     # Retrieve one or all SR-IOV Ethernet loical ports attached to a Logical Partition or a Virtual I/O Server.
     # @param vm_type [String] "LogicalPartition" or "VirtualIOServer".
     # @param lpar_uuid [String] UUID of the Logical Partition or the Virtual I/O Server.
-    # @param netadap_uuid [String] UUID of the port to match (returns all ports if nil).
+    # @param sriov_elp_uuid [String] UUID of the port to match (returns all ports if nil).
     # @return [Array<IbmPowerHmc::SRIOVEthernetLogicalPort>, IbmPowerHmc::SRIOVEthernetLogicalPort] The list of ports.
     def sriov_ethernet_port(vm_type, lpar_uuid, sriov_elp_uuid)
       if sriov_elp_uuid.nil?
