@@ -555,6 +555,11 @@ module IbmPowerHmc
       end.compact
     end
 
+    ##
+    # @!method usertask(uuid = true)
+    # Retrieve details of an event of type "user task".
+    # @param uuid [String] UUID of user task.
+    # @return [Hash] Hash of user task attributes.
     def usertask(uuid)
       method_url = "/rest/api/ui/UserTask/#{uuid}"
       response = request(:get, method_url)
