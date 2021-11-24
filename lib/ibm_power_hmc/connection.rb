@@ -357,6 +357,7 @@ module IbmPowerHmc
     ##
     # @!method tier(tier_uuid, ssp_uuid = nil, group_name = nil)
     # Retrieve information about a tier.
+    # @param tier_uuid [String] The UUID of the tier.
     # @param ssp_uuid [String] The UUID of the shared storage pool.
     # @param group_name [String] The extended group attributes.
     # @return [IbmPowerHmc::Tier] The tier.
