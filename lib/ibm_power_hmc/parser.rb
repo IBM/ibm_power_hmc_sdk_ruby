@@ -571,8 +571,24 @@ module IbmPowerHmc
     }.freeze
   end
 
+  class PartitionTemplateSummary < AbstractRest
+    ATTRS = {
+      :name => "partitionTemplateName"
+    }.freeze
+  end
+
+  class PartitionTemplate < AbstractRest
+    ATTRS = {
+      :name        => "partitionTemplateName",
+      :description => "description",
+      :os          => "logicalPartitionConfig/osVersion",
+      :memory      => "logicalPartitionConfig/memoryConfiguration/currMemory"
+    }.freeze
+  end
+
   # HMC Event
   class Event < AbstractRest
+    attr_accessor :usertask
     ATTRS = {
       :id     => "EventID",
       :type   => "EventType",

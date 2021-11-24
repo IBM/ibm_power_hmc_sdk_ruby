@@ -374,6 +374,47 @@ module IbmPowerHmc
     end
 
     ##
+    # @!method templates_summary
+    # Retrieve the list of partition template summaries.
+    # @return [Array<IbmPowerHmc::PartitionTemplateSummary>, IbmPowerHmc::PartitionTemplateSummary] The list of partition template summaries.
+    def templates_summary
+      method_url = "/rest/api/templates/PartitionTemplate"
+      response = request(:get, method_url)
+      FeedParser.new(response.body).objects(:PartitionTemplateSummary)
+    end
+
+    ##
+    # @!method template(template_uuid)
+    # Retrieve details for a particular partition template.
+    # @param template_uuid [String] UUID of the partition template.
+    # @return [IbmPowerHmc::PartitionTemplate] The partition template.
+    def template(template_uuid)
+      method_url = "/rest/api/templates/PartitionTemplate/#{template_uuid}"
+      response = request(:get, method_url)
+      Parser.new(response.body).object(:PartitionTemplate)
+    end
+
+    ##
+    # @!method capture_lpar(lpar_uuid, sys_uuid, template_name, sync = true)
+    # Retrieve details for a particular partition template.
+    # @param template_uuid [String] UUID of the partition template.
+    # @return [IbmPowerHmc::PartitionTemplate] The partition template.
+    def capture_lpar(lpar_uuid, sys_uuid, template_name, sync = true)
+      # Need to include session token in payload so make sure we are logged in
+      logon if @api_session_token.nil?
+      method_url = "/rest/api/templates/PartitionTemplate/do/capture"
+      params = {
+        "TargetUuid"              => lpar_uuid,
+        "NewTemplateName"         => template_name,
+        "ManagedSystemUuid"       => sys_uuid,
+        "K_X_API_SESSION_MEMENTO" => @api_session_token
+      }
+      job = HmcJob.new(self, method_url, "Capture", "PartitionTemplate", params)
+      job.run if sync
+      job
+    end
+
+    ##
     # @!method poweron_lpar(lpar_uuid, params = {}, sync = true)
     # Power on a logical partition.
     # @param lpar_uuid [String] The UUID of the logical partition.
@@ -505,7 +546,24 @@ module IbmPowerHmc
         # No need to sleep as the HMC already waits a bit before returning 204
         break if response.code != 204 || !wait
       end
-      FeedParser.new(response.body).objects(:Event)
+      FeedParser.new(response.body).objects(:Event).map do |e|
+        data = e.data.split("/")
+        if data[-2].eql?("UserTask")
+          e.usertask = usertask(data.last)
+        end
+        e
+      end.compact
+    end
+
+    ##
+    # @!method usertask(uuid = true)
+    # Retrieve details of an event of type "user task".
+    # @param uuid [String] UUID of user task.
+    # @return [Hash] Hash of user task attributes.
+    def usertask(uuid)
+      method_url = "/rest/api/ui/UserTask/#{uuid}"
+      response = request(:get, method_url)
+      JSON.parse(response.body)
     end
 
     ##
