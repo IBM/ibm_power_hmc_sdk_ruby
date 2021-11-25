@@ -26,7 +26,7 @@ module IbmPowerHmc
     ##
     # @!method start
     # Start the job asynchronously.
-    # @return [String] The ID of the job.
+    # @return [String] The URL of the job.
     def start
       headers = {
         :content_type => "application/vnd.ibm.powervm.web+xml; type=JobRequest"
@@ -47,11 +47,8 @@ module IbmPowerHmc
       end
       response = @conn.request(:put, @method_url, headers, doc.to_s)
       jobresp = Parser.new(response.body).object(:JobResponse)
-      if @group.eql?("PartitionTemplate")
-        @job_url = "/rest/api/templates/jobs/#{jobresp.id}"
-      else
-        @job_url = "/rest/api/uom/jobs/#{jobresp.id}"
-      end
+      # Save the URL of the job (JobID is not sufficient as not all jobs are in uom).
+      @href = jobresp.href.path
     end
 
     # @return [Hash] The job results returned by the HMC.
@@ -62,12 +59,12 @@ module IbmPowerHmc
     # Return the status of the job.
     # @return [String] The status of the job.
     def status
-      raise JobNotStarted unless defined?(@job_url)
+      raise JobNotStarted unless defined?(@href)
 
       headers = {
         :content_type => "application/vnd.ibm.powervm.web+xml; type=JobRequest"
       }
-      response = @conn.request(:get, @job_url, headers)
+      response = @conn.request(:get, @href, headers)
       jobresp = Parser.new(response.body).object(:JobResponse)
       @results = jobresp.results
       jobresp.status
@@ -103,16 +100,16 @@ module IbmPowerHmc
       start
       wait(timeout, poll_interval)
     ensure
-      delete if defined?(@job_url)
+      delete if defined?(@href)
     end
 
     ##
     # @!method delete
     # Delete the job from the HMC.
     def delete
-      raise JobNotStarted unless defined?(@job_url)
+      raise JobNotStarted unless defined?(@href)
 
-      @conn.request(:delete, @job_url)
+      @conn.request(:delete, @href)
       # Returns HTTP 204 if ok
     end
   end
