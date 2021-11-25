@@ -161,6 +161,12 @@ module IbmPowerHmc
     attr_reader :uuid, :published, :href, :etag, :content_type
 
     def initialize(entry)
+      if entry.name != "entry"
+        # We are inlined.
+        super(entry)
+        return
+      end
+
       @uuid = entry.elements["id"]&.text
       @published = Time.xmlschema(entry.elements["published"]&.text)
       link = entry.elements["link[@rel='SELF']"]
@@ -173,8 +179,9 @@ module IbmPowerHmc
 
     def to_s
       str = super
-      str << "  uuid: '#{uuid}'\n"
-      str << "  published: '#{published}'\n"
+      str << "  uuid: '#{uuid}'\n" if defined?(@uuid)
+      str << "  published: '#{published}'\n" if defined?(@published)
+      str
     end
   end
 
@@ -301,6 +308,14 @@ module IbmPowerHmc
     def vnic_dedicated_uuids
       uuids_from_links("DedicatedVirtualNICs")
     end
+
+    def vscsi_client_uuids
+      uuids_from_links("VirtualSCSIClientAdapters")
+    end
+
+    def vfc_client_uuids
+      uuids_from_links("VirtualFibreChannelClientAdapters")
+    end
   end
 
   # VIOS information
@@ -314,6 +329,18 @@ module IbmPowerHmc
     def rep
       elem = xml.elements["MediaRepositories/VirtualMediaRepository"]
       VirtualMediaRepository.new(elem) unless elem.nil?
+    end
+
+    def vscsi_mappings
+      xml.get_elements("VirtualSCSIMappings/VirtualSCSIMapping").map do |elem|
+        VirtualSCSIMapping.new(elem)
+      end
+    end
+
+    def vfc_mappings
+      xml.get_elements("VirtualFibreChannelMappings/VirtualFibreChannelMapping").map do |elem|
+        VirtualFibreChannelMapping.new(elem)
+      end
     end
   end
 
@@ -330,6 +357,18 @@ module IbmPowerHmc
       :name => "VolumeName",
       :is_fc => "IsFibreChannelBacked",
       :udid => "VolumeUniqueID"
+    }.freeze
+  end
+
+  # Logical Volume information
+  class VirtualDisk < VirtualSCSIStorage
+    ATTRS = {
+      :name => "DiskName",
+      :label => "DiskLabel",
+      :capacity => "DiskCapacity", # In GiB
+      :psize => "PartitionSize",
+      :vg => "VolumeGroup",
+      :udid => "UniqueDeviceID"
     }.freeze
   end
 
@@ -466,6 +505,204 @@ module IbmPowerHmc
     ATTRS = ATTRS.merge({
       :macaddr => "MACAddress"
     }.freeze)
+  end
+
+  # Virtual SCSI mapping information
+  class VirtualSCSIMapping < AbstractNonRest
+    def lpar_uuid
+      href = singleton("AssociatedLogicalPartition", "href")
+      uuid_from_href(href)
+    end
+
+    def client
+      elem = xml.elements["ClientAdapter"]
+      VirtualSCSIClientAdapter.new(elem) unless elem.nil?
+    end
+
+    def server
+      elem = xml.elements["ServerAdapter"]
+      VirtualSCSIServerAdapter.new(elem) unless elem.nil?
+    end
+
+    def storage
+      # Possible storage types are:
+      # LogicalUnit, PhysicalVolume, VirtualDisk, VirtualOpticalMedia
+      elem = xml.elements["Storage/*[1]"]
+      Module.const_get("IbmPowerHmc::#{elem.name}").new(elem) unless elem.nil?
+    end
+
+    def device
+      # Possible backing device types are:
+      # LogicalVolumeVirtualTargetDevice, PhysicalVolumeVirtualTargetDevice,
+      # SharedStoragePoolLogicalUnitVirtualTargetDevice, VirtualOpticalTargetDevice
+      elem = xml.elements["TargetDevice/*[1]"]
+      Module.const_get("IbmPowerHmc::#{elem.name}").new(elem) unless elem.nil?
+    end
+  end
+
+  # Virtual SCSI adapter (common class for Client and Server)
+  class VirtualSCSIAdapter < VirtualIOAdapter
+    ATTRS = ATTRS.merge({
+      :name => "AdapterName",
+      :backdev => "BackingDeviceName",
+      :remote_backdev => "RemoteBackingDeviceName",
+      :remote_lpar_id => "RemoteLogicalPartitionID",
+      :remote_slot => "RemoteSlotNumber",
+      :server_location => "ServerLocationCode",
+      :udid => "UniqueDeviceID"
+    }.freeze)
+  end
+
+  # Virtual SCSI client adapter information
+  class VirtualSCSIClientAdapter < VirtualSCSIAdapter
+    def server
+      elem = xml.elements["ServerAdapter"]
+      VirtualSCSIServerAdapter.new(elem) unless elem.nil?
+    end
+
+    def vios_uuid
+      href = singleton("ConnectingPartition", "href")
+      uuid_from_href(href)
+    end
+  end
+
+  # Virtual SCSI server adapter information
+  class VirtualSCSIServerAdapter < VirtualSCSIAdapter; end
+
+  # Virtual target device information
+  class VirtualTargetDevice < AbstractNonRest
+    ATTRS = {
+      :lun => "LogicalUnitAddress",
+      :parent => "ParentName",
+      :target => "TargetName",
+      :udid => "UniqueDeviceID"
+    }.freeze
+  end
+
+  # LV backing device information
+  class LogicalVolumeVirtualTargetDevice < VirtualTargetDevice; end
+
+  # PV backing device information
+  class PhysicalVolumeVirtualTargetDevice < VirtualTargetDevice; end
+
+  # LU backing device information
+  class SharedStoragePoolLogicalUnitVirtualTargetDevice < VirtualTargetDevice
+    ATTRS = ATTRS.merge({
+      :cluster_id => "ClusterID",
+      :path => "PathName",
+      :raid_level => "RAIDLevel"
+    }.freeze)
+  end
+
+  # Virtual CD backing device information
+  class VirtualOpticalTargetDevice < VirtualTargetDevice
+    def media
+      elem = xml.elements["VirtualOpticalMedia"]
+      VirtualOpticalMedia.new(elem) unless elem.nil?
+    end
+  end
+
+  # VFC mapping information
+  class VirtualFibreChannelMapping < AbstractNonRest
+    def lpar_uuid
+      href = singleton("AssociatedLogicalPartition", "href")
+      uuid_from_href(href)
+    end
+
+    def client
+      elem = xml.elements["ClientAdapter"]
+      VirtualFibreChannelClientAdapter.new(elem) unless elem.nil?
+    end
+
+    def server
+      elem = xml.elements["ServerAdapter"]
+      VirtualFibreChannelServerAdapter.new(elem) unless elem.nil?
+    end
+
+    def port
+      elem = xml.elements["Port"]
+      PhysicalFibreChannelPort.new(elem) unless elem.nil?
+    end
+  end
+
+  # VFC adapter information
+  class VirtualFibreChannelAdapter < VirtualIOAdapter
+    ATTRS = ATTRS.merge({
+      :name => "AdapterName",
+      :lpar_id => "ConnectingPartitionID",
+      :slot => "ConnectingVirtualSlotNumber",
+      :udid => "UniqueDeviceID"
+    }.freeze)
+
+    def lpar_uuid
+      href = singleton("ConnectingPartition", "href")
+      uuid_from_href(href)
+    end
+  end
+
+  # VFC client information
+  class VirtualFibreChannelClientAdapter < VirtualFibreChannelAdapter
+    def nport_loggedin
+      xml.get_elements("NportLoggedInStatus/VirtualFibreChannelNPortLoginStatus").map do |elem|
+        VirtualFibreChannelNPortLoginStatus.new(elem)
+      end
+    end
+
+    def server
+      elem = xml.elements["ServerAdapter"]
+      VirtualFibreChannelServerAdapter.new(elem) unless elem.nil?
+    end
+
+    def wwpns
+      singleton("WWPNs")&.split
+    end
+
+    def os_disks
+      xml.get_elements("OperatingSystemDisks/OperatingSystemDisk/Name").map do |elem|
+        elem.text&.strip
+      end.compact
+    end
+  end
+
+  # VFC port status
+  class VirtualFibreChannelNPortLoginStatus < AbstractNonRest
+    ATTRS = {
+      :wwpn => "WWPN",
+      :wwpn_status => "WWPNStatus",
+      :loggedin_by => "LoggedInBy",
+      :reason => "StatusReason"
+    }.freeze
+  end
+
+  # VFC server information
+  class VirtualFibreChannelServerAdapter < VirtualFibreChannelAdapter
+    ATTRS = ATTRS.merge({
+      :map_port => "MapPort"
+    }.freeze)
+
+    def port
+      elem = xml.elements["PhysicalPort"]
+      PhysicalFibreChannelPort.new(elem) unless elem.nil?
+    end
+  end
+
+  # FC port information
+  class PhysicalFibreChannelPort < AbstractNonRest
+    ATTRS = {
+      :location => "LocationCode",
+      :name => "PortName",
+      :udid => "UniqueDeviceID",
+      :wwpn => "WWPN",
+      :wwnn => "WWNN",
+      :avail_ports => "AvailablePorts",
+      :total_ports => "TotalPorts"
+    }.freeze
+
+    def pvs
+      xml.get_elements("PhysicalVolumes/PhysicalVolume").map do |elem|
+        PhysicalVolume.new(elem)
+      end
+    end
   end
 
   # Cluster information
