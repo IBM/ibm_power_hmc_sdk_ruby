@@ -376,7 +376,7 @@ module IbmPowerHmc
     ##
     # @!method templates_summary
     # Retrieve the list of partition template summaries.
-    # @return [Array<IbmPowerHmc::PartitionTemplateSummary>, IbmPowerHmc::PartitionTemplateSummary] The list of partition template summaries.
+    # @return [Array<IbmPowerHmc::PartitionTemplateSummary>] The list of partition template summaries.
     def templates_summary
       method_url = "/rest/api/templates/PartitionTemplate"
       response = request(:get, method_url)
@@ -396,9 +396,12 @@ module IbmPowerHmc
 
     ##
     # @!method capture_lpar(lpar_uuid, sys_uuid, template_name, sync = true)
-    # Retrieve details for a particular partition template.
-    # @param template_uuid [String] UUID of the partition template.
-    # @return [IbmPowerHmc::PartitionTemplate] The partition template.
+    # Capture partition configuration as template.
+    # @param lpar_uuid [String] The UUID of the logical partition.
+    # @param sys_uuid [String] The UUID of the managed system.
+    # @param template_name [String] The name to be given for the new template.
+    # @param sync [Boolean] Start the job and wait for its completion.
+    # @return [IbmPowerHmc::HmcJob] The HMC job.
     def capture_lpar(lpar_uuid, sys_uuid, template_name, sync = true)
       # Need to include session token in payload so make sure we are logged in
       logon if @api_session_token.nil?
