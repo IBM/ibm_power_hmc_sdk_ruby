@@ -384,6 +384,16 @@ module IbmPowerHmc
     end
 
     ##
+    # @!method templates
+    # Retrieve the list of partition templates.
+    # @return [Array<IbmPowerHmc::PartitionTemplate>] The list of partition templates.
+    def templates
+      method_url = "/rest/api/templates/PartitionTemplate?detail=full"
+      response = request(:get, method_url)
+      FeedParser.new(response.body).objects(:PartitionTemplate)
+    end
+
+    ##
     # @!method template(template_uuid)
     # Retrieve details for a particular partition template.
     # @param template_uuid [String] UUID of the partition template.
