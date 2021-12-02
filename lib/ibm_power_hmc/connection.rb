@@ -576,7 +576,14 @@ module IbmPowerHmc
     def usertask(uuid)
       method_url = "/rest/api/ui/UserTask/#{uuid}"
       response = request(:get, method_url)
-      JSON.parse(response.body)
+      j = JSON.parse(response.body)
+      if j['status'].eql?("Completed")
+        case j['key']
+        when "TEMPLATE_PARTITION_SAVE", "TEMPLATE_PARTITION_SAVE_AS", "TEMPLATE_PARTITION_CAPTURE"
+          j['template_uuid'] = templates_summary.select { |t| t.name.eql?(j['labelParams'].first) }.first&.uuid
+        end
+      end
+      j
     end
 
     ##
