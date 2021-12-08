@@ -190,11 +190,18 @@ module IbmPowerHmc
     ATTRS = {
       :name => "ManagementConsoleName",
       :build_level => "VersionInfo/BuildLevel",
-      :version => "BaseVersion"
+      :version => "BaseVersion",
+      :ssh_pubkey => "PublicSSHKeyValue"
     }.freeze
 
     def managed_systems_uuids
       uuids_from_links("ManagedSystems")
+    end
+
+    def ssh_authkeys
+      xml.get_elements("AuthorizedKeysValue/AuthorizedKey").map do |elem|
+        elem.text&.strip
+      end.compact
     end
   end
 
@@ -278,7 +285,7 @@ module IbmPowerHmc
 
     def sys_uuid
       sys_href = singleton("AssociatedManagedSystem", "href")
-      uuid_from_href(sys_href)
+      uuid_from_href(sys_href) unless href.nil?
     end
 
     def net_adap_uuids
@@ -424,7 +431,7 @@ module IbmPowerHmc
 
     def vswitch_uuid
       href = singleton("AssociatedSwitch", "href")
-      uuid_from_href(href)
+      uuid_from_href(href) unless href.nil?
     end
 
     def lpars_uuids
@@ -511,7 +518,7 @@ module IbmPowerHmc
   class VirtualSCSIMapping < AbstractNonRest
     def lpar_uuid
       href = singleton("AssociatedLogicalPartition", "href")
-      uuid_from_href(href)
+      uuid_from_href(href) unless href.nil?
     end
 
     def client
@@ -562,7 +569,7 @@ module IbmPowerHmc
 
     def vios_uuid
       href = singleton("ConnectingPartition", "href")
-      uuid_from_href(href)
+      uuid_from_href(href) unless href.nil?
     end
   end
 
@@ -606,7 +613,7 @@ module IbmPowerHmc
   class VirtualFibreChannelMapping < AbstractNonRest
     def lpar_uuid
       href = singleton("AssociatedLogicalPartition", "href")
-      uuid_from_href(href)
+      uuid_from_href(href) unless href.nil?
     end
 
     def client
@@ -636,7 +643,7 @@ module IbmPowerHmc
 
     def lpar_uuid
       href = singleton("ConnectingPartition", "href")
-      uuid_from_href(href)
+      uuid_from_href(href) unless href.nil?
     end
   end
 
@@ -713,9 +720,15 @@ module IbmPowerHmc
       :tier_capable => "ClusterCapabilities/IsTierCapable"
     }.freeze
 
+    def repopvs
+      xml.get_elements("RepositoryDisk/PhysicalVolume").map do |elem|
+        PhysicalVolume.new(elem)
+      end
+    end
+
     def ssp_uuid
       href = singleton("ClusterSharedStoragePool", "href")
-      uuid_from_href(href)
+      uuid_from_href(href) unless href.nil?
     end
 
     def nodes
@@ -736,13 +749,14 @@ module IbmPowerHmc
 
     def vios_uuid
       href = singleton("VirtualIOServer", "href")
-      uuid_from_href(href)
+      uuid_from_href(href) unless href.nil?
     end
   end
 
   # SSP information
   class SharedStoragePool < AbstractRest
     ATTRS = {
+      :id => "SharedStoragePoolID",
       :name => "StoragePoolName",
       :udid => "UniqueDeviceID",
       :capacity => "Capacity",
@@ -754,7 +768,7 @@ module IbmPowerHmc
 
     def cluster_uuid
       href = singleton("AssociatedCluster", "href")
-      uuid_from_href(href)
+      uuid_from_href(href) unless href.nil?
     end
 
     def pvs
@@ -788,7 +802,7 @@ module IbmPowerHmc
 
     def ssp_uuid
       href = singleton("AssociatedSharedStoragePool", "href")
-      uuid_from_href(href)
+      uuid_from_href(href) unless href.nil?
     end
 
     def lus_uuids
