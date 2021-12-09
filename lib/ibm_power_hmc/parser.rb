@@ -135,6 +135,15 @@ module IbmPowerHmc
         uuid_from_href(link.attributes["href"], index)
       end.compact
     end
+
+    def collection_of(name, type)
+      objtype = Module.const_get("IbmPowerHmc::#{type}")
+      xml.get_elements("#{name}/#{type}").map do |elem|
+        objtype.new(elem)
+      end
+    rescue
+      []
+    end
   end
 
   ##
@@ -239,9 +248,7 @@ module IbmPowerHmc
     end
 
     def io_adapters
-      xml.get_elements("AssociatedSystemIOConfiguration/IOSlots/IOSlot/RelatedIOAdapter/IOAdapter").map do |elem|
-        IOAdapter.new(elem)
-      end
+      collection_of("AssociatedSystemIOConfiguration/IOSlots/IOSlot/RelatedIOAdapter", "IOAdapter")
     end
 
     def vswitches_uuids
@@ -284,8 +291,8 @@ module IbmPowerHmc
     }.freeze
 
     def sys_uuid
-      sys_href = singleton("AssociatedManagedSystem", "href")
-      uuid_from_href(sys_href) unless href.nil?
+      href = singleton("AssociatedManagedSystem", "href")
+      uuid_from_href(href) unless href.nil?
     end
 
     def net_adap_uuids
@@ -293,9 +300,7 @@ module IbmPowerHmc
     end
 
     def lhea_ports
-      xml.get_elements("HostEthernetAdapterLogicalPorts/HostEthernetAdapterLogicalPort").map do |elem|
-        HostEthernetAdapterLogicalPort.new(elem)
-      end
+      collection_of("HostEthernetAdapterLogicalPorts", "HostEthernetAdapterLogicalPort")
     end
 
     def sriov_elp_uuids
@@ -328,9 +333,7 @@ module IbmPowerHmc
   # VIOS information
   class VirtualIOServer < BasePartition
     def pvs
-      xml.get_elements("PhysicalVolumes/PhysicalVolume").map do |elem|
-        PhysicalVolume.new(elem)
-      end
+      collection_of("PhysicalVolumes", "PhysicalVolume")
     end
 
     def rep
@@ -339,15 +342,11 @@ module IbmPowerHmc
     end
 
     def vscsi_mappings
-      xml.get_elements("VirtualSCSIMappings/VirtualSCSIMapping").map do |elem|
-        VirtualSCSIMapping.new(elem)
-      end
+      collection_of("VirtualSCSIMappings", "VirtualSCSIMapping")
     end
 
     def vfc_mappings
-      xml.get_elements("VirtualFibreChannelMappings/VirtualFibreChannelMapping").map do |elem|
-        VirtualFibreChannelMapping.new(elem)
-      end
+      collection_of("VirtualFibreChannelMappings", "VirtualFibreChannelMapping")
     end
   end
 
@@ -397,9 +396,7 @@ module IbmPowerHmc
     }.freeze
 
     def vopts
-      xml.get_elements("OpticalMedia/VirtualOpticalMedia").map do |elem|
-        VirtualOpticalMedia.new(elem)
-      end
+      collection_of("OpticalMedia", "VirtualOpticalMedia")
     end
   end
 
@@ -650,9 +647,7 @@ module IbmPowerHmc
   # VFC client information
   class VirtualFibreChannelClientAdapter < VirtualFibreChannelAdapter
     def nport_loggedin
-      xml.get_elements("NportLoggedInStatus/VirtualFibreChannelNPortLoginStatus").map do |elem|
-        VirtualFibreChannelNPortLoginStatus.new(elem)
-      end
+      collection_of("NportLoggedInStatus", "VirtualFibreChannelNPortLoginStatus")
     end
 
     def server
@@ -706,9 +701,7 @@ module IbmPowerHmc
     }.freeze
 
     def pvs
-      xml.get_elements("PhysicalVolumes/PhysicalVolume").map do |elem|
-        PhysicalVolume.new(elem)
-      end
+      collection_of("PhysicalVolumes", "PhysicalVolume")
     end
   end
 
@@ -721,9 +714,7 @@ module IbmPowerHmc
     }.freeze
 
     def repopvs
-      xml.get_elements("RepositoryDisk/PhysicalVolume").map do |elem|
-        PhysicalVolume.new(elem)
-      end
+      collection_of("RepositoryDisk", "PhysicalVolume")
     end
 
     def ssp_uuid
@@ -732,9 +723,7 @@ module IbmPowerHmc
     end
 
     def nodes
-      xml.get_elements("Node/Node").map do |elem|
-        Node.new(elem)
-      end
+      collection_of("Node", "Node")
     end
   end
 
@@ -772,9 +761,7 @@ module IbmPowerHmc
     end
 
     def pvs
-      xml.get_elements("PhysicalVolumes/PhysicalVolume").map do |elem|
-        PhysicalVolume.new(elem)
-      end
+      collection_of("PhysicalVolumes", "PhysicalVolume")
     end
 
     def tiers_uuids
@@ -782,9 +769,7 @@ module IbmPowerHmc
     end
 
     def lus
-      xml.get_elements("LogicalUnits/LogicalUnit").map do |elem|
-        LogicalUnit.new(elem)
-      end
+      collection_of("LogicalUnits", "LogicalUnit")
     end
   end
 

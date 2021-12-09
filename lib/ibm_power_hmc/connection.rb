@@ -580,7 +580,7 @@ module IbmPowerHmc
       if j['status'].eql?("Completed")
         case j['key']
         when "TEMPLATE_PARTITION_SAVE", "TEMPLATE_PARTITION_SAVE_AS", "TEMPLATE_PARTITION_CAPTURE"
-          j['template_uuid'] = templates_summary.select { |t| t.name.eql?(j['labelParams'].first) }.first&.uuid
+          j['template_uuid'] = templates_summary.find { |t| t.name.eql?(j['labelParams'].first) }&.uuid
         end
       end
       j
