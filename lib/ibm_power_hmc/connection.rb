@@ -560,8 +560,8 @@ module IbmPowerHmc
         break if response.code != 204 || !wait
       end
       FeedParser.new(response.body).objects(:Event).map do |e|
-        data = e.data.split("/")
-        if data[-2].eql?("UserTask")
+        data = e.data.split("/") unless e.data.nil?
+        if !data.nil? && data.length >= 2 && data[-2].eql?("UserTask")
           e.usertask = usertask(data.last)
         end
         e
