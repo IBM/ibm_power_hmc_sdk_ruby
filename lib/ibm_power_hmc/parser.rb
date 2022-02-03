@@ -74,9 +74,6 @@ module IbmPowerHmc
     end
   end
 
-  private_constant :Parser
-  private_constant :FeedParser
-
   ##
   # HMC generic K2 non-REST object.
   # @abstract
