@@ -813,10 +813,15 @@ module IbmPowerHmc
 
   class PartitionTemplate < AbstractRest
     ATTRS = {
-      :name        => "partitionTemplateName",
-      :description => "description",
-      :os          => "logicalPartitionConfig/osVersion",
-      :memory      => "logicalPartitionConfig/memoryConfiguration/currMemory"
+      :name         => "partitionTemplateName",
+      :description  => "description",
+      :os           => "logicalPartitionConfig/osVersion",
+      :memory       => "logicalPartitionConfig/memoryConfiguration/currMemory",
+      :dedicated    => "logicalPartitionConfig/processorConfiguration/hasDedicatedProcessors",
+      :sharing_mode => "logicalPartitionConfig/processorConfiguration/sharingMode",
+      :vprocs       => "logicalPartitionConfig/processorConfiguration/sharedProcessorConfiguration/desiredVirtualProcessors",
+      :proc_units   => "logicalPartitionConfig/processorConfiguration/sharedProcessorConfiguration/desiredProcessingUnits",
+      :procs        => "logicalPartitionConfig/processorConfiguration/dedicatedProcessorConfiguration/desiredProcessors"
     }.freeze
   end
 
