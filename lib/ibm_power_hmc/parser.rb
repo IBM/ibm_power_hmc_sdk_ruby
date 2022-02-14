@@ -230,6 +230,10 @@ module IbmPowerHmc
       :vtpm_lpars => "AssociatedSystemSecurity/AvailableVirtualTrustedPlatformModulePartitions"
     }.freeze
 
+    def group_uuids
+      uuids_from_links("AssociatedGroups")
+    end
+
     def cpu_compat_modes
       xml.get_elements("AssociatedSystemProcessorConfiguration/SupportedPartitionProcessorCompatibilityModes").map do |elem|
         elem.text&.strip
@@ -294,6 +298,10 @@ module IbmPowerHmc
       uuid_from_href(href) unless href.nil?
     end
 
+    def group_uuids
+      uuids_from_links("AssociatedGroups")
+    end
+
     def net_adap_uuids
       uuids_from_links("ClientNetworkAdapters")
     end
@@ -346,6 +354,27 @@ module IbmPowerHmc
 
     def vfc_mappings
       collection_of("VirtualFibreChannelMappings", "VirtualFibreChannelMapping")
+    end
+  end
+
+  # Group information
+  class Group < AbstractRest
+    ATTRS = {
+      :name => "GroupName",
+      :description => "GroupDescription",
+      :color => "GroupColor"
+    }.freeze
+
+    def sys_uuids
+      uuids_from_links("AssociatedManagedSystems")
+    end
+
+    def lpar_uuids
+      uuids_from_links("AssociatedLogicalPartitions")
+    end
+
+    def vios_uuids
+      uuids_from_links("AssociatedVirtualIOServers")
     end
   end
 
