@@ -197,6 +197,18 @@ module IbmPowerHmc
     end
 
     ##
+    # @!method groups
+    # Retrieve the list of groups defined on the HMC.
+    # A logical partition, a virtual I/O server or a managed system can be
+    # associated with multiple group tags.
+    # @return [Array<IbmPowerHmc::Group>] The list of groups.
+    def groups
+      method_url = "/rest/api/uom/Group"
+      response = request(:get, method_url)
+      FeedParser.new(response.body).objects(:Group)
+    end
+
+    ##
     # @!method virtual_switches(sys_uuid)
     # Retrieve the list of virtual switches from a specified managed system.
     # @param sys_uuid [String] The UUID of the managed system.
