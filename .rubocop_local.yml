@@ -7,3 +7,5 @@ Style/ConditionalAssignment:
   Enabled: false
 Style/OptionalBooleanParameter:
   Enabled: false
+Style/StringConcatenation:
+  Enabled: false
