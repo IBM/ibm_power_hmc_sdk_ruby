@@ -197,7 +197,8 @@ module IbmPowerHmc
       :name => "ManagementConsoleName",
       :build_level => "VersionInfo/BuildLevel",
       :version => "BaseVersion",
-      :ssh_pubkey => "PublicSSHKeyValue"
+      :ssh_pubkey => "PublicSSHKeyValue",
+      :uvmid => "UVMID"
     }.freeze
 
     def managed_systems_uuids
@@ -220,6 +221,7 @@ module IbmPowerHmc
       :ipaddr => "PrimaryIPAddress",
       :description => "Description",
       :location => "SystemLocation", # Rack/Unit
+      :ref_code => "ReferenceCode",
       :fwversion => "SystemFirmware",
       :memory => "AssociatedSystemMemoryConfiguration/InstalledSystemMemory",
       :avail_mem => "AssociatedSystemMemoryConfiguration/CurrentAvailableSystemMemory",
@@ -237,7 +239,7 @@ module IbmPowerHmc
     end
 
     def time
-      Time.at(0, singleton("SystemTime").to_i, :millisecond)
+      Time.at(0, singleton("SystemTime").to_i, :millisecond).utc
     end
 
     def capabilities
@@ -509,6 +511,7 @@ module IbmPowerHmc
 
   # LP-HEA information
   class EthernetBackingDevice < IOAdapter; end
+
   class HostEthernetAdapterLogicalPort < EthernetBackingDevice
     ATTRS = ATTRS.merge({
       :macaddr  => "MACAddress",
@@ -870,6 +873,7 @@ module IbmPowerHmc
   # HMC Event
   class Event < AbstractRest
     attr_accessor :usertask
+
     ATTRS = {
       :id     => "EventID",
       :type   => "EventType",
