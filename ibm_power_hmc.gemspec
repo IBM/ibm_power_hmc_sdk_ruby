@@ -27,4 +27,6 @@ Gem::Specification.new do |spec|
   spec.require_paths = ["lib"]
 
   spec.add_runtime_dependency "rest-client", "~> 2.1"
+
+  spec.add_development_dependency "manageiq-style", "~> 1.3"
 end
