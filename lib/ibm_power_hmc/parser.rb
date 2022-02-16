@@ -218,6 +218,8 @@ module IbmPowerHmc
       :state => "State",
       :hostname => "Hostname",
       :ipaddr => "PrimaryIPAddress",
+      :description => "Description",
+      :location => "SystemLocation", # Rack/Unit
       :fwversion => "SystemFirmware",
       :memory => "AssociatedSystemMemoryConfiguration/InstalledSystemMemory",
       :avail_mem => "AssociatedSystemMemoryConfiguration/CurrentAvailableSystemMemory",
@@ -232,6 +234,16 @@ module IbmPowerHmc
 
     def group_uuids
       uuids_from_links("AssociatedGroups")
+    end
+
+    def time
+      Time.at(0, singleton("SystemTime").to_i, :millisecond)
+    end
+
+    def capabilities
+      xml.get_elements("AssociatedSystemCapabilities/*").map do |elem|
+        elem.name unless elem.text&.strip != "true"
+      end.compact
     end
 
     def cpu_compat_modes
