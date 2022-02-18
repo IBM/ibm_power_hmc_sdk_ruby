@@ -98,7 +98,7 @@ module IbmPowerHmc
       method_url += "?" + query.map { |h| h.join("=") }.join("&") unless query.empty?
 
       response = request(:get, method_url)
-      FeedParser(response.body).entries do |entry|
+      FeedParser.new(response.body).entries do |entry|
         link = entry.elements["link"]
         next if link.nil?
 
