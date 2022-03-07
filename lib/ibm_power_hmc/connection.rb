@@ -624,7 +624,7 @@ module IbmPowerHmc
 
         # Try to parse body as an HttpErrorResponse
         unless err.response.nil?
-          resp = Parser.new(err.response.body).object(:HttpErrorResponse)
+          resp = Parser.new(err.response.body).object(:HttpErrorResponse) rescue nil
           unless resp.nil?
             @uri = resp.uri
             @reason = resp.reason
