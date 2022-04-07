@@ -575,7 +575,11 @@ module IbmPowerHmc
       # Possible storage types are:
       # LogicalUnit, PhysicalVolume, VirtualDisk, VirtualOpticalMedia
       elem = xml.elements["Storage/*[1]"]
-      Module.const_get("IbmPowerHmc::#{elem.name}").new(elem) unless elem.nil?
+      begin
+        Module.const_get("IbmPowerHmc::#{elem.name}").new(elem) unless elem.nil?
+      rescue
+        nil
+      end
     end
 
     def device
