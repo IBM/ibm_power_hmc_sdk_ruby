@@ -577,7 +577,7 @@ module IbmPowerHmc
       elem = xml.elements["Storage/*[1]"]
       begin
         Module.const_get("IbmPowerHmc::#{elem.name}").new(elem) unless elem.nil?
-      rescue
+      rescue NameError
         nil
       end
     end
@@ -587,7 +587,11 @@ module IbmPowerHmc
       # LogicalVolumeVirtualTargetDevice, PhysicalVolumeVirtualTargetDevice,
       # SharedStoragePoolLogicalUnitVirtualTargetDevice, VirtualOpticalTargetDevice
       elem = xml.elements["TargetDevice/*[1]"]
-      Module.const_get("IbmPowerHmc::#{elem.name}").new(elem) unless elem.nil?
+      begin
+        Module.const_get("IbmPowerHmc::#{elem.name}").new(elem) unless elem.nil?
+      rescue NameError
+        nil
+      end
     end
   end
 
