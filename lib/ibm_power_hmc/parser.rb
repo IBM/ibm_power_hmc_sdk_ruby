@@ -430,6 +430,15 @@ module IbmPowerHmc
     }.freeze
   end
 
+  # SharedFileSystemFile information
+  class SharedFileSystemFile < VirtualSCSIStorage
+    ATTRS = {
+      :name => "SharedFileSystemFileName",
+      :path => "SharedFileSystemFilePath",
+      :udid => "UniqueDeviceID"
+    }.freeze
+  end
+
   # Virtual Media Repository information
   class VirtualMediaRepository < AbstractNonRest
     ATTRS = {
@@ -573,11 +582,12 @@ module IbmPowerHmc
 
     def storage
       # Possible storage types are:
-      # LogicalUnit, PhysicalVolume, VirtualDisk, VirtualOpticalMedia
+      # LogicalUnit, PhysicalVolume, VirtualDisk, VirtualOpticalMedia,
+      # SharedFileSystemFile
       elem = xml.elements["Storage/*[1]"]
       begin
         Module.const_get("IbmPowerHmc::#{elem.name}").new(elem) unless elem.nil?
-      rescue
+      rescue NameError
         nil
       end
     end
@@ -585,9 +595,14 @@ module IbmPowerHmc
     def device
       # Possible backing device types are:
       # LogicalVolumeVirtualTargetDevice, PhysicalVolumeVirtualTargetDevice,
-      # SharedStoragePoolLogicalUnitVirtualTargetDevice, VirtualOpticalTargetDevice
+      # SharedStoragePoolLogicalUnitVirtualTargetDevice, VirtualOpticalTargetDevice,
+      # SharedFileSystemFileVirtualTargetDevice
       elem = xml.elements["TargetDevice/*[1]"]
-      Module.const_get("IbmPowerHmc::#{elem.name}").new(elem) unless elem.nil?
+      begin
+        Module.const_get("IbmPowerHmc::#{elem.name}").new(elem) unless elem.nil?
+      rescue NameError
+        nil
+      end
     end
   end
 
@@ -652,6 +667,9 @@ module IbmPowerHmc
       VirtualOpticalMedia.new(elem) unless elem.nil?
     end
   end
+
+  # SharedFileSystemFile backing device information
+  class SharedFileSystemFileVirtualTargetDevice < VirtualTargetDevice; end
 
   # VFC mapping information
   class VirtualFibreChannelMapping < AbstractNonRest
