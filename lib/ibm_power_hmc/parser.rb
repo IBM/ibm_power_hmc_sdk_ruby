@@ -34,7 +34,7 @@ module IbmPowerHmc
       content = entry.elements["content[@type]"]
       return if content.nil?
 
-      type = content.attributes["type"].split("=").last
+      type = content.attributes["type"].split("=")[1] || filter_type.to_s
       return unless filter_type.nil? || filter_type.to_s == type
 
       Module.const_get("IbmPowerHmc::#{type}").new(entry)
@@ -135,7 +135,7 @@ module IbmPowerHmc
 
     def collection_of(name, type)
       objtype = Module.const_get("IbmPowerHmc::#{type}")
-      xml.get_elements("#{name}/#{type}").map do |elem|
+      xml.get_elements([name, type].compact.join("/")).map do |elem|
         objtype.new(elem)
       end
     rescue
@@ -931,5 +931,32 @@ module IbmPowerHmc
       end
       results
     end
+  end
+
+  class ManagementConsolePcmPreference < AbstractRest
+    ATTRS = {
+      :max_ltm                     => "MaximumManagedSystemsForLongTermMonitor",
+      :max_compute_ltm             => "MaximumManagedSystemsForComputeLTM",
+      :max_aggregation             => "MaximumManagedSystemsForAggregation",
+      :max_stm                     => "MaximumManagedSystemsForShortTermMonitor",
+      :max_em                      => "MaximumManagedSystemsForEnergyMonitor",
+      :aggregated_storage_duration => "AggregatedMetricsStorageDuration"
+    }.freeze
+
+    def managed_system_preferences
+      collection_of(nil, "ManagedSystemPcmPreference")
+    end
+  end
+
+  class ManagedSystemPcmPreference < AbstractNonRest
+    ATTRS = {
+      :id                 => "Metadata/Atom/AtomID",
+      :name               => "SystemName",
+      :long_term_monitor  => "LongTermMonitorEnabled",
+      :aggregation        => "AggregationEnabled",
+      :short_term_monitor => "ShortTermMonitorEnabled",
+      :compute_ltm        => "ComputeLTMEnabled",
+      :energy_monitor     => "EnergyMonitorEnabled"
+    }.freeze
   end
 end

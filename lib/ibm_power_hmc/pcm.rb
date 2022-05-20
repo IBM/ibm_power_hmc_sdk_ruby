@@ -5,11 +5,24 @@ require 'uri'
 
 module IbmPowerHmc
   class Connection
+    ##
+    # @!method pcm_preferences
+    # Retrieve global Performance and Capacity Monitor preferences for the HMC.
+    # @return [Array<IbmPowerHmc::ManagementConsolePcmPreference>] The PCM preferences for the HMC.
     def pcm_preferences
       method_url = "/rest/api/pcm/preferences"
 
       response = request(:get, method_url)
-      REXML::Document.new(response.body)
+      FeedParser.new(response.body).objects(:ManagementConsolePcmPreference)
+    end
+
+    ##
+    # @!method managed_system_pcm_preferences
+    # Return Performance and Capacity Monitor preferences for a Managed System.
+    # @param sys_uuid [String] The managed system UUID.
+    # @return [IbmPowerHmc::ManagedSystemPcmPreference] The PCM preferences for the Managed System.
+    def managed_system_pcm_preferences(sys_uuid)
+      pcm_preferences.first.managed_system_preferences.find { |p| p.id.eql?(sys_uuid) }
     end
 
     ##
