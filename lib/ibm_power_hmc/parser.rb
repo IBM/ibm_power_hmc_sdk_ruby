@@ -941,7 +941,7 @@ module IbmPowerHmc
       :max_stm                     => "MaximumManagedSystemsForShortTermMonitor",
       :max_em                      => "MaximumManagedSystemsForEnergyMonitor",
       :aggregated_storage_duration => "AggregatedMetricsStorageDuration"
-    }
+    }.freeze
 
     def managed_system_preferences
       collection_of(nil, "ManagedSystemPcmPreference")
