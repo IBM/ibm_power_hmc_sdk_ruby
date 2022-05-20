@@ -957,6 +957,6 @@ module IbmPowerHmc
       :short_term_monitor => "ShortTermMonitorEnabled",
       :compute_ltm        => "ComputeLTMEnabled",
       :energy_monitor     => "EnergyMonitorEnabled"
-    }
+    }.freeze
   end
 end
