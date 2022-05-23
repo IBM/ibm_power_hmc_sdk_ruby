@@ -9,3 +9,5 @@ Style/OptionalBooleanParameter:
   Enabled: false
 Style/StringConcatenation:
   Enabled: false
+Style/RescueModifier:
+  Enabled: false
