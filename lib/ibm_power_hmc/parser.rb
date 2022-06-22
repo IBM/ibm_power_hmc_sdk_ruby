@@ -900,6 +900,8 @@ module IbmPowerHmc
     ATTRS = {
       :name         => "partitionTemplateName",
       :description  => "description",
+      :lpar_name    => "logicalPartitionConfig/partitionName",
+      :lpar_id      => "logicalPartitionConfig/partitionId",
       :os           => "logicalPartitionConfig/osVersion",
       :memory       => "logicalPartitionConfig/memoryConfiguration/currMemory",
       :dedicated    => "logicalPartitionConfig/processorConfiguration/hasDedicatedProcessors",

@@ -398,9 +398,10 @@ module IbmPowerHmc
     ##
     # @!method templates
     # Retrieve the list of partition templates.
+    # @param draft [Boolean] Retrieve draft templates as well
     # @return [Array<IbmPowerHmc::PartitionTemplate>] The list of partition templates.
-    def templates
-      method_url = "/rest/api/templates/PartitionTemplate?detail=full"
+    def templates(draft = false)
+      method_url = "/rest/api/templates/PartitionTemplate?detail=full#{'&draft=false' unless draft}"
       response = request(:get, method_url)
       FeedParser.new(response.body).objects(:PartitionTemplate)
     end
@@ -435,6 +436,46 @@ module IbmPowerHmc
         "K_X_API_SESSION_MEMENTO" => @api_session_token
       }
       job = HmcJob.new(self, method_url, "Capture", "PartitionTemplate", params)
+      job.run if sync
+      job
+    end
+
+    def template_check(template_uuid, target_sys_uuid, sync = true)
+      # Need to include session token in payload so make sure we are logged in
+      logon if @api_session_token.nil?
+      method_url = "/rest/api/templates/PartitionTemplate/#{template_uuid}/do/check"
+      params = {
+        "TargetUuid"              => target_sys_uuid,
+        "K_X_API_SESSION_MEMENTO" => @api_session_token
+      }
+      job = HmcJob.new(self, method_url, "Check", "PartitionTemplate", params)
+      job.run if sync
+      job
+    end
+
+    def template_transform(draft_template_uuid, target_sys_uuid, sync = true)
+      # Need to include session token in payload so make sure we are logged in
+      logon if @api_session_token.nil?
+      method_url = "/rest/api/templates/PartitionTemplate/#{draft_template_uuid}/do/transform"
+      params = {
+        "TargetUuid"              => target_sys_uuid,
+        "K_X_API_SESSION_MEMENTO" => @api_session_token
+      }
+      job = HmcJob.new(self, method_url, "Transform", "PartitionTemplate", params)
+      job.run if sync
+      job
+    end
+
+    def template_deploy(draft_template_uuid, target_sys_uuid, sync = true)
+      # Need to include session token in payload so make sure we are logged in
+      logon if @api_session_token.nil?
+      method_url = "/rest/api/templates/PartitionTemplate/#{draft_template_uuid}/do/deploy"
+      params = {
+        "TargetUuid"              => target_sys_uuid,
+        "TemplateUuid"            => draft_template_uuid,
+        "K_X_API_SESSION_MEMENTO" => @api_session_token
+      }
+      job = HmcJob.new(self, method_url, "Deploy", "PartitionTemplate", params)
       job.run if sync
       job
     end

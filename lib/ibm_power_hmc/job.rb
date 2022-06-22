@@ -52,7 +52,7 @@ module IbmPowerHmc
     end
 
     # @return [Hash] The job results returned by the HMC.
-    attr_reader :results
+    attr_reader :results, :last_status
 
     ##
     # @!method status
@@ -65,9 +65,9 @@ module IbmPowerHmc
         :content_type => "application/vnd.ibm.powervm.web+xml; type=JobRequest"
       }
       response = @conn.request(:get, @href, headers)
-      jobresp = Parser.new(response.body).object(:JobResponse)
-      @results = jobresp.results
-      jobresp.status
+      @last_status = Parser.new(response.body).object(:JobResponse)
+      @results = @last_status.results
+      @last_status.status
     end
 
     ##
