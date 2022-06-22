@@ -95,9 +95,34 @@ module IbmPowerHmc
     def define_attr(varname, xpath)
       value = singleton(xpath)
       self.class.__send__(:attr_reader, varname)
+      self.class.__send__(:define_method, "#{varname}=") do |v|
+        if v.nil?
+          xml.elements.delete(xpath)
+        else
+          create_element(xpath) if xml.elements[xpath].nil?
+          xml.elements[xpath].text = v
+        end
+        instance_variable_set("@#{varname}", v)
+      end
       instance_variable_set("@#{varname}", value)
     end
     private :define_attr
+
+    ##
+    # @!method create_element(xpath)
+    # Create a new XML element.
+    # @param xpath [String] The XPath of the XML element to create.
+    def create_element(xpath)
+      cur = xml
+      xpath.split("/").each do |el|
+        p = cur.elements[el]
+        if p.nil?
+          cur = cur.add_element(el)
+        else
+          cur = p
+        end
+      end
+    end
 
     ##
     # @!method singleton(xpath, attr = nil)
@@ -326,13 +351,6 @@ module IbmPowerHmc
 
     def sriov_elp_uuids
       uuids_from_links("SRIOVEthernetLogicalPorts")
-    end
-
-    # Setters
-
-    def name=(name)
-      xml.elements[ATTRS[:name]].text = name
-      @name = name
     end
   end
 

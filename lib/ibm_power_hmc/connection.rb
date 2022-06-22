@@ -157,7 +157,7 @@ module IbmPowerHmc
     # @param new_name [String] The new name of the logical partition.
     def rename_lpar(lpar_uuid, new_name)
       method_url = "/rest/api/uom/LogicalPartition/#{lpar_uuid}"
-      modify_object(method_url) { |lpar| lpar.name = new_name }
+      modify_object_attributes(method_url, {:name => new_name})
     end
 
     ##
@@ -440,6 +440,17 @@ module IbmPowerHmc
     end
 
     ##
+    # @!method template(template_uuid, changes)
+    # modify_object_attributes wrapper for templates.
+    # @param template_uuid [String] UUID of the partition template to modify.
+    # @param changes [Hash] Hash of changes to make.
+    # @return [IbmPowerHmc::PartitionTemplate] The partition template.
+    def template_modify(template_uuid, changes)
+      method_url = "/rest/api/templates/PartitionTemplate/#{template_uuid}"
+      modify_object_attributes(method_url, changes)
+    end
+
+    ##
     # @!method poweron_lpar(lpar_uuid, params = {}, sync = true)
     # Power on a logical partition.
     # @param lpar_uuid [String] The UUID of the logical partition.
@@ -697,6 +708,22 @@ module IbmPowerHmc
           attempts -= 1
           # Will get 412 ("Precondition Failed") if ETag mismatches
           raise if e.status != 412 || attempts == 0
+        end
+      end
+    end
+
+    # @!method modify_object_attributes(method_url, headers = {}, attempts = 5)
+    # Modify an object at a specified URI.
+    # @param method_url [String] The URL of the object to modify.
+    # @param changes [Hash] Hash of changes to make. Key is the attribute modify/create (as defined in the AbstractNonRest subclass). A value of nil removes the attribute.
+    # @param headers [Hash] HTTP headers.
+    # @param attempts [Integer] Maximum number of retries.
+    # @yield [obj] The object to modify.
+    # @yieldparam obj [IbmPowerHmc::AbstractRest] The object to modify.
+    def modify_object_attributes(method_url, changes, headers = {}, attempts = 5)
+      modify_object(method_url, headers, attempts) do |obj|
+        changes.each do |key, value|
+          obj.send("#{key}=", value)
         end
       end
     end
