@@ -388,9 +388,10 @@ module IbmPowerHmc
     ##
     # @!method templates_summary
     # Retrieve the list of partition template summaries.
+    # @param draft [Boolean] Retrieve draft templates as well
     # @return [Array<IbmPowerHmc::PartitionTemplateSummary>] The list of partition template summaries.
-    def templates_summary
-      method_url = "/rest/api/templates/PartitionTemplate"
+    def templates_summary(draft = false)
+      method_url = "/rest/api/templates/PartitionTemplate#{'?draft=false' unless draft}"
       response = request(:get, method_url)
       FeedParser.new(response.body).objects(:PartitionTemplateSummary)
     end
