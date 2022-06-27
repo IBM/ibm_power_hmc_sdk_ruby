@@ -910,6 +910,32 @@ module IbmPowerHmc
       :proc_units   => "logicalPartitionConfig/processorConfiguration/sharedProcessorConfiguration/desiredProcessingUnits",
       :procs        => "logicalPartitionConfig/processorConfiguration/dedicatedProcessorConfiguration/desiredProcessors"
     }.freeze
+
+    def vlans
+      REXML::XPath.match(xml, 'logicalPartitionConfig/clientNetworkAdapters/ClientNetworkAdapter/clientVirtualNetworks/ClientVirtualNetwork').map do |vlan|
+        {
+          :name    => vlan.elements['name'].text,
+          :vlan_id => vlan.elements['vlanId'].text,
+          :switch  => vlan.elements['associatedSwitchName'].text
+        }
+      end
+    end
+
+    def vlans=(list = [])
+      adaps = REXML::Element.new('clientNetworkAdapters')
+      adaps.add_attribute('schemaVersion', 'V1_5_0')
+      list.each do |vlan|
+        adaps.add_element('ClientNetworkAdapter',  {'schemaVersion' => 'V1_5_0'}).
+              add_element('clientVirtualNetworks', {'schemaVersion' => 'V1_5_0'}).
+              add_element('ClientVirtualNetwork',  {'schemaVersion' => 'V1_5_0'}).
+              tap do |v|
+          v.add_element('name').text                 = vlan[:name]
+          v.add_element('vlanId').text               = vlan[:vlan_id]
+          v.add_element('associatedSwitchName').text = vlan[:switch]
+        end
+      end
+      xml.elements['logicalPartitionConfig/clientNetworkAdapters'] = adaps
+    end
   end
 
   # HMC Event
