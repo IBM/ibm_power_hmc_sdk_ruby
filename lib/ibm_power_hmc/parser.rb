@@ -937,9 +937,11 @@ module IbmPowerHmc
   # Job Response
   class JobResponse < AbstractRest
     ATTRS = {
-      :id      => "JobID",
-      :status  => "Status",
-      :message => "ResponseException/Message"
+      :id        => "JobID",
+      :status    => "Status",
+      :operation => "JobRequestInstance/RequestedOperation/OperationName",
+      :group     => "JobRequestInstance/RequestedOperation/GroupName",
+      :message   => "ResponseException/Message"
     }.freeze
 
     def results
