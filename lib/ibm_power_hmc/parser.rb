@@ -911,6 +911,67 @@ module IbmPowerHmc
       :procs        => "logicalPartitionConfig/processorConfiguration/dedicatedProcessorConfiguration/desiredProcessors"
     }.freeze
 
+    def vscsi
+      REXML::XPath.match(xml, 'logicalPartitionConfig/virtualSCSIClientAdapters/VirtualSCSIClientAdapter').map do |adap|
+        {
+          :vios     => adap.elements['connectingPartitionName']&.text,
+          :lu       => adap.elements['associatedLogicalUnits/LogicalUnit/name']&.text,
+          :physvol  => adap.elements['associatedPhysicalVolume/PhysicalVolume/name']&.text,
+          :vtd      => adap.elements['AssociatedTargetDevices/VirtualOpticalTargetDevice/name']&.text
+        }
+      end
+    end
+
+    def vscsi=(list = [])
+      adaps = REXML::Element.new('virtualSCSIClientAdapters')
+      adaps.add_attribute('schemaVersion', 'V1_5_0')
+      list.each do |vlan|
+        adaps.add_element('VirtualSCSIClientAdapter', {'schemaVersion' => 'V1_5_0'}).tap do |v|
+          v.add_element('associatedLogicalUnits', {'schemaVersion' => 'V1_5_0'}).tap do |e|
+            e.add_element('LogicalUnit', {'schemaVersion' => 'V1_5_0'}).add_element('name').text = vlan[:lu] if vlan[:lu]
+          end
+          v.add_element('associatedPhysicalVolume', {'schemaVersion' => 'V1_5_0'}).tap do |e|
+            e.add_element('PhysicalVolume', {'schemaVersion' => 'V1_5_0'}).add_element('name').text = vlan[:physvol] if vlan[:physvol]
+          end
+          v.add_element('connectingPartitionName').text = vlan[:vios]
+          v.add_element('AssociatedTargetDevices', {'schemaVersion' => 'V1_5_0'}).tap do |e|
+            e.add_element('VirtualOpticalTargetDevice', {'schemaVersion' => 'V1_5_0'}).add_element('name').text = vlan[:vtd] if vlan[:vtd]
+          end
+          v.add_element('associatedVirtualOpticalMedia', {'schemaVersion' => 'V1_5_0'})
+        end
+      end
+      if xml.elements['logicalPartitionConfig/virtualSCSIClientAdapters']
+        xml.elements['logicalPartitionConfig/virtualSCSIClientAdapters'] = adaps
+      else
+        xml.elements['logicalPartitionConfig'].add_element(adaps)
+      end
+    end
+
+    def vfc
+      REXML::XPath.match(xml, 'logicalPartitionConfig/virtualFibreChannelClientAdapters/VirtualFibreChannelClientAdapter').map do |adap|
+        {
+          :vios => adap.elements['connectingPartitionName'].text,
+          :port => adap.elements['portName'].text
+        }
+      end
+    end
+
+    def vfc=(list = [])
+      adaps = REXML::Element.new('virtualFibreChannelClientAdapters')
+      adaps.add_attribute('schemaVersion', 'V1_5_0')
+      list.each do |vlan|
+        adaps.add_element('VirtualFibreChannelClientAdapter', {'schemaVersion' => 'V1_5_0'}).tap do |v|
+          v.add_element('connectingPartitionName').text = vlan[:vios]
+          v.add_element('portName').text                = vlan[:port]
+        end
+      end
+      if xml.elements['logicalPartitionConfig/virtualFibreChannelClientAdapters']
+        xml.elements['logicalPartitionConfig/virtualFibreChannelClientAdapters'] = adaps
+      else
+        xml.elements['logicalPartitionConfig'].add_element(adaps)
+      end
+    end
+
     def vlans
       REXML::XPath.match(xml, 'logicalPartitionConfig/clientNetworkAdapters/ClientNetworkAdapter/clientVirtualNetworks/ClientVirtualNetwork').map do |vlan|
         {
