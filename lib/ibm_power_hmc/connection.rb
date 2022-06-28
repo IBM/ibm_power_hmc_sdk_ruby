@@ -481,6 +481,15 @@ module IbmPowerHmc
       job
     end
 
+    def template_provision(template_uuid, target_sys_uuid, changes)
+      # Need to include session token in payload so make sure we are logged in
+      logon if @api_session_token.nil?
+      draft_uuid = template_check(template_uuid, target_sys_uuid).results["TEMPLATE_UUID"]
+      template_transform(draft_uuid, target_sys_uuid)
+      template_modify(draft_uuid, changes)
+      template_deploy(draft_uuid, target_sys_uuid).results["PartitionUuid"]
+    end
+
     ##
     # @!method template(template_uuid, changes)
     # modify_object_attributes wrapper for templates.
