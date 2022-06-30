@@ -915,9 +915,7 @@ module IbmPowerHmc
       REXML::XPath.match(xml, 'logicalPartitionConfig/virtualSCSIClientAdapters/VirtualSCSIClientAdapter').map do |adap|
         {
           :vios     => adap.elements['connectingPartitionName']&.text,
-          :lu       => adap.elements['associatedLogicalUnits/LogicalUnit/name']&.text,
           :physvol  => adap.elements['associatedPhysicalVolume/PhysicalVolume/name']&.text,
-          :vtd      => adap.elements['AssociatedTargetDevices/VirtualOpticalTargetDevice/name']&.text
         }
       end
     end
@@ -927,16 +925,12 @@ module IbmPowerHmc
       adaps.add_attribute('schemaVersion', 'V1_5_0')
       list.each do |vlan|
         adaps.add_element('VirtualSCSIClientAdapter', {'schemaVersion' => 'V1_5_0'}).tap do |v|
-          v.add_element('associatedLogicalUnits', {'schemaVersion' => 'V1_5_0'}).tap do |e|
-            e.add_element('LogicalUnit', {'schemaVersion' => 'V1_5_0'}).add_element('name').text = vlan[:lu] if vlan[:lu]
-          end
+          v.add_element('associatedLogicalUnits', {'schemaVersion' => 'V1_5_0'})
           v.add_element('associatedPhysicalVolume', {'schemaVersion' => 'V1_5_0'}).tap do |e|
             e.add_element('PhysicalVolume', {'schemaVersion' => 'V1_5_0'}).add_element('name').text = vlan[:physvol] if vlan[:physvol]
           end
           v.add_element('connectingPartitionName').text = vlan[:vios]
-          v.add_element('AssociatedTargetDevices', {'schemaVersion' => 'V1_5_0'}).tap do |e|
-            e.add_element('VirtualOpticalTargetDevice', {'schemaVersion' => 'V1_5_0'}).add_element('name').text = vlan[:vtd] if vlan[:vtd]
-          end
+          v.add_element('AssociatedTargetDevices', {'schemaVersion' => 'V1_5_0'})
           v.add_element('associatedVirtualOpticalMedia', {'schemaVersion' => 'V1_5_0'})
         end
       end
@@ -950,8 +944,8 @@ module IbmPowerHmc
     def vfc
       REXML::XPath.match(xml, 'logicalPartitionConfig/virtualFibreChannelClientAdapters/VirtualFibreChannelClientAdapter').map do |adap|
         {
-          :vios => adap.elements['connectingPartitionName'].text,
-          :port => adap.elements['portName'].text
+          :vios => adap.elements['connectingPartitionName']&.text,
+          :port => adap.elements['portName']&.text
         }
       end
     end
@@ -975,9 +969,9 @@ module IbmPowerHmc
     def vlans
       REXML::XPath.match(xml, 'logicalPartitionConfig/clientNetworkAdapters/ClientNetworkAdapter/clientVirtualNetworks/ClientVirtualNetwork').map do |vlan|
         {
-          :name    => vlan.elements['name'].text,
-          :vlan_id => vlan.elements['vlanId'].text,
-          :switch  => vlan.elements['associatedSwitchName'].text
+          :name    => vlan.elements['name']&.text,
+          :vlan_id => vlan.elements['vlanId']&.text,
+          :switch  => vlan.elements['associatedSwitchName']&.text
         }
       end
     end
