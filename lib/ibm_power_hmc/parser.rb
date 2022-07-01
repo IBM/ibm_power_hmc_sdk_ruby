@@ -95,9 +95,34 @@ module IbmPowerHmc
     def define_attr(varname, xpath)
       value = singleton(xpath)
       self.class.__send__(:attr_reader, varname)
+      self.class.__send__(:define_method, "#{varname}=") do |v|
+        if v.nil?
+          xml.elements.delete(xpath)
+        else
+          create_element(xpath) if xml.elements[xpath].nil?
+          xml.elements[xpath].text = v
+        end
+        instance_variable_set("@#{varname}", v)
+      end
       instance_variable_set("@#{varname}", value)
     end
     private :define_attr
+
+    ##
+    # @!method create_element(xpath)
+    # Create a new XML element.
+    # @param xpath [String] The XPath of the XML element to create.
+    def create_element(xpath)
+      cur = xml
+      xpath.split("/").each do |el|
+        p = cur.elements[el]
+        if p.nil?
+          cur = cur.add_element(el)
+        else
+          cur = p
+        end
+      end
+    end
 
     ##
     # @!method singleton(xpath, attr = nil)
@@ -326,13 +351,6 @@ module IbmPowerHmc
 
     def sriov_elp_uuids
       uuids_from_links("SRIOVEthernetLogicalPorts")
-    end
-
-    # Setters
-
-    def name=(name)
-      xml.elements[ATTRS[:name]].text = name
-      @name = name
     end
   end
 
@@ -882,6 +900,8 @@ module IbmPowerHmc
     ATTRS = {
       :name         => "partitionTemplateName",
       :description  => "description",
+      :lpar_name    => "logicalPartitionConfig/partitionName",
+      :lpar_id      => "logicalPartitionConfig/partitionId",
       :os           => "logicalPartitionConfig/osVersion",
       :memory       => "logicalPartitionConfig/memoryConfiguration/currMemory",
       :dedicated    => "logicalPartitionConfig/processorConfiguration/hasDedicatedProcessors",
@@ -890,6 +910,87 @@ module IbmPowerHmc
       :proc_units   => "logicalPartitionConfig/processorConfiguration/sharedProcessorConfiguration/desiredProcessingUnits",
       :procs        => "logicalPartitionConfig/processorConfiguration/dedicatedProcessorConfiguration/desiredProcessors"
     }.freeze
+
+    def vscsi
+      REXML::XPath.match(xml, 'logicalPartitionConfig/virtualSCSIClientAdapters/VirtualSCSIClientAdapter').map do |adap|
+        {
+          :vios     => adap.elements['connectingPartitionName']&.text,
+          :physvol  => adap.elements['associatedPhysicalVolume/PhysicalVolume/name']&.text,
+        }
+      end
+    end
+
+    def vscsi=(list = [])
+      adaps = REXML::Element.new('virtualSCSIClientAdapters')
+      adaps.add_attribute('schemaVersion', 'V1_5_0')
+      list.each do |vlan|
+        adaps.add_element('VirtualSCSIClientAdapter', {'schemaVersion' => 'V1_5_0'}).tap do |v|
+          v.add_element('associatedLogicalUnits', {'schemaVersion' => 'V1_5_0'})
+          v.add_element('associatedPhysicalVolume', {'schemaVersion' => 'V1_5_0'}).tap do |e|
+            e.add_element('PhysicalVolume', {'schemaVersion' => 'V1_5_0'}).add_element('name').text = vlan[:physvol] if vlan[:physvol]
+          end
+          v.add_element('connectingPartitionName').text = vlan[:vios]
+          v.add_element('AssociatedTargetDevices', {'schemaVersion' => 'V1_5_0'})
+          v.add_element('associatedVirtualOpticalMedia', {'schemaVersion' => 'V1_5_0'})
+        end
+      end
+      if xml.elements['logicalPartitionConfig/virtualSCSIClientAdapters']
+        xml.elements['logicalPartitionConfig/virtualSCSIClientAdapters'] = adaps
+      else
+        xml.elements['logicalPartitionConfig'].add_element(adaps)
+      end
+    end
+
+    def vfc
+      REXML::XPath.match(xml, 'logicalPartitionConfig/virtualFibreChannelClientAdapters/VirtualFibreChannelClientAdapter').map do |adap|
+        {
+          :vios => adap.elements['connectingPartitionName']&.text,
+          :port => adap.elements['portName']&.text
+        }
+      end
+    end
+
+    def vfc=(list = [])
+      adaps = REXML::Element.new('virtualFibreChannelClientAdapters')
+      adaps.add_attribute('schemaVersion', 'V1_5_0')
+      list.each do |vlan|
+        adaps.add_element('VirtualFibreChannelClientAdapter', {'schemaVersion' => 'V1_5_0'}).tap do |v|
+          v.add_element('connectingPartitionName').text = vlan[:vios]
+          v.add_element('portName').text                = vlan[:port]
+        end
+      end
+      if xml.elements['logicalPartitionConfig/virtualFibreChannelClientAdapters']
+        xml.elements['logicalPartitionConfig/virtualFibreChannelClientAdapters'] = adaps
+      else
+        xml.elements['logicalPartitionConfig'].add_element(adaps)
+      end
+    end
+
+    def vlans
+      REXML::XPath.match(xml, 'logicalPartitionConfig/clientNetworkAdapters/ClientNetworkAdapter/clientVirtualNetworks/ClientVirtualNetwork').map do |vlan|
+        {
+          :name    => vlan.elements['name']&.text,
+          :vlan_id => vlan.elements['vlanId']&.text,
+          :switch  => vlan.elements['associatedSwitchName']&.text
+        }
+      end
+    end
+
+    def vlans=(list = [])
+      adaps = REXML::Element.new('clientNetworkAdapters')
+      adaps.add_attribute('schemaVersion', 'V1_5_0')
+      list.each do |vlan|
+        adaps.add_element('ClientNetworkAdapter',  {'schemaVersion' => 'V1_5_0'}).
+              add_element('clientVirtualNetworks', {'schemaVersion' => 'V1_5_0'}).
+              add_element('ClientVirtualNetwork',  {'schemaVersion' => 'V1_5_0'}).
+              tap do |v|
+          v.add_element('name').text                 = vlan[:name]
+          v.add_element('vlanId').text               = vlan[:vlan_id]
+          v.add_element('associatedSwitchName').text = vlan[:switch]
+        end
+      end
+      xml.elements['logicalPartitionConfig/clientNetworkAdapters'] = adaps
+    end
   end
 
   # HMC Event
@@ -917,9 +1018,11 @@ module IbmPowerHmc
   # Job Response
   class JobResponse < AbstractRest
     ATTRS = {
-      :id      => "JobID",
-      :status  => "Status",
-      :message => "ResponseException/Message"
+      :id        => "JobID",
+      :status    => "Status",
+      :operation => "JobRequestInstance/RequestedOperation/OperationName",
+      :group     => "JobRequestInstance/RequestedOperation/GroupName",
+      :message   => "ResponseException/Message"
     }.freeze
 
     def results

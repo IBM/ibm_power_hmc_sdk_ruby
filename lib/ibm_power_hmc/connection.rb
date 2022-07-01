@@ -157,7 +157,7 @@ module IbmPowerHmc
     # @param new_name [String] The new name of the logical partition.
     def rename_lpar(lpar_uuid, new_name)
       method_url = "/rest/api/uom/LogicalPartition/#{lpar_uuid}"
-      modify_object(method_url) { |lpar| lpar.name = new_name }
+      modify_object_attributes(method_url, {:name => new_name})
     end
 
     ##
@@ -388,9 +388,10 @@ module IbmPowerHmc
     ##
     # @!method templates_summary
     # Retrieve the list of partition template summaries.
+    # @param draft [Boolean] Retrieve draft templates as well
     # @return [Array<IbmPowerHmc::PartitionTemplateSummary>] The list of partition template summaries.
-    def templates_summary
-      method_url = "/rest/api/templates/PartitionTemplate"
+    def templates_summary(draft = false)
+      method_url = "/rest/api/templates/PartitionTemplate#{'?draft=false' unless draft}"
       response = request(:get, method_url)
       FeedParser.new(response.body).objects(:PartitionTemplateSummary)
     end
@@ -398,9 +399,10 @@ module IbmPowerHmc
     ##
     # @!method templates
     # Retrieve the list of partition templates.
+    # @param draft [Boolean] Retrieve draft templates as well
     # @return [Array<IbmPowerHmc::PartitionTemplate>] The list of partition templates.
-    def templates
-      method_url = "/rest/api/templates/PartitionTemplate?detail=full"
+    def templates(draft = false)
+      method_url = "/rest/api/templates/PartitionTemplate?detail=full#{'&draft=false' unless draft}"
       response = request(:get, method_url)
       FeedParser.new(response.body).objects(:PartitionTemplate)
     end
@@ -437,6 +439,94 @@ module IbmPowerHmc
       job = HmcJob.new(self, method_url, "Capture", "PartitionTemplate", params)
       job.run if sync
       job
+    end
+
+    ##
+    # @!method template_check(template_uuid, target_sys_uuid, sync = true)
+    # Start Template Check job (first of three steps to deploy an LPAR from a Template).
+    # @param template_uuid [String] The UUID of the Template to deploy an LPAR from.
+    # @param target_sys_uuid [String] The UUID of the Managed System to deploy the LPAR on.
+    # @param sync [Boolean] Start the job and wait for its completion.
+    # @return [IbmPowerHmc::HmcJob] The HMC job.
+    def template_check(template_uuid, target_sys_uuid, sync = true)
+      # Need to include session token in payload so make sure we are logged in
+      logon if @api_session_token.nil?
+      method_url = "/rest/api/templates/PartitionTemplate/#{template_uuid}/do/check"
+      params = {
+        "TargetUuid"              => target_sys_uuid,
+        "K_X_API_SESSION_MEMENTO" => @api_session_token
+      }
+      job = HmcJob.new(self, method_url, "Check", "PartitionTemplate", params)
+      job.run if sync
+      job
+    end
+
+    ##
+    # @!method template_transform(draft_template_uuid, target_sys_uuid, sync = true)
+    # Start Template Transform job (second of three steps to deploy an LPAR from a Template).
+    # @param draft_template_uuid [String] The UUID of the Draft Template created by the Template Check job.
+    # @param target_sys_uuid [String] The UUID of the Managed System to deploy the LPAR on.
+    # @param sync [Boolean] Start the job and wait for its completion.
+    # @return [IbmPowerHmc::HmcJob] The HMC job.
+    def template_transform(draft_template_uuid, target_sys_uuid, sync = true)
+      # Need to include session token in payload so make sure we are logged in
+      logon if @api_session_token.nil?
+      method_url = "/rest/api/templates/PartitionTemplate/#{draft_template_uuid}/do/transform"
+      params = {
+        "TargetUuid"              => target_sys_uuid,
+        "K_X_API_SESSION_MEMENTO" => @api_session_token
+      }
+      job = HmcJob.new(self, method_url, "Transform", "PartitionTemplate", params)
+      job.run if sync
+      job
+    end
+
+    ##
+    # @!method template_deploy(draft_template_uuid, target_sys_uuid, sync = true)
+    # Start Template Deploy job (last of three steps to deploy an LPAR from a Template).
+    # @param draft_template_uuid [String] The UUID of the Draft Template created by the Template Check job.
+    # @param target_sys_uuid [String] The UUID of the Managed System to deploy the LPAR on.
+    # @param sync [Boolean] Start the job and wait for its completion.
+    # @return [IbmPowerHmc::HmcJob] The HMC job.
+    def template_deploy(draft_template_uuid, target_sys_uuid, sync = true)
+      # Need to include session token in payload so make sure we are logged in
+      logon if @api_session_token.nil?
+      method_url = "/rest/api/templates/PartitionTemplate/#{draft_template_uuid}/do/deploy"
+      params = {
+        "TargetUuid"              => target_sys_uuid,
+        "TemplateUuid"            => draft_template_uuid,
+        "K_X_API_SESSION_MEMENTO" => @api_session_token
+      }
+      job = HmcJob.new(self, method_url, "Deploy", "PartitionTemplate", params)
+      job.run if sync
+      job
+    end
+
+    ##
+    # @!method template_provision(template_uuid, target_sys_uuid, changes)
+    # Deploy Logical Partition from a Template (performs Check, Transform and Deploy steps in a single method).
+    # @param template_uuid [String] The UUID of the Template to deploy an LPAR from.
+    # @param target_sys_uuid [String] The UUID of the Managed System to deploy the LPAR on.
+    # @param changes [Hash] Modifications to apply to the Template before deploying Logical Partition.
+    # @return [String] The UUID of the deployed Logical Partition.
+    def template_provision(template_uuid, target_sys_uuid, changes)
+      # Need to include session token in payload so make sure we are logged in
+      logon if @api_session_token.nil?
+      draft_uuid = template_check(template_uuid, target_sys_uuid).results["TEMPLATE_UUID"]
+      template_transform(draft_uuid, target_sys_uuid)
+      template_modify(draft_uuid, changes)
+      template_deploy(draft_uuid, target_sys_uuid).results["PartitionUuid"]
+    end
+
+    ##
+    # @!method template(template_uuid, changes)
+    # modify_object_attributes wrapper for templates.
+    # @param template_uuid [String] UUID of the partition template to modify.
+    # @param changes [Hash] Hash of changes to make.
+    # @return [IbmPowerHmc::PartitionTemplate] The partition template.
+    def template_modify(template_uuid, changes)
+      method_url = "/rest/api/templates/PartitionTemplate/#{template_uuid}"
+      modify_object_attributes(method_url, changes)
     end
 
     ##
@@ -697,6 +787,22 @@ module IbmPowerHmc
           attempts -= 1
           # Will get 412 ("Precondition Failed") if ETag mismatches
           raise if e.status != 412 || attempts == 0
+        end
+      end
+    end
+
+    # @!method modify_object_attributes(method_url, headers = {}, attempts = 5)
+    # Modify an object at a specified URI.
+    # @param method_url [String] The URL of the object to modify.
+    # @param changes [Hash] Hash of changes to make. Key is the attribute modify/create (as defined in the AbstractNonRest subclass). A value of nil removes the attribute.
+    # @param headers [Hash] HTTP headers.
+    # @param attempts [Integer] Maximum number of retries.
+    # @yield [obj] The object to modify.
+    # @yieldparam obj [IbmPowerHmc::AbstractRest] The object to modify.
+    def modify_object_attributes(method_url, changes, headers = {}, attempts = 5)
+      modify_object(method_url, headers, attempts) do |obj|
+        changes.each do |key, value|
+          obj.send("#{key}=", value)
         end
       end
     end
