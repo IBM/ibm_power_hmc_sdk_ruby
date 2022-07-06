@@ -986,10 +986,10 @@ module IbmPowerHmc
       adaps = REXML::Element.new('clientNetworkAdapters')
       adaps.add_attribute('schemaVersion', 'V1_5_0')
       list.each do |vlan|
-        adaps.add_element('ClientNetworkAdapter',  {'schemaVersion' => 'V1_5_0'}).
-              add_element('clientVirtualNetworks', {'schemaVersion' => 'V1_5_0'}).
-              add_element('ClientVirtualNetwork',  {'schemaVersion' => 'V1_5_0'}).
-              tap do |v|
+        adaps.add_element('ClientNetworkAdapter',  {'schemaVersion' => 'V1_5_0'})
+             .add_element('clientVirtualNetworks', {'schemaVersion' => 'V1_5_0'})
+             .add_element('ClientVirtualNetwork',  {'schemaVersion' => 'V1_5_0'})
+             .tap do |v|
           v.add_element('name').text                 = vlan[:name]
           v.add_element('vlanId').text               = vlan[:vlan_id]
           v.add_element('associatedSwitchName').text = vlan[:switch]
