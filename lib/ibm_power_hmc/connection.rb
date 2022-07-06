@@ -512,8 +512,6 @@ module IbmPowerHmc
     # @param changes [Hash] Modifications to apply to the Template before deploying Logical Partition.
     # @return [String] The UUID of the deployed Logical Partition.
     def template_provision(template_uuid, target_sys_uuid, changes)
-      # Need to include session token in payload so make sure we are logged in
-      logon if @api_session_token.nil?
       draft_uuid = template_check(template_uuid, target_sys_uuid).results["TEMPLATE_UUID"]
       template_transform(draft_uuid, target_sys_uuid)
       template_modify(draft_uuid, changes)

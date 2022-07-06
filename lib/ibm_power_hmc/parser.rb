@@ -929,13 +929,13 @@ module IbmPowerHmc
     def vscsi=(list = [])
       adaps = REXML::Element.new('virtualSCSIClientAdapters')
       adaps.add_attribute('schemaVersion', 'V1_5_0')
-      list.each do |vlan|
+      list.each do |vscsi|
         adaps.add_element('VirtualSCSIClientAdapter', {'schemaVersion' => 'V1_5_0'}).tap do |v|
           v.add_element('associatedLogicalUnits', {'schemaVersion' => 'V1_5_0'})
           v.add_element('associatedPhysicalVolume', {'schemaVersion' => 'V1_5_0'}).tap do |e|
-            e.add_element('PhysicalVolume', {'schemaVersion' => 'V1_5_0'}).add_element('name').text = vlan[:physvol] if vlan[:physvol]
+            e.add_element('PhysicalVolume', {'schemaVersion' => 'V1_5_0'}).add_element('name').text = vscsi[:physvol] if vscsi[:physvol]
           end
-          v.add_element('connectingPartitionName').text = vlan[:vios]
+          v.add_element('connectingPartitionName').text = vscsi[:vios]
           v.add_element('AssociatedTargetDevices', {'schemaVersion' => 'V1_5_0'})
           v.add_element('associatedVirtualOpticalMedia', {'schemaVersion' => 'V1_5_0'})
         end
@@ -959,10 +959,10 @@ module IbmPowerHmc
     def vfc=(list = [])
       adaps = REXML::Element.new('virtualFibreChannelClientAdapters')
       adaps.add_attribute('schemaVersion', 'V1_5_0')
-      list.each do |vlan|
+      list.each do |vfc|
         adaps.add_element('VirtualFibreChannelClientAdapter', {'schemaVersion' => 'V1_5_0'}).tap do |v|
-          v.add_element('connectingPartitionName').text = vlan[:vios]
-          v.add_element('portName').text                = vlan[:port]
+          v.add_element('connectingPartitionName').text = vfc[:vios]
+          v.add_element('portName').text                = vfc[:port]
         end
       end
       if xml.elements['logicalPartitionConfig/virtualFibreChannelClientAdapters']
