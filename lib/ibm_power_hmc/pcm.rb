@@ -17,7 +17,7 @@ module IbmPowerHmc
     end
 
     ##
-    # @!method managed_system_pcm_preferences
+    # @!method managed_system_pcm_preferences(sys_uuid)
     # Return Performance and Capacity Monitor preferences for a Managed System.
     # @param sys_uuid [String] The managed system UUID.
     # @return [IbmPowerHmc::ManagedSystemPcmPreference] The PCM preferences for the Managed System.

@@ -388,7 +388,7 @@ module IbmPowerHmc
     end
 
     ##
-    # @!method templates_summary
+    # @!method templates_summary(draft = false)
     # Retrieve the list of partition template summaries.
     # @param draft [Boolean] Retrieve draft templates as well
     # @return [Array<IbmPowerHmc::PartitionTemplateSummary>] The list of partition template summaries.
@@ -399,7 +399,7 @@ module IbmPowerHmc
     end
 
     ##
-    # @!method templates
+    # @!method templates(draft = false)
     # Retrieve the list of partition templates.
     # @param draft [Boolean] Retrieve draft templates as well
     # @return [Array<IbmPowerHmc::PartitionTemplate>] The list of partition templates.
@@ -793,14 +793,12 @@ module IbmPowerHmc
       end
     end
 
-    # @!method modify_object_attributes(method_url, headers = {}, attempts = 5)
+    # @!method modify_object_attributes(method_url, changes, headers = {}, attempts = 5)
     # Modify an object at a specified URI.
     # @param method_url [String] The URL of the object to modify.
     # @param changes [Hash] Hash of changes to make. Key is the attribute modify/create (as defined in the AbstractNonRest subclass). A value of nil removes the attribute.
     # @param headers [Hash] HTTP headers.
     # @param attempts [Integer] Maximum number of retries.
-    # @yield [obj] The object to modify.
-    # @yieldparam obj [IbmPowerHmc::AbstractRest] The object to modify.
     def modify_object_attributes(method_url, changes, headers = {}, attempts = 5)
       modify_object(method_url, headers, attempts) do |obj|
         changes.each do |key, value|
