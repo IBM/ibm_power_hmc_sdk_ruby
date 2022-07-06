@@ -714,13 +714,15 @@ module IbmPowerHmc
         @status = err.http_code
         @message = err.message
 
-        # Try to parse body as an HttpErrorResponse
+        # Try to parse body as an HttpErrorResponse.
         unless err.response.nil?
-          resp = Parser.new(err.response.body).object(:HttpErrorResponse) rescue nil
-          unless resp.nil?
+          begin
+            resp = Parser.new(err.response.body).object(:HttpErrorResponse)
             @uri = resp.uri
             @reason = resp.reason
             @message = resp.message
+          rescue
+            # not an XML body
           end
         end
       end
@@ -753,9 +755,9 @@ module IbmPowerHmc
           :headers => headers
         )
       rescue RestClient::Exception => e
-        # Do not retry on failed logon attempts
+        # Do not retry on failed logon attempts.
         if e.http_code == 401 && @api_session_token != "" && !reauth
-          # Try to reauth
+          # Try to reauth.
           reauth = true
           logon
           retry
@@ -787,7 +789,7 @@ module IbmPowerHmc
           break
         rescue HttpError => e
           attempts -= 1
-          # Will get 412 ("Precondition Failed") if ETag mismatches
+          # Will get 412 ("Precondition Failed") if ETag mismatches.
           raise if e.status != 412 || attempts == 0
         end
       end
