@@ -161,15 +161,17 @@ module IbmPowerHmc
     end
 
     ##
-    # @!method vioses(sys_uuid = nil, search = {})
+    # @!method vioses(sys_uuid = nil, search = {}, permissive = true)
     # Retrieve the list of virtual I/O servers managed by the HMC.
     # @param sys_uuid [String] The UUID of the managed system.
     # @param search [Hash] The optional property name and value to match.
+    # @param permissive [Boolean] Skip virtual I/O servers that have error conditions.
     # @return [Array<IbmPowerHmc::VirtualIOServer>] The list of virtual I/O servers.
-    def vioses(sys_uuid = nil, search = {})
+    def vioses(sys_uuid = nil, search = {}, permissive = true)
       if sys_uuid.nil?
         method_url = "/rest/api/uom/VirtualIOServer"
         search.each { |key, value| method_url += "/search/(#{key}==#{value})" }
+        method_url += "?ignoreError=true" if permissive
       else
         method_url = "/rest/api/uom/ManagedSystem/#{sys_uuid}/VirtualIOServer"
       end
