@@ -223,8 +223,14 @@ module IbmPowerHmc
       :build_level => "VersionInfo/BuildLevel",
       :version => "BaseVersion",
       :ssh_pubkey => "PublicSSHKeyValue",
-      :uvmid => "UVMID"
+      :uvmid => "UVMID",
+      :tz => "CurrentTimezone",
+      :uptime => "ManagementConsoleUpTime"
     }.freeze
+
+    def time
+      Time.at(0, singleton("ManagementConsoleTime").to_i, :millisecond).utc
+    end
 
     def managed_systems_uuids
       uuids_from_links("ManagedSystems")
@@ -419,7 +425,7 @@ module IbmPowerHmc
       :location => "LocationCode",
       :description => "Description",
       :is_available => "AvailableForUsage",
-      :capacity => "VolumeCapacity",
+      :capacity => "VolumeCapacity", # in MiB
       :name => "VolumeName",
       :is_fc => "IsFibreChannelBacked",
       :udid => "VolumeUniqueID"
@@ -431,7 +437,7 @@ module IbmPowerHmc
     ATTRS = {
       :name => "DiskName",
       :label => "DiskLabel",
-      :capacity => "DiskCapacity", # In GiB
+      :capacity => "DiskCapacity", # in GiB
       :psize => "PartitionSize",
       :vg => "VolumeGroup",
       :udid => "UniqueDeviceID"
@@ -980,10 +986,10 @@ module IbmPowerHmc
       adaps = REXML::Element.new('clientNetworkAdapters')
       adaps.add_attribute('schemaVersion', 'V1_5_0')
       list.each do |vlan|
-        adaps.add_element('ClientNetworkAdapter',  {'schemaVersion' => 'V1_5_0'}).
-              add_element('clientVirtualNetworks', {'schemaVersion' => 'V1_5_0'}).
-              add_element('ClientVirtualNetwork',  {'schemaVersion' => 'V1_5_0'}).
-              tap do |v|
+        adaps.add_element('ClientNetworkAdapter',  {'schemaVersion' => 'V1_5_0'})
+             .add_element('clientVirtualNetworks', {'schemaVersion' => 'V1_5_0'})
+             .add_element('ClientVirtualNetwork',  {'schemaVersion' => 'V1_5_0'})
+             .tap do |v|
           v.add_element('name').text                 = vlan[:name]
           v.add_element('vlanId').text               = vlan[:vlan_id]
           v.add_element('associatedSwitchName').text = vlan[:switch]
@@ -1036,6 +1042,7 @@ module IbmPowerHmc
     end
   end
 
+  # Performance and Capacity Monitoring preferences
   class ManagementConsolePcmPreference < AbstractRest
     ATTRS = {
       :max_ltm                     => "MaximumManagedSystemsForLongTermMonitor",

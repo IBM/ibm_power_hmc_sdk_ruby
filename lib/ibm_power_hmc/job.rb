@@ -5,6 +5,7 @@ module IbmPowerHmc
   # HMC Job for long running operations.
   class HmcJob
     class JobNotStarted < StandardError; end
+
     class JobFailed < StandardError
       def initialize(job)
         super
@@ -109,7 +110,7 @@ module IbmPowerHmc
     def run(timeout = 120, poll_interval = 0)
       start
       wait(timeout, poll_interval)
-      raise JobFailed.new(@last_status) unless @last_status.status.eql?("COMPLETED_OK")
+      raise JobFailed.new(@last_status), "Job failed" unless @last_status.status.eql?("COMPLETED_OK")
     ensure
       delete if defined?(@href)
     end
