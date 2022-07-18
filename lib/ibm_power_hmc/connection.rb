@@ -530,6 +530,23 @@ module IbmPowerHmc
     end
 
     ##
+    # @!method template_copy(template_uuid, new_name)
+    # Copy existing template to a new one.
+    # @param template_uuid [String] UUID of the partition template to copy.
+    # @param new_name [String] Name of the new template.
+    # @return [IbmPowerHmc::PartitionTemplate] The new partition template.
+    def template_copy(template_uuid, new_name)
+      method_url = "/rest/api/templates/PartitionTemplate"
+      headers = {
+        :content_type => "application/vnd.ibm.powervm.templates+xml;type=PartitionTemplate"
+      }
+      original = template(template_uuid)
+      original.name = new_name
+      response = request(:put, method_url, headers, original.xml.to_s)
+      Parser.new(response.body).object(:PartitionTemplate)
+    end
+
+    ##
     # @!method poweron_lpar(lpar_uuid, params = {}, sync = true)
     # Power on a logical partition.
     # @param lpar_uuid [String] The UUID of the logical partition.
