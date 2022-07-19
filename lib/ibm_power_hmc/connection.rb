@@ -171,10 +171,10 @@ module IbmPowerHmc
       if sys_uuid.nil?
         method_url = "/rest/api/uom/VirtualIOServer"
         search.each { |key, value| method_url += "/search/(#{key}==#{value})" }
-        method_url += "?ignoreError=true" if permissive
       else
         method_url = "/rest/api/uom/ManagedSystem/#{sys_uuid}/VirtualIOServer"
       end
+      method_url += "?ignoreError=true" if permissive
       response = request(:get, method_url)
       FeedParser.new(response.body).objects(:VirtualIOServer)
     end
