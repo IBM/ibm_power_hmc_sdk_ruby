@@ -161,6 +161,43 @@ module IbmPowerHmc
     end
 
     ##
+    # @!method lpar_migrate_validate(lpar_uuid, target_sys_name, sync = true)
+    # Validate if a logical partition can be migrated to another managed system.
+    # @raise [IbmPowerHmc::JobFailed] if validation fails
+    # @param lpar_uuid [String] The UUID of the logical partition to migrate.
+    # @param target_sys_name [String] The managed system to migrate partition to.
+    # @param sync [Boolean] Start the job and wait for its completion.
+    def lpar_migrate_validate(lpar_uuid, target_sys_name, sync = true)
+      # Need to include session token in payload so make sure we are logged in
+      logon if @api_session_token.nil?
+      method_url = "/rest/api/uom/LogicalPartition/#{lpar_uuid}/do/MigrateValidate"
+      params = {
+        "TargetManagedSystemName" => target_sys_name
+      }
+      HmcJob.new(self, method_url, "MigrateValidate", "LogicalPartition", params).tap do |job|
+        job.run if sync
+      end
+    end
+
+    ##
+    # @!method lpar_migrate(lpar_uuid, target_sys_name, sync = true)
+    # Migrate a logical partition to another managed system.
+    # @param lpar_uuid [String] The UUID of the logical partition to migrate.
+    # @param target_sys_name [String] The managed system to migrate partition to.
+    # @param sync [Boolean] Start the job and wait for its completion.
+    def lpar_migrate(lpar_uuid, target_sys_name, sync = true)
+      # Need to include session token in payload so make sure we are logged in
+      logon if @api_session_token.nil?
+      method_url = "/rest/api/uom/LogicalPartition/#{lpar_uuid}/do/Migrate"
+      params = {
+        "TargetManagedSystemName" => target_sys_name
+      }
+      HmcJob.new(self, method_url, "Migrate", "LogicalPartition", params).tap do |job|
+        job.run if sync
+      end
+    end
+
+    ##
     # @!method vioses(sys_uuid = nil, search = {}, permissive = true)
     # Retrieve the list of virtual I/O servers managed by the HMC.
     # @param sys_uuid [String] The UUID of the managed system.
