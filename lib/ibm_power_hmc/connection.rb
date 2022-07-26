@@ -352,6 +352,42 @@ module IbmPowerHmc
     end
 
     ##
+    # @!method vscsi_client_adapter(lpar_uuid, adap_uuid = nil)
+    # Retrieve one or all virtual SCSI storage client adapters attached to a logical partition.
+    # @param lpar_uuid [String] UUID of the logical partition.
+    # @param netadap_uuid [String] UUID of the adapter to match (returns all adapters if omitted).
+    # @return [Array<IbmPowerHmc::VirtualSCSIClientAdapter>, IbmPowerHmc::VirtualSCSIClientAdapter] The list of storage adapters.
+    def vscsi_client_adapter(lpar_uuid, adap_uuid = nil)
+      if adap_uuid.nil?
+        method_url = "/rest/api/uom/LogicalPartition/#{lpar_uuid}/VirtualSCSIClientAdapter"
+        response = request(:get, method_url)
+        FeedParser.new(response.body).objects(:VirtualSCSIClientAdapter)
+      else
+        method_url = "/rest/api/uom/LogicalPartition/#{lpar_uuid}/VirtualSCSIClientAdapter/#{adap_uuid}"
+        response = request(:get, method_url)
+        Parser.new(response.body).object(:VirtualSCSIClientAdapter)
+      end
+    end
+
+    ##
+    # @!method vfc_client_adapter(lpar_uuid, adap_uuid = nil)
+    # Retrieve one or all virtual Fibre Channel storage client adapters attached to a logical partition.
+    # @param lpar_uuid [String] UUID of the logical partition.
+    # @param netadap_uuid [String] UUID of the adapter to match (returns all adapters if omitted).
+    # @return [Array<IbmPowerHmc::VirtualFibreChannelClientAdapter>, IbmPowerHmc::VirtualFibreChannelClientAdapter] The list of storage adapters.
+    def vfc_client_adapter(lpar_uuid, adap_uuid = nil)
+      if adap_uuid.nil?
+        method_url = "/rest/api/uom/LogicalPartition/#{lpar_uuid}/VirtualFibreChannelClientAdapter"
+        response = request(:get, method_url)
+        FeedParser.new(response.body).objects(:VirtualFibreChannelClientAdapter)
+      else
+        method_url = "/rest/api/uom/LogicalPartition/#{lpar_uuid}/VirtualFibreChannelClientAdapter/#{adap_uuid}"
+        response = request(:get, method_url)
+        Parser.new(response.body).object(:VirtualFibreChannelClientAdapter)
+      end
+    end
+
+    ##
     # @!method clusters
     # Retrieve the list of clusters managed by the HMC.
     # @return [Array<IbmPowerHmc::Cluster>] The list of clusters.
