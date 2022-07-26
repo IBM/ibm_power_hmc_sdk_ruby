@@ -896,6 +896,22 @@ module IbmPowerHmc
     }.freeze
   end
 
+  # Shared Processor Pool
+  class SharedProcessorPool < AbstractRest
+    ATTRS = {
+      :name => "PoolName",
+      :available => "AvailableProcUnits",
+      :max => "MaximumProcessingUnits",
+      :reserved => "CurrentReservedProcessingUnits",
+      :pending_reserved => "PendingReservedProcessingUnits",
+      :pool_id => "PoolID"
+    }.freeze
+
+    def lpar_uuids
+      uuids_from_links("AssignedPartitions")
+    end
+  end
+
   class PartitionTemplateSummary < AbstractRest
     ATTRS = {
       :name => "partitionTemplateName"

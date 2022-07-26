@@ -355,7 +355,7 @@ module IbmPowerHmc
     # @!method vscsi_client_adapter(lpar_uuid, adap_uuid = nil)
     # Retrieve one or all virtual SCSI storage client adapters attached to a logical partition.
     # @param lpar_uuid [String] UUID of the logical partition.
-    # @param netadap_uuid [String] UUID of the adapter to match (returns all adapters if omitted).
+    # @param adap_uuid [String] UUID of the adapter to match (returns all adapters if omitted).
     # @return [Array<IbmPowerHmc::VirtualSCSIClientAdapter>, IbmPowerHmc::VirtualSCSIClientAdapter] The list of storage adapters.
     def vscsi_client_adapter(lpar_uuid, adap_uuid = nil)
       if adap_uuid.nil?
@@ -373,7 +373,7 @@ module IbmPowerHmc
     # @!method vfc_client_adapter(lpar_uuid, adap_uuid = nil)
     # Retrieve one or all virtual Fibre Channel storage client adapters attached to a logical partition.
     # @param lpar_uuid [String] UUID of the logical partition.
-    # @param netadap_uuid [String] UUID of the adapter to match (returns all adapters if omitted).
+    # @param adap_uuid [String] UUID of the adapter to match (returns all adapters if omitted).
     # @return [Array<IbmPowerHmc::VirtualFibreChannelClientAdapter>, IbmPowerHmc::VirtualFibreChannelClientAdapter] The list of storage adapters.
     def vfc_client_adapter(lpar_uuid, adap_uuid = nil)
       if adap_uuid.nil?
@@ -458,6 +458,24 @@ module IbmPowerHmc
 
       response = request(:get, method_url)
       Parser.new(response.body).object(:Tier)
+    end
+
+    ##
+    # @!method shared_processor_pool(sys_uuid, pool_uuid = nil)
+    # Retrieve information about Shared Processor Pools.
+    # @param sys_uuid [String] The UUID of the managed system.
+    # @param pool_uuid [String] The UUID of the shared storage pool (return all pools if omitted)
+    # @return [Array<IbmPowerHmc::SharedProcessorPool>, IbmPowerHmc::SharedProcessorPool] The list of shared processor pools.
+    def shared_processor_pool(sys_uuid, pool_uuid = nil)
+      if pool_uuid.nil?
+        method_url = "/rest/api/uom/ManagedSystem/#{sys_uuid}/SharedProcessorPool"
+        response = request(:get, method_url)
+        FeedParser.new(response.body).objects(:SharedProcessorPool)
+      else
+        method_url = "/rest/api/uom/ManagedSystem/#{sys_uuid}/SharedProcessorPool/#{pool_uuid}"
+        response = request(:get, method_url)
+        Parser.new(response.body).object(:SharedProcessorPool)
+      end
     end
 
     ##
