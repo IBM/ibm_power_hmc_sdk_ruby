@@ -161,6 +161,43 @@ module IbmPowerHmc
     end
 
     ##
+    # @!method lpar_migrate_validate(lpar_uuid, target_sys_name, sync = true)
+    # Validate if a logical partition can be migrated to another managed system.
+    # @raise [IbmPowerHmc::JobFailed] if validation fails
+    # @param lpar_uuid [String] The UUID of the logical partition to migrate.
+    # @param target_sys_name [String] The managed system to migrate partition to.
+    # @param sync [Boolean] Start the job and wait for its completion.
+    def lpar_migrate_validate(lpar_uuid, target_sys_name, sync = true)
+      # Need to include session token in payload so make sure we are logged in
+      logon if @api_session_token.nil?
+      method_url = "/rest/api/uom/LogicalPartition/#{lpar_uuid}/do/MigrateValidate"
+      params = {
+        "TargetManagedSystemName" => target_sys_name
+      }
+      HmcJob.new(self, method_url, "MigrateValidate", "LogicalPartition", params).tap do |job|
+        job.run if sync
+      end
+    end
+
+    ##
+    # @!method lpar_migrate(lpar_uuid, target_sys_name, sync = true)
+    # Migrate a logical partition to another managed system.
+    # @param lpar_uuid [String] The UUID of the logical partition to migrate.
+    # @param target_sys_name [String] The managed system to migrate partition to.
+    # @param sync [Boolean] Start the job and wait for its completion.
+    def lpar_migrate(lpar_uuid, target_sys_name, sync = true)
+      # Need to include session token in payload so make sure we are logged in
+      logon if @api_session_token.nil?
+      method_url = "/rest/api/uom/LogicalPartition/#{lpar_uuid}/do/Migrate"
+      params = {
+        "TargetManagedSystemName" => target_sys_name
+      }
+      HmcJob.new(self, method_url, "Migrate", "LogicalPartition", params).tap do |job|
+        job.run if sync
+      end
+    end
+
+    ##
     # @!method vioses(sys_uuid = nil, search = {}, permissive = true)
     # Retrieve the list of virtual I/O servers managed by the HMC.
     # @param sys_uuid [String] The UUID of the managed system.
@@ -315,6 +352,42 @@ module IbmPowerHmc
     end
 
     ##
+    # @!method vscsi_client_adapter(lpar_uuid, adap_uuid = nil)
+    # Retrieve one or all virtual SCSI storage client adapters attached to a logical partition.
+    # @param lpar_uuid [String] UUID of the logical partition.
+    # @param adap_uuid [String] UUID of the adapter to match (returns all adapters if omitted).
+    # @return [Array<IbmPowerHmc::VirtualSCSIClientAdapter>, IbmPowerHmc::VirtualSCSIClientAdapter] The list of storage adapters.
+    def vscsi_client_adapter(lpar_uuid, adap_uuid = nil)
+      if adap_uuid.nil?
+        method_url = "/rest/api/uom/LogicalPartition/#{lpar_uuid}/VirtualSCSIClientAdapter"
+        response = request(:get, method_url)
+        FeedParser.new(response.body).objects(:VirtualSCSIClientAdapter)
+      else
+        method_url = "/rest/api/uom/LogicalPartition/#{lpar_uuid}/VirtualSCSIClientAdapter/#{adap_uuid}"
+        response = request(:get, method_url)
+        Parser.new(response.body).object(:VirtualSCSIClientAdapter)
+      end
+    end
+
+    ##
+    # @!method vfc_client_adapter(lpar_uuid, adap_uuid = nil)
+    # Retrieve one or all virtual Fibre Channel storage client adapters attached to a logical partition.
+    # @param lpar_uuid [String] UUID of the logical partition.
+    # @param adap_uuid [String] UUID of the adapter to match (returns all adapters if omitted).
+    # @return [Array<IbmPowerHmc::VirtualFibreChannelClientAdapter>, IbmPowerHmc::VirtualFibreChannelClientAdapter] The list of storage adapters.
+    def vfc_client_adapter(lpar_uuid, adap_uuid = nil)
+      if adap_uuid.nil?
+        method_url = "/rest/api/uom/LogicalPartition/#{lpar_uuid}/VirtualFibreChannelClientAdapter"
+        response = request(:get, method_url)
+        FeedParser.new(response.body).objects(:VirtualFibreChannelClientAdapter)
+      else
+        method_url = "/rest/api/uom/LogicalPartition/#{lpar_uuid}/VirtualFibreChannelClientAdapter/#{adap_uuid}"
+        response = request(:get, method_url)
+        Parser.new(response.body).object(:VirtualFibreChannelClientAdapter)
+      end
+    end
+
+    ##
     # @!method clusters
     # Retrieve the list of clusters managed by the HMC.
     # @return [Array<IbmPowerHmc::Cluster>] The list of clusters.
@@ -385,6 +458,24 @@ module IbmPowerHmc
 
       response = request(:get, method_url)
       Parser.new(response.body).object(:Tier)
+    end
+
+    ##
+    # @!method shared_processor_pool(sys_uuid, pool_uuid = nil)
+    # Retrieve information about Shared Processor Pools.
+    # @param sys_uuid [String] The UUID of the managed system.
+    # @param pool_uuid [String] The UUID of the shared storage pool (return all pools if omitted)
+    # @return [Array<IbmPowerHmc::SharedProcessorPool>, IbmPowerHmc::SharedProcessorPool] The list of shared processor pools.
+    def shared_processor_pool(sys_uuid, pool_uuid = nil)
+      if pool_uuid.nil?
+        method_url = "/rest/api/uom/ManagedSystem/#{sys_uuid}/SharedProcessorPool"
+        response = request(:get, method_url)
+        FeedParser.new(response.body).objects(:SharedProcessorPool)
+      else
+        method_url = "/rest/api/uom/ManagedSystem/#{sys_uuid}/SharedProcessorPool/#{pool_uuid}"
+        response = request(:get, method_url)
+        Parser.new(response.body).object(:SharedProcessorPool)
+      end
     end
 
     ##
