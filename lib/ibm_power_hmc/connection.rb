@@ -90,10 +90,8 @@ module IbmPowerHmc
         method_url = "/rest/api/uom/ManagedSystem/quick/All"
         response = request(:get, method_url)
         parsed_json = JSON.parse(response)
-        connected_hosts = parsed_json.reject { |em| em["State"].eql?("no connection") }
-        uuids = []
-        connected_hosts.each { |h| uuids.push(h["UUID"]) }
-        connected_hosts = uuids.map { |uuid| managed_system(uuid) }
+        connected_host_uuids = parsed_json.reject { |em| em["State"].eql?("no connection") }.map { |h| h["UUID"] }
+        connected_host_uuids.map { |uuid| managed_system(uuid) }
       end
     end
 
