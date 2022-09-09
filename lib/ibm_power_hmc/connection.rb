@@ -16,12 +16,13 @@ module IbmPowerHmc
     # @param username [String] User name.
     # @param port [Integer] TCP port number.
     # @param validate_ssl [Boolean] Verify SSL certificates.
-    def initialize(host:, password:, username: "hscroot", port: 12_443, validate_ssl: true)
+    def initialize(host:, password:, username: "hscroot", port: 12_443, validate_ssl: true, timeout: 60)
       @hostname = "#{host}:#{port}"
       @username = username
       @password = password
       @verify_ssl = validate_ssl
       @api_session_token = nil
+      @timeout = timeout
     end
 
     ##
@@ -858,7 +859,8 @@ module IbmPowerHmc
           :url => url,
           :verify_ssl => @verify_ssl,
           :payload => payload,
-          :headers => headers
+          :headers => headers,
+          :timeout => @timeout
         )
       rescue RestClient::Exception => e
         # Do not retry on failed logon attempts.
