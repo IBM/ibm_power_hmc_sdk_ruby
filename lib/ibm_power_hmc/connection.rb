@@ -16,12 +16,13 @@ module IbmPowerHmc
     # @param username [String] User name.
     # @param port [Integer] TCP port number.
     # @param validate_ssl [Boolean] Verify SSL certificates.
-    def initialize(host:, password:, username: "hscroot", port: 12_443, validate_ssl: true)
+    def initialize(host:, password:, username: "hscroot", port: 12_443, validate_ssl: true, timeout: 60)
       @hostname = "#{host}:#{port}"
       @username = username
       @password = password
       @verify_ssl = validate_ssl
       @api_session_token = nil
+      @timeout = timeout
     end
 
     ##
@@ -81,10 +82,18 @@ module IbmPowerHmc
     # @param search [Hash] The optional property name and value to match.
     # @return [Array<IbmPowerHmc::ManagedSystem>] The list of managed systems.
     def managed_systems(search = {})
-      method_url = "/rest/api/uom/ManagedSystem"
-      search.each { |key, value| method_url += "/search/(#{key}==#{value})" }
-      response = request(:get, method_url)
-      FeedParser.new(response.body).objects(:ManagedSystem)
+      if !search.empty?
+        method_url = "/rest/api/uom/ManagedSystem"
+        search.each { |key, value| method_url += "/search/(#{key}==#{value})" }
+        response = request(:get, method_url)
+        FeedParser.new(response.body).objects(:ManagedSystem)
+      else
+        method_url = "/rest/api/uom/ManagedSystem/quick/All"
+        response = request(:get, method_url)
+        parsed_json = JSON.parse(response)
+        connected_host_uuids = parsed_json.reject { |em| ["no connection", "failed authentificatoin"].include?(em["state"]) }.map { |h| h["UUID"] }
+        connected_host_uuids.map { |uuid| managed_system(uuid) }
+      end
     end
 
     ##
@@ -767,7 +776,8 @@ module IbmPowerHmc
           :url => url,
           :verify_ssl => @verify_ssl,
           :payload => payload,
-          :headers => headers
+          :headers => headers,
+          :timeout => @timeout
         )
       rescue RestClient::Exception => e
         # Do not retry on failed logon attempts.
