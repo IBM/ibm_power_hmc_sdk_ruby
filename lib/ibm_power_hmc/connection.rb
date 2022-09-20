@@ -82,18 +82,10 @@ module IbmPowerHmc
     # @param search [Hash] The optional property name and value to match.
     # @return [Array<IbmPowerHmc::ManagedSystem>] The list of managed systems.
     def managed_systems(search = {})
-      if !search.empty?
-        method_url = "/rest/api/uom/ManagedSystem"
-        search.each { |key, value| method_url += "/search/(#{key}==#{value})" }
-        response = request(:get, method_url)
-        FeedParser.new(response.body).objects(:ManagedSystem)
-      else
-        method_url = "/rest/api/uom/ManagedSystem/quick/All"
-        response = request(:get, method_url)
-        parsed_json = JSON.parse(response)
-        connected_host_uuids = parsed_json.reject { |em| ["no connection", "failed authentificatoin"].include?(em["state"]) }.map { |h| h["UUID"] }
-        connected_host_uuids.map { |uuid| managed_system(uuid) }
-      end
+      method_url = "/rest/api/uom/ManagedSystem"
+      search.each { |key, value| method_url += "/search/(#{key}==#{value})" }
+      response = request(:get, method_url)
+      FeedParser.new(response.body).objects(:ManagedSystem)
     end
 
     ##
