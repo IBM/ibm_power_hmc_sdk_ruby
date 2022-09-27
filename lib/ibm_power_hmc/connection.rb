@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require 'erb'
+
 # Module for IBM HMC Rest API Client
 module IbmPowerHmc
   class Error < StandardError; end
@@ -76,13 +78,13 @@ module IbmPowerHmc
     end
 
     ##
-    # @!method managed_systems(search = {})
+    # @!method managed_systems(search = nil)
     # Retrieve the list of systems managed by the HMC.
-    # @param search [Hash] The optional property name and value to match.
+    # @param search [String] The optional search criteria.
     # @return [Array<IbmPowerHmc::ManagedSystem>] The list of managed systems.
-    def managed_systems(search = {})
+    def managed_systems(search = nil)
       method_url = "/rest/api/uom/ManagedSystem"
-      search.each { |key, value| method_url += "/search/(#{key}==#{value})" }
+      method_url += "/search/(#{ERB::Util.url_encode(search)})" unless search.nil?
       response = request(:get, method_url)
       FeedParser.new(response.body).objects(:ManagedSystem)
     end
@@ -102,15 +104,15 @@ module IbmPowerHmc
     end
 
     ##
-    # @!method lpars(sys_uuid = nil, search = {})
+    # @!method lpars(sys_uuid = nil, search = nil)
     # Retrieve the list of logical partitions managed by the HMC.
     # @param sys_uuid [String] The UUID of the managed system.
-    # @param search [Hash] The optional property name and value to match.
+    # @param search [String] The optional search criteria.
     # @return [Array<IbmPowerHmc::LogicalPartition>] The list of logical partitions.
-    def lpars(sys_uuid = nil, search = {})
+    def lpars(sys_uuid = nil, search = nil)
       if sys_uuid.nil?
         method_url = "/rest/api/uom/LogicalPartition"
-        search.each { |key, value| method_url += "/search/(#{key}==#{value})" }
+        method_url += "/search/(#{ERB::Util.url_encode(search)})" unless search.nil?
       else
         method_url = "/rest/api/uom/ManagedSystem/#{sys_uuid}/LogicalPartition"
       end
@@ -198,16 +200,16 @@ module IbmPowerHmc
     end
 
     ##
-    # @!method vioses(sys_uuid = nil, search = {}, permissive = true)
+    # @!method vioses(sys_uuid = nil, search = nil, permissive = true)
     # Retrieve the list of virtual I/O servers managed by the HMC.
     # @param sys_uuid [String] The UUID of the managed system.
-    # @param search [Hash] The optional property name and value to match.
+    # @param search [String] The optional search criteria.
     # @param permissive [Boolean] Skip virtual I/O servers that have error conditions.
     # @return [Array<IbmPowerHmc::VirtualIOServer>] The list of virtual I/O servers.
-    def vioses(sys_uuid = nil, search = {}, permissive = true)
+    def vioses(sys_uuid = nil, search = nil, permissive = true)
       if sys_uuid.nil?
         method_url = "/rest/api/uom/VirtualIOServer"
-        search.each { |key, value| method_url += "/search/(#{key}==#{value})" }
+        method_url += "/search/(#{ERB::Util.url_encode(search)})" unless search.nil?
       else
         method_url = "/rest/api/uom/ManagedSystem/#{sys_uuid}/VirtualIOServer"
       end
