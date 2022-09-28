@@ -517,7 +517,9 @@ module IbmPowerHmc
       :type     => "AdapterType", # "Server", "Client", "Unknown"
       :location => "LocationCode",
       :slot     => "VirtualSlotNumber",
-      :required => "RequiredAdapter"
+      :required => "RequiredAdapter",
+      :lpar_id  => "LogicalPartitionID",
+      :dr_name  => "DynamicReconfigurationConnectorName"
     }.freeze
   end
 
