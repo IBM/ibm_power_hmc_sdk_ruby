@@ -91,6 +91,29 @@ module IbmPowerHmc
     end
 
     ##
+    # @!method managed_systems_quick
+    # Retrieve the list of systems managed by the HMC (using Quick API).
+    # @return [Array<Hash>] The list of managed systems.
+    def managed_systems_quick
+      method_url = "/rest/api/uom/ManagedSystem/quick/All"
+      response = request(:get, method_url)
+      JSON.parse(response.body)
+    end
+
+    ##
+    # @!method managed_system_quick(sys_uuid, property = nil)
+    # Retrieve information about a managed system (using Quick API).
+    # @param sys_uuid [String] The UUID of the managed system.
+    # @param property_name [String] The quick property name (optional).
+    # @return [Hash] The managed system.
+    def managed_system_quick(sys_uuid, property = nil)
+      method_url = "/rest/api/uom/ManagedSystem/#{sys_uuid}/quick"
+      method_url += "/#{property}" unless property.nil?
+      response = request(:get, method_url)
+      JSON.parse(response.body)
+    end
+
+    ##
     # @!method managed_system(lpar_uuid, sys_uuid = nil, group_name = nil)
     # Retrieve information about a managed system.
     # @param sys_uuid [String] The UUID of the managed system.
