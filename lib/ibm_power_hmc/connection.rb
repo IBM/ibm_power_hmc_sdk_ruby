@@ -782,18 +782,19 @@ module IbmPowerHmc
     end
 
     ##
-    # @!method next_events(wait = true)
+    # @!method next_events(timeout = -1)
     # Retrieve a list of events that occured since last call.
-    # @param wait [Boolean] If no event is available, block until new events occur.
+    # @param timeout [Integer] The number of seconds to wait if no event is available.
     # @return [Array<IbmPowerHmc::Event>] The list of events.
-    def next_events(wait = true)
+    def next_events(timeout = -1)
       method_url = "/rest/api/uom/Event"
+      method_url += "?timeout=#{timeout}" if timeout >= 0
 
       response = nil
       loop do
         response = request(:get, method_url)
-        # No need to sleep as the HMC already waits a bit before returning 204
-        break if response.code != 204 || !wait
+        # The HMC waits "timeout" seconds before returning 204.
+        break if response.code != 204 || timeout >= 0
       end
       FeedParser.new(response.body).objects(:Event).map do |e|
         data = e.data.split("/") unless e.data.nil?
