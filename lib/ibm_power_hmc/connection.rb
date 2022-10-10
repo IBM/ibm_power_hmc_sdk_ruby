@@ -10,7 +10,7 @@ module IbmPowerHmc
   # HMC REST Client connection.
   class Connection
     ##
-    # @!method initialize(host:, password:, username: "hscroot", port: 12_443, validate_ssl: true)
+    # @!method initialize(host:, password:, username: "hscroot", port: 12_443, validate_ssl: true, timeout: 60)
     # Create a new HMC connection.
     #
     # @param host [String] Hostname of the HMC.
@@ -18,6 +18,7 @@ module IbmPowerHmc
     # @param username [String] User name.
     # @param port [Integer] TCP port number.
     # @param validate_ssl [Boolean] Verify SSL certificates.
+    # @param timeout [Integer] The default HTTP timeout in seconds.
     def initialize(host:, password:, username: "hscroot", port: 12_443, validate_ssl: true, timeout: 60)
       @hostname = "#{host}:#{port}"
       @username = username
@@ -104,7 +105,7 @@ module IbmPowerHmc
     # @!method managed_system_quick(sys_uuid, property = nil)
     # Retrieve information about a managed system (using Quick API).
     # @param sys_uuid [String] The UUID of the managed system.
-    # @param property_name [String] The quick property name (optional).
+    # @param property [String] The quick property name (optional).
     # @return [Hash] The managed system.
     def managed_system_quick(sys_uuid, property = nil)
       method_url = "/rest/api/uom/ManagedSystem/#{sys_uuid}/quick"
@@ -785,6 +786,7 @@ module IbmPowerHmc
     # @!method next_events(timeout = -1)
     # Retrieve a list of events that occured since last call.
     # @param timeout [Integer] The number of seconds to wait if no event is available.
+    #   Specify -1 to wait indefinitely.
     # @return [Array<IbmPowerHmc::Event>] The list of events.
     def next_events(timeout = -1)
       method_url = "/rest/api/uom/Event"
@@ -793,7 +795,7 @@ module IbmPowerHmc
       response = nil
       loop do
         response = request(:get, method_url)
-        # The HMC waits "timeout" seconds before returning 204.
+        # The HMC waits "timeout" seconds (10 if not specified) before returning 204.
         break if response.code != 204 || timeout >= 0
       end
       FeedParser.new(response.body).objects(:Event).map do |e|
@@ -932,7 +934,8 @@ module IbmPowerHmc
     # @!method modify_object_attributes(method_url, changes, headers = {}, attempts = 5)
     # Modify an object at a specified URI.
     # @param method_url [String] The URL of the object to modify.
-    # @param changes [Hash] Hash of changes to make. Key is the attribute modify/create (as defined in the AbstractNonRest subclass). A value of nil removes the attribute.
+    # @param changes [Hash] Hash of changes to make. Key is the attribute modify/create
+    #   (as defined in the AbstractNonRest subclass). A value of nil removes the attribute.
     # @param headers [Hash] HTTP headers.
     # @param attempts [Integer] Maximum number of retries.
     def modify_object_attributes(method_url, changes, headers = {}, attempts = 5)
