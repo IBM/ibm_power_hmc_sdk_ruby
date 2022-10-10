@@ -159,12 +159,11 @@ module IbmPowerHmc
     end
 
     def collection_of(name, type)
-      objtype = Module.const_get("IbmPowerHmc::#{type}")
       xml.get_elements([name, type].compact.join("/")).map do |elem|
-        objtype.new(elem)
-      end
-    rescue
-      []
+        Module.const_get("IbmPowerHmc::#{elem.name}").new(elem)
+      rescue NameError
+        nil
+      end.compact
     end
   end
 
