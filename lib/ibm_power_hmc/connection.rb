@@ -183,8 +183,9 @@ module IbmPowerHmc
     # @param lpar_uuid [String] The UUID of the logical partition.
     # @param new_name [String] The new name of the logical partition.
     def rename_lpar(lpar_uuid, new_name)
-      method_url = "/rest/api/uom/LogicalPartition/#{lpar_uuid}"
-      modify_object_attributes(method_url, {:name => new_name})
+      modify_object do
+        lpar(lpar_uuid).tap { |lpar| lpar.name = new_name }
+      end
     end
 
     ##
@@ -637,14 +638,18 @@ module IbmPowerHmc
     end
 
     ##
-    # @!method template(template_uuid, changes)
-    # modify_object_attributes wrapper for templates.
+    # @!method template_modify(template_uuid, changes)
+    # Modify a template.
     # @param template_uuid [String] UUID of the partition template to modify.
     # @param changes [Hash] Hash of changes to make.
-    # @return [IbmPowerHmc::PartitionTemplate] The partition template.
     def template_modify(template_uuid, changes)
-      method_url = "/rest/api/templates/PartitionTemplate/#{template_uuid}"
-      modify_object_attributes(method_url, changes)
+      modify_object do
+        template(template_uuid).tap do |obj|
+          changes.each do |key, value|
+            obj.send("#{key}=", value)
+          end
+        end
+      end
     end
 
     ##
@@ -902,26 +907,20 @@ module IbmPowerHmc
       end
     end
 
-    private
-
-    # @!method modify_object(method_url, headers = {}, attempts = 5)
-    # Modify an object at a specified URI.
-    # @param method_url [String] The URL of the object to modify.
+    # @!method modify_object(headers = {}, attempts = 5)
+    # Post an IbmPowerHmc::AbstractRest object iteratively using ETag.
     # @param headers [Hash] HTTP headers.
     # @param attempts [Integer] Maximum number of retries.
-    # @yield [obj] The object to modify.
-    # @yieldparam obj [IbmPowerHmc::AbstractRest] The object to modify.
-    def modify_object(method_url, headers = {}, attempts = 5)
+    # @yieldreturn [IbmPowerHmc::AbstractRest] The object to modify.
+    def modify_object(headers = {}, attempts = 5)
       while attempts > 0
-        response = request(:get, method_url)
-        obj = Parser.new(response.body).object
-
-        yield obj
+        obj = yield
+        raise "object has no href" if !obj.kind_of?(AbstractRest) || obj.href.nil?
 
         # Use ETag to ensure object has not changed.
         headers = headers.merge("If-Match" => obj.etag, :content_type => obj.content_type)
         begin
-          request(:post, method_url, headers, obj.xml.to_s)
+          request(:post, obj.href.path, headers, obj.xml.to_s)
           break
         rescue HttpError => e
           attempts -= 1
@@ -931,20 +930,7 @@ module IbmPowerHmc
       end
     end
 
-    # @!method modify_object_attributes(method_url, changes, headers = {}, attempts = 5)
-    # Modify an object at a specified URI.
-    # @param method_url [String] The URL of the object to modify.
-    # @param changes [Hash] Hash of changes to make. Key is the attribute modify/create
-    #   (as defined in the AbstractNonRest subclass). A value of nil removes the attribute.
-    # @param headers [Hash] HTTP headers.
-    # @param attempts [Integer] Maximum number of retries.
-    def modify_object_attributes(method_url, changes, headers = {}, attempts = 5)
-      modify_object(method_url, headers, attempts) do |obj|
-        changes.each do |key, value|
-          obj.send("#{key}=", value)
-        end
-      end
-    end
+    private
 
     ##
     # @!method network_adapter(vm_type, lpar_uuid, netadap_uuid)
