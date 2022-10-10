@@ -159,12 +159,11 @@ module IbmPowerHmc
     end
 
     def collection_of(name, type)
-      objtype = Module.const_get("IbmPowerHmc::#{type}")
       xml.get_elements([name, type].compact.join("/")).map do |elem|
-        objtype.new(elem)
-      end
-    rescue
-      []
+        Module.const_get("IbmPowerHmc::#{elem.name}").new(elem)
+      rescue NameError
+        nil
+      end.compact
     end
   end
 
@@ -221,11 +220,23 @@ module IbmPowerHmc
     ATTRS = {
       :name => "ManagementConsoleName",
       :build_level => "VersionInfo/BuildLevel",
+      :maint_level => "VersionInfo/Maintenance",
+      :sp_name => "VersionInfo/ServicePackName",
       :version => "BaseVersion",
       :ssh_pubkey => "PublicSSHKeyValue",
       :uvmid => "UVMID",
       :tz => "CurrentTimezone",
-      :uptime => "ManagementConsoleUpTime"
+      :uptime => "ManagementConsoleUpTime",
+      :uom_version => "UserObjectModelVersion/MinorVersion",
+      :uom_schema => "UserObjectModelVersion/SchemaNamespace",
+      :templates_version => "TemplateObjectModelVersion/MinorVersion",
+      :templates_schema => "TemplateObjectModelVersion/SchemaNamespace",
+      :web_version => "WebObjectModelVersion/MinorVersion",
+      :web_schema => "WebObjectModelVersion/SchemaNamespace",
+      :session_timeout => "SessionTimeout",
+      :web_access => "RemoteWebAccess",
+      :ssh_access => "RemoteCommandAccess",
+      :vterm_access => "RemoteVirtualTerminalAccess"
     }.freeze
 
     def time
@@ -320,6 +331,10 @@ module IbmPowerHmc
     }.freeze
   end
 
+  class HostChannelAdapter < IOAdapter; end
+  class PhysicalFibreChannelAdapter < IOAdapter; end
+  class SRIOVAdapter < IOAdapter; end
+
   # Common class for LPAR and VIOS
   class BasePartition < AbstractRest
     ATTRS = {
@@ -359,6 +374,10 @@ module IbmPowerHmc
 
     def sriov_elp_uuids
       uuids_from_links("SRIOVEthernetLogicalPorts")
+    end
+
+    def io_adapters
+      collection_of("PartitionIOConfiguration/ProfileIOSlots/ProfileIOSlot/AssociatedIOSlot/RelatedIOAdapter", "*[1]")
     end
   end
 
@@ -927,6 +946,7 @@ module IbmPowerHmc
       :name         => "partitionTemplateName",
       :description  => "description",
       :lpar_name    => "logicalPartitionConfig/partitionName",
+      :lpar_type    => "logicalPartitionConfig/partitionType",
       :lpar_id      => "logicalPartitionConfig/partitionId",
       :os           => "logicalPartitionConfig/osVersion",
       :memory       => "logicalPartitionConfig/memoryConfiguration/currMemory",
