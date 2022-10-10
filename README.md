@@ -45,7 +45,7 @@ puts hmc.version
 Retrieving managed systems that are powered on:
 
 ```ruby
-hc.managed_systems("State" => "operating")
+hc.managed_systems("State==operating")
 ```
 
 Listing the logical partitions and virtual I/O servers of each managed system:
