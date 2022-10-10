@@ -643,7 +643,10 @@ module IbmPowerHmc
     # @param template_uuid [String] UUID of the partition template to modify.
     # @param changes [Hash] Hash of changes to make.
     def template_modify(template_uuid, changes)
-      modify_object do
+      method_url = "/rest/api/templates/PartitionTemplate/#{template_uuid}"
+
+      # Templates have no href so need to use modify_object_url.
+      modify_object_url(method_url) do
         template(template_uuid).tap do |obj|
           changes.each do |key, value|
             obj.send("#{key}=", value)
@@ -912,15 +915,21 @@ module IbmPowerHmc
     # @param headers [Hash] HTTP headers.
     # @param attempts [Integer] Maximum number of retries.
     # @yieldreturn [IbmPowerHmc::AbstractRest] The object to modify.
-    def modify_object(headers = {}, attempts = 5)
+    def modify_object(headers = {}, attempts = 5, &block)
+      modify_object_url(nil, headers, attempts, &block)
+    end
+
+    private
+
+    def modify_object_url(method_url = nil, headers = {}, attempts = 5)
       while attempts > 0
         obj = yield
-        raise "object has no href" if !obj.kind_of?(AbstractRest) || obj.href.nil?
+        raise "object has no href" if method_url.nil? && (!obj.kind_of?(AbstractRest) || obj.href.nil?)
 
         # Use ETag to ensure object has not changed.
         headers = headers.merge("If-Match" => obj.etag, :content_type => obj.content_type)
         begin
-          request(:post, obj.href.path, headers, obj.xml.to_s)
+          request(:post, method_url.nil? ? obj.href.path : method_url, headers, obj.xml.to_s)
           break
         rescue HttpError => e
           attempts -= 1
@@ -929,8 +938,6 @@ module IbmPowerHmc
         end
       end
     end
-
-    private
 
     ##
     # @!method network_adapter(vm_type, lpar_uuid, netadap_uuid)
