@@ -379,6 +379,11 @@ module IbmPowerHmc
     def io_adapters
       collection_of("PartitionIOConfiguration/ProfileIOSlots/ProfileIOSlot/AssociatedIOSlot/RelatedIOAdapter", "*[1]")
     end
+
+    def shared_processor_pool_uuid
+      href = singleton("ProcessorPool", "href")
+      uuid_from_href(href) unless href.nil?
+    end
   end
 
   # Logical Partition information
@@ -932,6 +937,10 @@ module IbmPowerHmc
 
     def lpar_uuids
       uuids_from_links("AssignedPartitions")
+    end
+
+    def sys_uuid
+      uuid_from_href(href, -3)
     end
   end
 
