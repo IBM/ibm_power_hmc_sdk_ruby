@@ -162,9 +162,23 @@ module IbmPowerHmc
         method_url = "/rest/api/uom/ManagedSystem/#{sys_uuid}/LogicalPartition/#{lpar_uuid}"
       end
       method_url += "?group=#{group_name}" unless group_name.nil?
-
       response = request(:get, method_url)
       Parser.new(response.body).object(:LogicalPartition)
+    end
+
+    ##
+    # @!method lpars_quick(sys_uuid = nil)
+    # Retrieve the list of logical partitions managed by the HMC (using Quick API).
+    # @param sys_uuid [String] The UUID of the managed system.
+    # @return [Array<Hash>] The list of logical partitions.
+    def lpars_quick(sys_uuid = nil)
+      if sys_uuid.nil?
+        method_url = "/rest/api/uom/LogicalPartition/quick/All"
+      else
+        method_url = "/rest/api/uom/ManagedSystem/#{sys_uuid}/LogicalPartition/quick/All"
+      end
+      response = request(:get, method_url)
+      JSON.parse(response.body)
     end
 
     ##
@@ -271,8 +285,9 @@ module IbmPowerHmc
     end
 
     ##
-    # @!method vioses_quick
+    # @!method vioses_quick(sys_uuid = nil)
     # Retrieve the list of virtual I/O servers managed by the HMC (using Quick API).
+    # @param sys_uuid [String] The UUID of the managed system.
     # @return [Array<Hash>] The list of virtual I/O servers.
     def vioses_quick(sys_uuid = nil)
       if sys_uuid.nil?
