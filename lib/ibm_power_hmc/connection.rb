@@ -80,15 +80,30 @@ module IbmPowerHmc
     end
 
     ##
-    # @!method managed_systems(search = nil)
+    # @!method managed_systems(search = nil, group_name = nil)
     # Retrieve the list of systems managed by the HMC.
     # @param search [String] The optional search criteria.
+    # @param group_name [String] The extended group attributes.
     # @return [Array<IbmPowerHmc::ManagedSystem>] The list of managed systems.
-    def managed_systems(search = nil)
+    def managed_systems(search = nil, group_name = nil)
       method_url = "/rest/api/uom/ManagedSystem"
       method_url += "/search/(#{ERB::Util.url_encode(search)})" unless search.nil?
+      method_url += "?group=#{group_name}" unless group_name.nil?
       response = request(:get, method_url)
       FeedParser.new(response.body).objects(:ManagedSystem)
+    end
+
+    ##
+    # @!method managed_system(sys_uuid = nil, group_name = nil)
+    # Retrieve information about a managed system.
+    # @param sys_uuid [String] The UUID of the managed system.
+    # @param group_name [String] The extended group attributes.
+    # @return [IbmPowerHmc::ManagedSystem] The managed system.
+    def managed_system(sys_uuid, group_name = nil)
+      method_url = "/rest/api/uom/ManagedSystem/#{sys_uuid}"
+      method_url += "?group=#{group_name}" unless group_name.nil?
+      response = request(:get, method_url)
+      Parser.new(response.body).object(:ManagedSystem)
     end
 
     ##
@@ -115,32 +130,20 @@ module IbmPowerHmc
     end
 
     ##
-    # @!method managed_system(lpar_uuid, sys_uuid = nil, group_name = nil)
-    # Retrieve information about a managed system.
-    # @param sys_uuid [String] The UUID of the managed system.
-    # @param group_name [String] The extended group attributes.
-    # @return [IbmPowerHmc::ManagedSystem] The managed system.
-    def managed_system(sys_uuid, group_name = nil)
-      method_url = "/rest/api/uom/ManagedSystem/#{sys_uuid}"
-      method_url += "?group=#{group_name}" unless group_name.nil?
-
-      response = request(:get, method_url)
-      Parser.new(response.body).object(:ManagedSystem)
-    end
-
-    ##
-    # @!method lpars(sys_uuid = nil, search = nil)
+    # @!method lpars(sys_uuid = nil, search = nil, group_name = nil)
     # Retrieve the list of logical partitions managed by the HMC.
     # @param sys_uuid [String] The UUID of the managed system.
     # @param search [String] The optional search criteria.
+    # @param group_name [String] The extended group attributes.
     # @return [Array<IbmPowerHmc::LogicalPartition>] The list of logical partitions.
-    def lpars(sys_uuid = nil, search = nil)
+    def lpars(sys_uuid = nil, search = nil, group_name = nil)
       if sys_uuid.nil?
         method_url = "/rest/api/uom/LogicalPartition"
         method_url += "/search/(#{ERB::Util.url_encode(search)})" unless search.nil?
       else
         method_url = "/rest/api/uom/ManagedSystem/#{sys_uuid}/LogicalPartition"
       end
+      method_url += "?group=#{group_name}" unless group_name.nil?
       response = request(:get, method_url)
       FeedParser.new(response.body).objects(:LogicalPartition)
     end
@@ -226,20 +229,25 @@ module IbmPowerHmc
     end
 
     ##
-    # @!method vioses(sys_uuid = nil, search = nil, permissive = true)
+    # @!method vioses(sys_uuid = nil, search = nil, group_name = nil, permissive = true)
     # Retrieve the list of virtual I/O servers managed by the HMC.
     # @param sys_uuid [String] The UUID of the managed system.
     # @param search [String] The optional search criteria.
+    # @param group_name [String] The extended group attributes.
     # @param permissive [Boolean] Skip virtual I/O servers that have error conditions.
     # @return [Array<IbmPowerHmc::VirtualIOServer>] The list of virtual I/O servers.
-    def vioses(sys_uuid = nil, search = nil, permissive = true)
+    def vioses(sys_uuid = nil, search = nil, group_name = nil, permissive = true)
       if sys_uuid.nil?
         method_url = "/rest/api/uom/VirtualIOServer"
         method_url += "/search/(#{ERB::Util.url_encode(search)})" unless search.nil?
       else
         method_url = "/rest/api/uom/ManagedSystem/#{sys_uuid}/VirtualIOServer"
       end
-      method_url += "?ignoreError=true" if permissive
+      query = {}
+      query["ignoreError"] = "true" if permissive
+      query["group"] = group_name unless group_name.nil?
+      method_url += "?" + query.map { |h| h.join("=") }.join("&") unless query.empty?
+
       response = request(:get, method_url)
       FeedParser.new(response.body).objects(:VirtualIOServer)
     end
@@ -258,7 +266,6 @@ module IbmPowerHmc
         method_url = "/rest/api/uom/ManagedSystem/#{sys_uuid}/VirtualIOServer/#{vios_uuid}"
       end
       method_url += "?group=#{group_name}" unless group_name.nil?
-
       response = request(:get, method_url)
       Parser.new(response.body).object(:VirtualIOServer)
     end
