@@ -264,6 +264,20 @@ module IbmPowerHmc
     end
 
     ##
+    # @!method vioses_quick
+    # Retrieve the list of virtual I/O servers managed by the HMC (using Quick API).
+    # @return [Array<Hash>] The list of virtual I/O servers.
+    def vioses_quick(sys_uuid = nil)
+      if sys_uuid.nil?
+        method_url = "/rest/api/uom/VirtualIOServer/quick/All"
+      else
+        method_url = "/rest/api/uom/ManagedSystem/#{sys_uuid}/VirtualIOServer/quick/All"
+      end
+      response = request(:get, method_url)
+      JSON.parse(response.body)
+    end
+
+    ##
     # @!method groups
     # Retrieve the list of groups defined on the HMC.
     # A logical partition, a virtual I/O server or a managed system can be
