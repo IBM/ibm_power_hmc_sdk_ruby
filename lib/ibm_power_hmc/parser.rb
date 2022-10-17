@@ -419,6 +419,14 @@ module IbmPowerHmc
     def vfc_mappings
       collection_of("VirtualFibreChannelMappings", "VirtualFibreChannelMapping")
     end
+
+    def seas
+      collection_of("SharedEthernetAdapters", "SharedEthernetAdapter")
+    end
+
+    def trunks
+      collection_of("TrunkAdapters", "TrunkAdapter")
+    end
   end
 
   # Group information
@@ -440,6 +448,53 @@ module IbmPowerHmc
     def vios_uuids
       uuids_from_links("AssociatedVirtualIOServers")
     end
+  end
+
+  # SEA information
+  class SharedEthernetAdapter < AbstractNonRest
+    ATTRS = {
+      :udid => "UniqueDeviceID",
+      :name => "DeviceName",
+      :state => "ConfigurationState",
+      :large_send => "LargeSend",
+      :vlan_id => "PortVLANID",
+      :ha_mode => "HighAvailabilityMode",
+      :qos_mode => "QualityOfServiceMode",
+      :jumbo => "JumboFramesEnabled",
+      :queue_size => "QueueSize",
+      :primary => "IsPrimary"
+    }.freeze
+
+    def iface
+      elem = xml.elements["IPInterface"]
+      IPInterface.new(elem) unless elem.nil?
+    end
+
+    def device
+      elem = xml.elements["BackingDeviceChoice/*[1]"]
+      begin
+        Module.const_get("IbmPowerHmc::#{elem.name}").new(elem) unless elem.nil?
+      rescue NameError
+        nil
+      end
+    end
+
+    def trunks
+      collection_of("TrunkAdapters", "TrunkAdapter")
+    end
+  end
+
+  # IP Interface information
+  class IPInterface < AbstractNonRest
+    ATTRS = {
+      :name     => "InterfaceName",
+      :state    => "State",
+      :hostname => "HostName",
+      :ip       => "IPAddress",
+      :netmask  => "SubnetMask",
+      :gateway  => "Gateway",
+      :prefix   => "IPV6Prefix",
+    }.freeze
   end
 
   # Empty parent class to match K2 schema definition
@@ -552,6 +607,7 @@ module IbmPowerHmc
   # Virtual Ethernet Adapter information
   class VirtualEthernetAdapter < VirtualIOAdapter
     ATTRS = ATTRS.merge({
+      :name       => "DeviceName",
       :macaddr    => "MACAddress",
       :vswitch_id => "VirtualSwitchID",
       :vlan_id    => "PortVLANID",
@@ -570,9 +626,17 @@ module IbmPowerHmc
     end
   end
 
-  # LP-HEA information
-  class EthernetBackingDevice < IOAdapter; end
+  # Trunk Adapter information
+  class TrunkAdapter < VirtualEthernetAdapter; end
 
+  class EthernetBackingDevice < IOAdapter
+    def iface
+      elem = xml.elements["IPInterface"]
+      IPInterface.new(elem) unless elem.nil?
+    end
+  end
+
+  # LP-HEA information
   class HostEthernetAdapterLogicalPort < EthernetBackingDevice
     ATTRS = ATTRS.merge({
       :macaddr  => "MACAddress",
