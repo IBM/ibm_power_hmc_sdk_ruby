@@ -94,7 +94,7 @@ module IbmPowerHmc
     end
 
     ##
-    # @!method managed_system(sys_uuid = nil, group_name = nil)
+    # @!method managed_system(sys_uuid, group_name = nil)
     # Retrieve information about a managed system.
     # @param sys_uuid [String] The UUID of the managed system.
     # @param group_name [String] The extended group attributes.
