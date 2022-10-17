@@ -195,17 +195,6 @@ module IbmPowerHmc
     end
 
     ##
-    # @!method rename_lpar(lpar_uuid, new_name)
-    # Rename a logical partition.
-    # @param lpar_uuid [String] The UUID of the logical partition.
-    # @param new_name [String] The new name of the logical partition.
-    def rename_lpar(lpar_uuid, new_name)
-      modify_object do
-        lpar(lpar_uuid).tap { |lpar| lpar.name = new_name }
-      end
-    end
-
-    ##
     # @!method lpar_migrate_validate(lpar_uuid, target_sys_name, sync = true)
     # Validate if a logical partition can be migrated to another managed system.
     # @raise [IbmPowerHmc::JobFailed] if validation fails
@@ -528,7 +517,7 @@ module IbmPowerHmc
     # @!method shared_processor_pool(sys_uuid, pool_uuid = nil)
     # Retrieve information about Shared Processor Pools.
     # @param sys_uuid [String] The UUID of the managed system.
-    # @param pool_uuid [String] The UUID of the shared storage pool (return all pools if omitted)
+    # @param pool_uuid [String] The UUID of the shared processor pool (return all pools if omitted)
     # @return [Array<IbmPowerHmc::SharedProcessorPool>, IbmPowerHmc::SharedProcessorPool] The list of shared processor pools.
     def shared_processor_pool(sys_uuid, pool_uuid = nil)
       if pool_uuid.nil?
