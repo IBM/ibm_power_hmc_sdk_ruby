@@ -423,6 +423,10 @@ module IbmPowerHmc
     def seas
       collection_of("SharedEthernetAdapters", "SharedEthernetAdapter")
     end
+
+    def trunks
+      collection_of("TrunkAdapters", "TrunkAdapter")
+    end
   end
 
   # Group information
