@@ -158,6 +158,10 @@ module IbmPowerHmc
       end.compact
     end
 
+    def timestamp(xpath)
+      Time.at(0, singleton(xpath).to_i, :millisecond).utc
+    end
+
     def collection_of(name, type)
       xml.get_elements([name, type].compact.join("/")).map do |elem|
         Module.const_get("IbmPowerHmc::#{elem.name}").new(elem)
@@ -240,7 +244,7 @@ module IbmPowerHmc
     }.freeze
 
     def time
-      Time.at(0, singleton("ManagementConsoleTime").to_i, :millisecond).utc
+      timestamp("ManagementConsoleTime")
     end
 
     def managed_systems_uuids
@@ -283,7 +287,7 @@ module IbmPowerHmc
     end
 
     def time
-      Time.at(0, singleton("SystemTime").to_i, :millisecond).utc
+      timestamp("SystemTime")
     end
 
     def capabilities
@@ -1221,19 +1225,19 @@ module IbmPowerHmc
     end
 
     def time
-      Time.at(0, singleton("primaryTimestamp").to_i, :millisecond).utc
+      timestamp("primaryTimestamp")
     end
 
     def created_time
-      Time.at(0, singleton("createdTimestamp").to_i, :millisecond).utc
+      timestamp("createdTimestamp")
     end
 
     def first_reported_time
-      Time.at(0, singleton("firstReportedTimestamp").to_i, :millisecond).utc
+      timestamp("firstReportedTimestamp")
     end
 
     def last_reported_time
-      Time.at(0, singleton("lastReportedTimestamp").to_i, :millisecond).utc
+      timestamp("lastReportedTimestamp")
     end
 
     def frus
