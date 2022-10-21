@@ -1195,7 +1195,7 @@ module IbmPowerHmc
       :hostname => "reportingConsoleNode/hostName",
       :number => "problemNumber",
       :hw_record => "problemManagementHardwareRecord",
-      :short_desc => "shortDescription",
+      :description => "shortDescription",
       :state => "problemState",
       :approval_state => "ApprovalState",
       :refcode => "referenceCode",
