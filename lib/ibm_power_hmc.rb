@@ -11,4 +11,5 @@ module IbmPowerHmc
   require_relative "./ibm_power_hmc/job"
   require_relative "./ibm_power_hmc/connection"
   require_relative "./ibm_power_hmc/pcm"
+  require_relative "./ibm_power_hmc/sem"
 end

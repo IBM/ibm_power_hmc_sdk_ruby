@@ -352,6 +352,7 @@ module IbmPowerHmc
       :procs => "PartitionProcessorConfiguration/CurrentDedicatedProcessorConfiguration/CurrentProcessors",
       :proc_units => "PartitionProcessorConfiguration/CurrentSharedProcessorConfiguration/CurrentProcessingUnits",
       :vprocs => "PartitionProcessorConfiguration/CurrentSharedProcessorConfiguration/AllocatedVirtualProcessors",
+      :cpu_compat_mode => "CurrentProcessorCompatibilityMode",
       :description => "Description"
     }.freeze
 
@@ -1180,6 +1181,95 @@ module IbmPowerHmc
       :short_term_monitor => "ShortTermMonitorEnabled",
       :compute_ltm        => "ComputeLTMEnabled",
       :energy_monitor     => "EnergyMonitorEnabled"
+    }.freeze
+  end
+
+  # Serviceable Event
+  class ServiceableEvent < AbstractRest
+    ATTRS = {
+      :prob_uuid => "problemUuid",
+      :hostname => "reportingConsoleNode/hostName",
+      :number => "problemNumber",
+      :hw_record => "problemManagementHardwareRecord",
+      :short_desc => "shortDescription",
+      :state => "problemState",
+      :approval_state => "ApprovalState",
+      :refcode => "referenceCode",
+      :refcode_ext => "referenceCodeExtension",
+      :refcode_sys => "systemReferenceCode",
+      :call_home => "callHomeEnabled",
+      :dup_count => "duplicateCount",
+      :severity => "eventSeverity",
+      :notif_type => "notificationType",
+      :notif_status => "notificationStatus",
+      :post_action => "postAction",
+      :symptom => "symptomString",
+      :lpar_id => "partitionId",
+      :lpar_name => "partitionName",
+      :lpar_hostname => "partitionHostName",
+      :lpar_ostype => "partitionOSType",
+      :syslog_id => "sysLogId",
+      :total_events => "totalEvents"
+    }.freeze
+
+    def reporting_mtms
+      mtms("reportingManagedSystemNode")
+    end
+
+    def failing_mtms
+      mtms("failingManagedSystemNode")
+    end
+
+    def time
+      Time.at(0, singleton("primaryTimestamp").to_i, :millisecond).utc
+    end
+
+    def created_time
+      Time.at(0, singleton("createdTimestamp").to_i, :millisecond).utc
+    end
+
+    def first_reported_time
+      Time.at(0, singleton("firstReportedTimestamp").to_i, :millisecond).utc
+    end
+
+    def last_reported_time
+      Time.at(0, singleton("lastReportedTimestamp").to_i, :millisecond).utc
+    end
+
+    def frus
+      collection_of("fieldReplaceableUnits", "FieldReplaceableUnit")
+    end
+
+    def ext_files
+      collection_of("extendedErrorData", "ExtendedFileData")
+    end
+
+    private
+
+    def mtms(prefix)
+      machtype = singleton("#{prefix}/managedTypeModelSerial/MachineType")
+      model = singleton("#{prefix}/managedTypeModelSerial/Model")
+      serial = singleton("#{prefix}/managedTypeModelSerial/SerialNumber")
+      "#{machtype}-#{model}*#{serial}"
+    end
+  end
+
+  class FieldReplaceableUnit < AbstractNonRest
+    ATTRS = {
+      :part_number => "partNumber",
+      :fru_class => "class",
+      :description => "fieldReplaceableUnitDescription",
+      :location => "locationCode",
+      :serial => "SerialNumber",
+      :ccin => "ccin"
+    }.freeze
+  end
+
+  class ExtendedFileData < AbstractNonRest
+    ATTRS = {
+      :filename    => "fileName",
+      :description => "description",
+      :zipfilename => "zipFileName"
     }.freeze
   end
 end
