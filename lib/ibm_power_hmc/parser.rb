@@ -159,6 +159,7 @@ module IbmPowerHmc
     end
 
     def timestamp(xpath)
+      # XML element containing a number of milliseconds since the Epoch.
       Time.at(0, singleton(xpath).to_i, :millisecond).utc
     end
 
