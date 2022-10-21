@@ -70,7 +70,13 @@ Shutting down a logical partition:
 hc.poweroff_lpar(lpar_uuid, { "operation" => "shutdown" })
 ```
 
-Processing events:
+Listing serviceable events:
+
+```ruby
+puts hc.serviceable_events
+```
+
+Processing HMC events:
 
 ```ruby
 loop do
