@@ -1,11 +1,12 @@
 # frozen_string_literal: true
 
-# Serviceable Events Manager
+##
+# Serviceable Events Manager.
 
 module IbmPowerHmc
   class Connection
     ##
-    # @!method serviceable_events
+    # @!method serviceable_events(status = nil)
     # Retrieve serviceable events from the HMC.
     # @param status [String] Query only events in that state.
     # @return [Array<IbmPowerHmc::ServiceableEvent>] The list of serviceable events.
