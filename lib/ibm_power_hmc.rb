@@ -12,4 +12,6 @@ module IbmPowerHmc
   require_relative "./ibm_power_hmc/connection"
   require_relative "./ibm_power_hmc/pcm"
   require_relative "./ibm_power_hmc/sem"
+  require_relative "./ibm_power_hmc/templates"
+  require_relative "./ibm_power_hmc/uom"
 end
