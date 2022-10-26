@@ -795,7 +795,7 @@ module IbmPowerHmc
     end
   end
 
-  # Shared Processor Pool
+  # Shared Memory Pool
   class SharedMemoryPool < AbstractRest
     ATTRS = {
       :pool_mb => "CurrentPoolMemory",
