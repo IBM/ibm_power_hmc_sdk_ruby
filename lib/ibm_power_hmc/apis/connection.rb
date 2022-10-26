@@ -126,6 +126,8 @@ module IbmPowerHmc
       end
     end
 
+    class HttpNotFound < HttpError; end
+
     ##
     # @!method request(method, url, headers = {}, payload = nil)
     # Perform a REST API request.
@@ -150,6 +152,8 @@ module IbmPowerHmc
           :timeout => @timeout
         )
       rescue RestClient::Exception => e
+        raise HttpNotFound.new(e), "Not found" if e.http_code == 404
+
         # Do not retry on failed logon attempts.
         if e.http_code == 401 && @api_session_token != "" && !reauth
           # Try to reauth.
