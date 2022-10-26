@@ -814,6 +814,14 @@ module IbmPowerHmc
       end
     end
 
+    def lpar_uuids
+      REXML::XPath.match(xml, "PagingDevices/ReservedStorageDevice").map do |dev|
+        if lpar = dev.elements["AssociatedLogicalPartition"]
+          uuid_from_href(lpar.attributes["href"])
+        end
+      end.compact
+    end
+
     def sys_uuid
       uuid_from_href(href, -3)
     end
