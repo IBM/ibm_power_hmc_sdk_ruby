@@ -193,8 +193,8 @@ module IbmPowerHmc
         method_url = "/rest/api/uom/ManagedSystem/#{sys_uuid}/VirtualIOServer"
       end
       query = {}
-      query["ignoreError"] = "true" if permissive
       query["group"] = group_name unless group_name.nil?
+      query["ignoreError"] = "true" if permissive
       method_url += "?" + query.map { |h| h.join("=") }.join("&") unless query.empty?
 
       response = request(:get, method_url)
@@ -413,11 +413,12 @@ module IbmPowerHmc
     end
 
     ##
-    # @!method clusters
+    # @!method clusters(permissive = true)
     # Retrieve the list of clusters managed by the HMC.
+    # @param permissive [Boolean] Ignore errors generated from bad clusters.
     # @return [Array<IbmPowerHmc::Cluster>] The list of clusters.
-    def clusters
-      method_url = "/rest/api/uom/Cluster"
+    def clusters(permissive = true)
+      method_url = "/rest/api/uom/Cluster#{'?ignoreError=true' if permissive}"
       response = request(:get, method_url)
       FeedParser.new(response.body).objects(:Cluster)
     end
@@ -434,11 +435,12 @@ module IbmPowerHmc
     end
 
     ##
-    # @!method ssps
+    # @!method ssps(permissive = true)
     # Retrieve the list of shared storage pools managed by the HMC.
+    # @param permissive [Boolean] Ignore errors generated from bad clusters.
     # @return [Array<IbmPowerHmc::SharedStoragePool>] The list of shared storage pools.
-    def ssps
-      method_url = "/rest/api/uom/SharedStoragePool"
+    def ssps(permissive = true)
+      method_url = "/rest/api/uom/SharedStoragePool#{'?ignoreError=true' if permissive}"
       response = request(:get, method_url)
       FeedParser.new(response.body).objects(:SharedStoragePool)
     end
@@ -455,13 +457,17 @@ module IbmPowerHmc
     end
 
     ##
-    # @!method tiers(group_name = nil)
+    # @!method tiers(group_name = nil, permissive = true)
     # Retrieve the list of tiers that are part of shared storage pools managed by the HMC.
     # @param group_name [String] The extended group attributes.
+    # @param permissive [Boolean] Ignore errors generated from bad clusters.
     # @return [Array<IbmPowerHmc::Tier>] The list of tiers.
-    def tiers(group_name = nil)
+    def tiers(group_name = nil, permissive = true)
       method_url = "/rest/api/uom/Tier"
-      method_url += "?group=#{group_name}" unless group_name.nil?
+      query = {}
+      query["group"] = group_name unless group_name.nil?
+      query["ignoreError"] = "true" if permissive
+      method_url += "?" + query.map { |h| h.join("=") }.join("&") unless query.empty?
       response = request(:get, method_url)
       FeedParser.new(response.body).objects(:Tier)
     end
