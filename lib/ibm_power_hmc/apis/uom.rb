@@ -609,6 +609,21 @@ module IbmPowerHmc
     end
 
     ##
+    # @!method chcomgmt(sys_uuid, status)
+    # Change the co-management settings for a managed system.
+    # @param sys_uuid [String] The UUID of the managed system.
+    # @param status [String] The new co-management status ("rel", "norm", "keep").
+    # @return [IbmPowerHmc::HmcJob] The HMC job.
+    def chcomgmt(sys_uuid, status)
+      operation = status == "rel" ? "ReleaseController" : "RequestController"
+      method_url = "/rest/api/uom/ManagedSystem/#{sys_uuid}/do/#{operation}"
+
+      params = {}
+      params["coManagementControllerStatus"] = status unless status == "rel"
+      HmcJob.new(self, method_url, operation, "ManagedSystem", params).tap(&:run)
+    end
+
+    ##
     # @!method cli_run(hmc_uuid, cmd, sync = true)
     # Run a CLI command on the HMC as a job.
     # @param hmc_uuid [String] The UUID of the management console.
@@ -625,6 +640,23 @@ module IbmPowerHmc
       job = HmcJob.new(self, method_url, "CLIRunner", "ManagementConsole", params)
       job.run if sync
       job
+    end
+
+    ##
+    # @!method grow_lu(cl_uuid, lu_uuid, capacity)
+    # Increase the size of a logical unit in a cluster.
+    # @param cl_uuid [String] The UUID of the cluster.
+    # @param lu_uuid [String] The UUID of the logical unit.
+    # @param capacity [Float] The new logical unit size (in GB).
+    # @return [IbmPowerHmc::HmcJob] The HMC job.
+    def grow_lu(cl_uuid, lu_uuid, capacity)
+      method_url = "/rest/api/uom/Cluster/#{cl_uuid}/do/GrowLogicalUnit"
+
+      params = {
+        "LogicalUnitUDID" => lu_uuid,
+        "Capacity" => capacity
+      }
+      HmcJob.new(self, method_url, "GrowLogicalUnit", "Cluster", params).tap(&:run)
     end
 
     ##
