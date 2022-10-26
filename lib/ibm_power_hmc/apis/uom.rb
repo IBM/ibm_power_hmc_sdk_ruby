@@ -168,6 +168,16 @@ module IbmPowerHmc
     end
 
     ##
+    # @!method lpar_delete(lpar_uuid)
+    # Delete a logical partition.
+    # @param lpar_uuid [String] The UUID of the logical partition to delete.
+    def lpar_delete(lpar_uuid)
+      method_url = "/rest/api/uom/LogicalPartition/#{lpar_uuid}"
+      request(:delete, method_url)
+      # Returns HTTP 204 if ok
+    end
+
+    ##
     # @!method vioses(sys_uuid = nil, search = nil, group_name = nil, permissive = true)
     # Retrieve the list of virtual I/O servers managed by the HMC.
     # @param sys_uuid [String] The UUID of the managed system.
