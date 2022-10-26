@@ -184,7 +184,7 @@ module IbmPowerHmc
         # Use ETag to ensure object has not changed.
         headers = headers.merge("If-Match" => obj.etag, :content_type => obj.content_type)
         begin
-          request(:post, method_url.nil? ? obj.href.path : method_url, headers, obj.xml.to_s)
+          request(:post, method_url.nil? ? obj.href.to_s : method_url, headers, obj.xml.to_s)
           break
         rescue HttpError => e
           attempts -= 1

@@ -193,8 +193,8 @@ module IbmPowerHmc
         method_url = "/rest/api/uom/ManagedSystem/#{sys_uuid}/VirtualIOServer"
       end
       query = {}
-      query["ignoreError"] = "true" if permissive
       query["group"] = group_name unless group_name.nil?
+      query["ignoreError"] = "true" if permissive
       method_url += "?" + query.map { |h| h.join("=") }.join("&") unless query.empty?
 
       response = request(:get, method_url)
@@ -413,11 +413,12 @@ module IbmPowerHmc
     end
 
     ##
-    # @!method clusters
+    # @!method clusters(permissive = true)
     # Retrieve the list of clusters managed by the HMC.
+    # @param permissive [Boolean] Ignore errors generated from bad clusters.
     # @return [Array<IbmPowerHmc::Cluster>] The list of clusters.
-    def clusters
-      method_url = "/rest/api/uom/Cluster"
+    def clusters(permissive = true)
+      method_url = "/rest/api/uom/Cluster#{'?ignoreError=true' if permissive}"
       response = request(:get, method_url)
       FeedParser.new(response.body).objects(:Cluster)
     end
@@ -434,11 +435,12 @@ module IbmPowerHmc
     end
 
     ##
-    # @!method ssps
+    # @!method ssps(permissive = true)
     # Retrieve the list of shared storage pools managed by the HMC.
+    # @param permissive [Boolean] Ignore errors generated from bad clusters.
     # @return [Array<IbmPowerHmc::SharedStoragePool>] The list of shared storage pools.
-    def ssps
-      method_url = "/rest/api/uom/SharedStoragePool"
+    def ssps(permissive = true)
+      method_url = "/rest/api/uom/SharedStoragePool#{'?ignoreError=true' if permissive}"
       response = request(:get, method_url)
       FeedParser.new(response.body).objects(:SharedStoragePool)
     end
@@ -455,13 +457,17 @@ module IbmPowerHmc
     end
 
     ##
-    # @!method tiers(group_name = nil)
+    # @!method tiers(group_name = nil, permissive = true)
     # Retrieve the list of tiers that are part of shared storage pools managed by the HMC.
     # @param group_name [String] The extended group attributes.
+    # @param permissive [Boolean] Ignore errors generated from bad clusters.
     # @return [Array<IbmPowerHmc::Tier>] The list of tiers.
-    def tiers(group_name = nil)
+    def tiers(group_name = nil, permissive = true)
       method_url = "/rest/api/uom/Tier"
-      method_url += "?group=#{group_name}" unless group_name.nil?
+      query = {}
+      query["group"] = group_name unless group_name.nil?
+      query["ignoreError"] = "true" if permissive
+      method_url += "?" + query.map { |h| h.join("=") }.join("&") unless query.empty?
       response = request(:get, method_url)
       FeedParser.new(response.body).objects(:Tier)
     end
@@ -603,6 +609,21 @@ module IbmPowerHmc
     end
 
     ##
+    # @!method chcomgmt(sys_uuid, status)
+    # Change the co-management settings for a managed system.
+    # @param sys_uuid [String] The UUID of the managed system.
+    # @param status [String] The new co-management status ("rel", "norm", "keep").
+    # @return [IbmPowerHmc::HmcJob] The HMC job.
+    def chcomgmt(sys_uuid, status)
+      operation = status == "rel" ? "ReleaseController" : "RequestController"
+      method_url = "/rest/api/uom/ManagedSystem/#{sys_uuid}/do/#{operation}"
+
+      params = {}
+      params["coManagementControllerStatus"] = status unless status == "rel"
+      HmcJob.new(self, method_url, operation, "ManagedSystem", params).tap(&:run)
+    end
+
+    ##
     # @!method cli_run(hmc_uuid, cmd, sync = true)
     # Run a CLI command on the HMC as a job.
     # @param hmc_uuid [String] The UUID of the management console.
@@ -619,6 +640,23 @@ module IbmPowerHmc
       job = HmcJob.new(self, method_url, "CLIRunner", "ManagementConsole", params)
       job.run if sync
       job
+    end
+
+    ##
+    # @!method grow_lu(cl_uuid, lu_uuid, capacity)
+    # Increase the size of a logical unit in a cluster.
+    # @param cl_uuid [String] The UUID of the cluster.
+    # @param lu_uuid [String] The UUID of the logical unit.
+    # @param capacity [Float] The new logical unit size (in GB).
+    # @return [IbmPowerHmc::HmcJob] The HMC job.
+    def grow_lu(cl_uuid, lu_uuid, capacity)
+      method_url = "/rest/api/uom/Cluster/#{cl_uuid}/do/GrowLogicalUnit"
+
+      params = {
+        "LogicalUnitUDID" => lu_uuid,
+        "Capacity" => capacity
+      }
+      HmcJob.new(self, method_url, "GrowLogicalUnit", "Cluster", params).tap(&:run)
     end
 
     ##
