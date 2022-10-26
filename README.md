@@ -70,6 +70,14 @@ Shutting down a logical partition:
 hc.poweroff_lpar(lpar_uuid, { "operation" => "shutdown" })
 ```
 
+Setting the memory of a logical partition to 32GB:
+
+```ruby
+hc.modify_object do
+  hc.lpar(lpar_uuid).tap { |lpar| lpar.desired_memory = 32_768 }
+end
+```
+
 Listing serviceable events:
 
 ```ruby
