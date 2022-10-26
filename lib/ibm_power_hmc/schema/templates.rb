@@ -20,6 +20,7 @@ module IbmPowerHmc
       :sharing_mode => "logicalPartitionConfig/processorConfiguration/sharingMode",
       :vprocs       => "logicalPartitionConfig/processorConfiguration/sharedProcessorConfiguration/desiredVirtualProcessors",
       :proc_units   => "logicalPartitionConfig/processorConfiguration/sharedProcessorConfiguration/desiredProcessingUnits",
+      :pool_id      => "logicalPartitionConfig/processorConfiguration/sharedProcessorConfiguration/sharedProcessorPoolId",
       :procs        => "logicalPartitionConfig/processorConfiguration/dedicatedProcessorConfiguration/desiredProcessors"
     }.freeze
 
