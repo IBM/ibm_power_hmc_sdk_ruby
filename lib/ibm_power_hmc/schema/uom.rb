@@ -819,7 +819,7 @@ module IbmPowerHmc
 
     def paging_vios_uuids
       ["PagingServicePartitionOne", "PagingServicePartitionTwo"].map do |attr|
-        if vios_href = singleton(attr, "href")
+        if (vios_href = singleton(attr, "href"))
           uuid_from_href(vios_href)
         end
       end
@@ -827,7 +827,7 @@ module IbmPowerHmc
 
     def lpar_uuids
       REXML::XPath.match(xml, "PagingDevices/ReservedStorageDevice").map do |dev|
-        if lpar = dev.elements["AssociatedLogicalPartition"]
+        if (lpar = dev.elements["AssociatedLogicalPartition"])
           uuid_from_href(lpar.attributes["href"])
         end
       end.compact
