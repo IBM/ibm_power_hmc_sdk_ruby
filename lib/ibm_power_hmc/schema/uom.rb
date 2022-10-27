@@ -806,6 +806,38 @@ module IbmPowerHmc
     end
   end
 
+  # Shared Memory Pool
+  class SharedMemoryPool < AbstractRest
+    ATTRS = {
+      :pool_mb => "CurrentPoolMemory",
+      :available_mb => "CurrentAvailablePoolMemory",
+      :max_mb => "CurrentMaximumPoolMemory",
+      :sys_mb =>"SystemFirmwarePoolMemory",
+      :pool_id => "PoolID",
+      :dedup => "MemoryDeduplicationEnabled"
+    }.freeze
+
+    def paging_vios_uuids
+      ["PagingServicePartitionOne", "PagingServicePartitionTwo"].map do |attr|
+        if vios_href = singleton(attr, "href")
+          uuid_from_href(vios_href)
+        end
+      end
+    end
+
+    def lpar_uuids
+      REXML::XPath.match(xml, "PagingDevices/ReservedStorageDevice").map do |dev|
+        if lpar = dev.elements["AssociatedLogicalPartition"]
+          uuid_from_href(lpar.attributes["href"])
+        end
+      end.compact
+    end
+
+    def sys_uuid
+      uuid_from_href(href, -3)
+    end
+  end
+
   # HMC Event
   class Event < AbstractRest
     attr_accessor :usertask

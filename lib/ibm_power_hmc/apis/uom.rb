@@ -510,6 +510,24 @@ module IbmPowerHmc
     end
 
     ##
+    # @!method shared_memory_pool(sys_uuid, pool_uuid = nil)
+    # Retrieve information about Shared Memory Pools.
+    # @param sys_uuid [String] The UUID of the managed system.
+    # @param pool_uuid [String] The UUID of the shared memory pool (return all pools if omitted)
+    # @return [Array<IbmPowerHmc::SharedMemoryPool>, IbmPowerHmc::SharedMemoryPool] The list of shared memory pools.
+    def shared_memory_pool(sys_uuid, pool_uuid = nil)
+      if pool_uuid.nil?
+        method_url = "/rest/api/uom/ManagedSystem/#{sys_uuid}/SharedMemoryPool"
+        response = request(:get, method_url)
+        FeedParser.new(response.body).objects(:SharedMemoryPool)
+      else
+        method_url = "/rest/api/uom/ManagedSystem/#{sys_uuid}/SharedMemoryPool/#{pool_uuid}"
+        response = request(:get, method_url)
+        Parser.new(response.body).object(:SharedMemoryPool)
+      end
+    end
+
+    ##
     # @!method poweron_lpar(lpar_uuid, params = {}, sync = true)
     # Power on a logical partition.
     # @param lpar_uuid [String] The UUID of the logical partition.
