@@ -1,3 +1,11 @@
+## v0.20.0
+* Add permissive option (`ignoreError=true`) for cluster APIs
+* Fix `modify_object` method when URI has a query part
+* Add `chcomgmt` method
+* Add `grow_lu` method
+* Add `shared_memory_pool` method
+* Improve schema definitions for CPU and memory
+* Add schema definition for shared memory pool
 ## v0.19.0
 * Major code refactoring
 * Add `serviceable_events` method
