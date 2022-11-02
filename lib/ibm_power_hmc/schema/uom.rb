@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require 'base64'
+
 module IbmPowerHmc
   # HMC information
   class ManagementConsole < AbstractRest
@@ -174,6 +176,12 @@ module IbmPowerHmc
       uuids_from_links("SRIOVEthernetLogicalPorts")
     end
 
+    def capabilities
+      xml.get_elements("PartitionCapabilities/*").map do |elem|
+        elem.name unless elem.text&.strip != "true"
+      end.compact
+    end
+
     def io_adapters
       collection_of("PartitionIOConfiguration/ProfileIOSlots/ProfileIOSlot/AssociatedIOSlot/RelatedIOAdapter", "*[1]")
     end
@@ -201,6 +209,12 @@ module IbmPowerHmc
 
   # VIOS information
   class VirtualIOServer < BasePartition
+    def capabilities
+      xml.get_elements("VirtualIOServerCapabilities/*").map do |elem|
+        elem.name unless elem.text&.strip != "true"
+      end.compact.concat(super)
+    end
+
     def pvs
       collection_of("PhysicalVolumes", "PhysicalVolume")
     end
@@ -307,8 +321,19 @@ module IbmPowerHmc
       :capacity => "VolumeCapacity", # in MiB
       :name => "VolumeName",
       :is_fc => "IsFibreChannelBacked",
+      :is_iscsi => "IsISCSIBacked",
       :udid => "VolumeUniqueID"
     }.freeze
+
+    def label
+      str = singleton("StorageLabel")
+      Base64.decode64(str) unless str.nil?
+    end
+
+    def page83
+      str = singleton("DescriptorPage83")
+      Base64.decode64(str) unless str.nil?
+    end
   end
 
   # Logical Volume information
