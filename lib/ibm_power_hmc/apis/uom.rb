@@ -326,6 +326,37 @@ module IbmPowerHmc
     private :network_adapter
 
     ##
+    # @!method network_adapter_lpar_create(lpar_uuid, **args)
+    # Create a virtual ethernet network adapter attached to a logical partition.
+    # @param lpar_uuid [String] UUID of the logical partition.
+    # @param args [Hash] The network adapter properties.
+    def network_adapter_lpar_create(lpar_uuid, **args)
+      method_url = "/rest/api/uom/LogicalPartition/#{lpar_uuid}/ClientNetworkAdapter"
+      headers = {
+        :content_type => "application/vnd.ibm.powervm.uom+xml; type=ClientNetworkAdapter"
+      }
+      doc = REXML::Document.new("")
+      doc.add_element("ClientNetworkAdapter:ClientNetworkAdapter", "schemaVersion" => "V1_0")
+      doc.root.add_namespace(UOM_XMLNS)
+      doc.root.add_namespace("ClientNetworkAdapter", UOM_XMLNS)
+      doc.root.add_element("RequiredAdapter").text = args[:required] if args.key?(:required)
+      doc.root.add_element("PortVLANID").text = args[:vlan_id]
+      doc.root.add_element("VirtualSwitchID").text = args[:vswitch_id]
+      request(:put, method_url, headers, doc.to_s)
+    end
+
+    ##
+    # @!method network_adapter_lpar_delete(lpar_uuid, netadap_uuid)
+    # Delete a virtual ethernet network adapter attached to a logical partition.
+    # @param lpar_uuid [String] UUID of the logical partition.
+    # @param netadap_uuid [String] UUID of the adapter to delete.
+    def network_adapter_lpar_delete(lpar_uuid, netadap_uuid)
+      method_url = "/rest/api/uom/LogicalPartition/#{lpar_uuid}/ClientNetworkAdapter/#{netadap_uuid}"
+      request(:delete, method_url)
+      # Returns HTTP 204 if ok
+    end
+
+    ##
     # @!method sriov_elp_lpar(lpar_uuid, sriov_elp_uuid = nil)
     # Retrieve one or all SR-IOV ethernet logical ports attached to a logical partition.
     # @param lpar_uuid [String] UUID of the logical partition.
