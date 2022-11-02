@@ -330,6 +330,7 @@ module IbmPowerHmc
     # Create a virtual ethernet network adapter attached to a logical partition.
     # @param lpar_uuid [String] UUID of the logical partition.
     # @param args [Hash] The network adapter properties.
+    # @return [IbmPowerHmc::ClientNetworkAdapter] The created network adapter.
     def network_adapter_lpar_create(lpar_uuid, **args)
       method_url = "/rest/api/uom/LogicalPartition/#{lpar_uuid}/ClientNetworkAdapter"
       headers = {
@@ -340,9 +341,11 @@ module IbmPowerHmc
       doc.root.add_namespace(UOM_XMLNS)
       doc.root.add_namespace("ClientNetworkAdapter", UOM_XMLNS)
       doc.root.add_element("RequiredAdapter").text = args[:required] if args.key?(:required)
+      doc.root.add_element("MACAddress").text = args[:macaddr] if args.key?(:macaddr)
       doc.root.add_element("PortVLANID").text = args[:vlan_id]
       doc.root.add_element("VirtualSwitchID").text = args[:vswitch_id]
-      request(:put, method_url, headers, doc.to_s)
+      response = request(:put, method_url, headers, doc.to_s)
+      Parser.new(response.body).object(:ClientNetworkAdapter)
     end
 
     ##
