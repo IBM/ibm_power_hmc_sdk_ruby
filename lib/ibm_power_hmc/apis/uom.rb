@@ -337,9 +337,8 @@ module IbmPowerHmc
         :content_type => "application/vnd.ibm.powervm.uom+xml; type=ClientNetworkAdapter"
       }
       doc = REXML::Document.new("")
-      doc.add_element("ClientNetworkAdapter:ClientNetworkAdapter", "schemaVersion" => "V1_0")
+      doc.add_element("ClientNetworkAdapter", "schemaVersion" => "V1_0")
       doc.root.add_namespace(UOM_XMLNS)
-      doc.root.add_namespace("ClientNetworkAdapter", UOM_XMLNS)
       doc.root.add_element("RequiredAdapter").text = args[:required] if args.key?(:required)
       doc.root.add_element("MACAddress").text = args[:macaddr] if args.key?(:macaddr)
       doc.root.add_element("PortVLANID").text = args[:vlan_id]
