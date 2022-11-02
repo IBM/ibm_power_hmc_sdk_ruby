@@ -2,6 +2,9 @@
 
 # Module for IBM HMC Rest API Client
 module IbmPowerHmc
+  WEB_XMLNS = "http://www.ibm.com/xmlns/systems/power/firmware/web/mc/2012_10/"
+  UOM_XMLNS = "http://www.ibm.com/xmlns/systems/power/firmware/uom/mc/2012_10/"
+
   class Error < StandardError; end
 
   ##
@@ -37,7 +40,7 @@ module IbmPowerHmc
       }
       doc = REXML::Document.new("")
       doc.add_element("LogonRequest", "schemaVersion" => "V1_1_0")
-      doc.root.add_namespace("http://www.ibm.com/xmlns/systems/power/firmware/web/mc/2012_10/")
+      doc.root.add_namespace(WEB_XMLNS)
       doc.root.add_element("UserID").text = @username
       doc.root.add_element("Password").text = @password
 

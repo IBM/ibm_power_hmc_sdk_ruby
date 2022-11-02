@@ -44,8 +44,8 @@ module IbmPowerHmc
       }
       doc = REXML::Document.new("")
       doc.add_element("JobRequest:JobRequest", "schemaVersion" => "V1_1_0")
-      doc.root.add_namespace("http://www.ibm.com/xmlns/systems/power/firmware/web/mc/2012_10/")
-      doc.root.add_namespace("JobRequest", "http://www.ibm.com/xmlns/systems/power/firmware/web/mc/2012_10/")
+      doc.root.add_namespace(WEB_XMLNS)
+      doc.root.add_namespace("JobRequest", WEB_XMLNS)
       op = doc.root.add_element("RequestedOperation", "schemaVersion" => "V1_1_0")
       op.add_element("OperationName").text = @operation
       op.add_element("GroupName").text = @group
