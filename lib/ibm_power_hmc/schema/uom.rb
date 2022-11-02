@@ -174,6 +174,12 @@ module IbmPowerHmc
       uuids_from_links("SRIOVEthernetLogicalPorts")
     end
 
+    def capabilities
+      xml.get_elements("PartitionCapabilities/*").map do |elem|
+        elem.name unless elem.text&.strip != "true"
+      end.compact
+    end
+
     def io_adapters
       collection_of("PartitionIOConfiguration/ProfileIOSlots/ProfileIOSlot/AssociatedIOSlot/RelatedIOAdapter", "*[1]")
     end
@@ -201,6 +207,12 @@ module IbmPowerHmc
 
   # VIOS information
   class VirtualIOServer < BasePartition
+    def capabilities
+      xml.get_elements("VirtualIOServerCapabilities/*").map do |elem|
+        elem.name unless elem.text&.strip != "true"
+      end.compact.concat(super)
+    end
+
     def pvs
       collection_of("PhysicalVolumes", "PhysicalVolume")
     end
