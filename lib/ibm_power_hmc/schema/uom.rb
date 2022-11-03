@@ -76,7 +76,7 @@ module IbmPowerHmc
 
     def capabilities
       xml.get_elements("AssociatedSystemCapabilities/*").map do |elem|
-        elem.name unless elem.text&.strip != "true"
+        elem.name if elem.text&.strip == "true"
       end.compact
     end
 
@@ -178,7 +178,7 @@ module IbmPowerHmc
 
     def capabilities
       xml.get_elements("PartitionCapabilities/*").map do |elem|
-        elem.name unless elem.text&.strip != "true"
+        elem.name if elem.text&.strip == "true"
       end.compact
     end
 
@@ -211,12 +211,16 @@ module IbmPowerHmc
   class VirtualIOServer < BasePartition
     def capabilities
       xml.get_elements("VirtualIOServerCapabilities/*").map do |elem|
-        elem.name unless elem.text&.strip != "true"
+        elem.name if elem.text&.strip == "true"
       end.compact.concat(super)
     end
 
     def pvs
       collection_of("PhysicalVolumes", "PhysicalVolume")
+    end
+
+    def vg_uuids
+      uuids_from_links("StoragePools")
     end
 
     def rep
@@ -309,6 +313,33 @@ module IbmPowerHmc
     }.freeze
   end
 
+  # Volume Group information
+  class VolumeGroup < AbstractRest
+    ATTRS = {
+      :udid => "UniqueDeviceID",
+      :size => "AvailableSize", # in GiB
+      :dev_count => "BackingDeviceCount",
+      :free_space => "FreeSpace", # in GiB
+      :capacity => "GroupCapacity",
+      :name => "GroupName",
+      :serial => "GroupSerialID",
+      :state => "GroupState",
+      :max_lvs => "MaximumLogicalVolumes"
+    }.freeze
+
+    def reps
+      collection_of("MediaRepositories", "VirtualMediaRepository")
+    end
+
+    def pvs
+      collection_of("PhysicalVolumes", "PhysicalVolume")
+    end
+
+    def lvs
+      collection_of("VirtualDisks", "VirtualDisk")
+    end
+  end
+
   # Empty parent class to match K2 schema definition
   class VirtualSCSIStorage < AbstractNonRest; end
 
@@ -343,9 +374,13 @@ module IbmPowerHmc
       :label => "DiskLabel",
       :capacity => "DiskCapacity", # in GiB
       :psize => "PartitionSize",
-      :vg => "VolumeGroup",
       :udid => "UniqueDeviceID"
     }.freeze
+
+    def vg_uuid
+      href = singleton("VolumeGroup", "href")
+      uuid_from_href(href) unless href.nil?
+    end
   end
 
   # Virtual CD-ROM information
