@@ -235,6 +235,29 @@ module IbmPowerHmc
     end
 
     ##
+    # @!method volume_groups(vios_uuid)
+    # Retrieve the list of volume groups available on a virtual I/O server.
+    # @param vios_uuid [String] The UUID of the virtual I/O server.
+    # @return [Array<IbmPowerHmc::VolumeGroup>] The list of volume groups.
+    def volume_groups(vios_uuid)
+      method_url = "/rest/api/uom/VirtualIOServer/#{vios_uuid}/VolumeGroup"
+      response = request(:get, method_url)
+      FeedParser.new(response.body).objects(:VolumeGroup)
+    end
+
+    ##
+    # @!method volume_group(vios_uuid, vg_uuid)
+    # Retrieve information about a volume group on a virtual I/O server.
+    # @param vios_uuid [String] The UUID of the virtual I/O server.
+    # @param vg_uuid [String] The UUID of the volume group.
+    # @return [IbmPowerHmc::VolumeGroup] The volume groups.
+    def volume_group(vios_uuid, vg_uuid)
+      method_url = "/rest/api/uom/VirtualIOServer/#{vios_uuid}/VolumeGroup/#{vg_uuid}"
+      response = request(:get, method_url)
+      Parser.new(response.body).object(:VolumeGroup)
+    end
+
+    ##
     # @!method groups
     # Retrieve the list of groups defined on the HMC.
     # A logical partition, a virtual I/O server or a managed system can be
