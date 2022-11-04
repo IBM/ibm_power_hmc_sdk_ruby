@@ -7,13 +7,15 @@ module IbmPowerHmc
     class JobNotStarted < StandardError; end
 
     class JobFailed < StandardError
+      attr_reader :job
+
       def initialize(job)
         super
         @job = job
       end
 
       def to_s
-        "id=\"#{@job.id}\" operation=\"#{@job.group}/#{@job.operation}\" status=\"#{@job.status}\" message=\"#{@job.message}\" exception_text=\"#{@job.results['ExceptionText']}\""
+        %(#{job.status} err="#{job.results["result"]}" rc=#{job.results["returnCode"]} msg="#{job.message}" exception="#{job.results["ExceptionText"]}" url=#{job.url} id=#{job.id})
       end
     end
 
