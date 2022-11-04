@@ -909,25 +909,4 @@ module IbmPowerHmc
       :detail => "EventDetail"
     }.freeze
   end
-
-  # Job Response
-  class JobResponse < AbstractRest
-    ATTRS = {
-      :id        => "JobID",
-      :status    => "Status",
-      :operation => "JobRequestInstance/RequestedOperation/OperationName",
-      :group     => "JobRequestInstance/RequestedOperation/GroupName",
-      :message   => "ResponseException/Message"
-    }.freeze
-
-    def results
-      results = {}
-      xml.each_element("Results/JobParameter") do |jobparam|
-        name = jobparam.elements["ParameterName"]&.text&.strip
-        value = jobparam.elements["ParameterValue"]&.text&.strip
-        results[name] = value unless name.nil?
-      end
-      results
-    end
-  end
 end
