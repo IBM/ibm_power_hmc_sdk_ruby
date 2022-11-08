@@ -44,7 +44,7 @@ module IbmPowerHmc
       headers = {
         :content_type => "application/vnd.ibm.powervm.web+xml; type=JobRequest"
       }
-      jobreq = JobRequest.marshall({:operation => @operation, :group => @group, :params => @params}, WEB_XMLNS)
+      jobreq = JobRequest.marshal({:operation => @operation, :group => @group, :params => @params}, WEB_XMLNS)
       response = @conn.request(:put, @method_url, headers, jobreq.xml.to_s)
       jobresp = Parser.new(response.body).object(:JobResponse)
       # Save the URL of the job (JobID is not sufficient as not all jobs are in uom).

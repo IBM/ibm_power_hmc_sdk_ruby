@@ -87,7 +87,13 @@ module IbmPowerHmc
       self.class::ATTRS.each { |varname, xpath| define_attr(varname, xpath) }
     end
 
-    def self.marshall(attrs = {}, namespace = UOM_XMLNS, version = "V1_1_0")
+    ##
+    # @!method marshal(attrs = {}, namespace = UOM_XMLNS, version = "V1_1_0")
+    # XML marshaling of object.
+    # @param attrs [Hash] The initial properties of the object.
+    # @param namespace [String] The XML namespace to use.
+    # @param version [String] The XML schema version to use.
+    def self.marshal(attrs = {}, namespace = UOM_XMLNS, version = "V1_1_0")
       doc = REXML::Document.new("")
       doc.add_element(name.split("::").last, "schemaVersion" => version)
       doc.root.add_namespace(namespace)

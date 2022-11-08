@@ -359,7 +359,7 @@ module IbmPowerHmc
       headers = {
         :content_type => "application/vnd.ibm.powervm.uom+xml; type=ClientNetworkAdapter"
       }
-      netadap = ClientNetworkAdapter.marshall(args)
+      netadap = ClientNetworkAdapter.marshal(args)
       response = request(:put, method_url, headers, netadap.xml.to_s)
       Parser.new(response.body).object(:ClientNetworkAdapter)
     end
