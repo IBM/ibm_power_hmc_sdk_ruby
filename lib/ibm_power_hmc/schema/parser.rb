@@ -87,6 +87,17 @@ module IbmPowerHmc
       self.class::ATTRS.each { |varname, xpath| define_attr(varname, xpath) }
     end
 
+    def self.marshall(attrs = {}, namespace = UOM_XMLNS, version = "V1_1_0")
+      doc = REXML::Document.new("")
+      doc.add_element(name.split("::").last, "schemaVersion" => version)
+      doc.root.add_namespace(namespace)
+      obj = new(doc.root)
+      attrs.each do |varname, value|
+        obj.send("#{varname}=", value)
+      end
+      obj
+    end
+
     ##
     # @!method define_attr(varname, xpath)
     # Define an instance variable using the text of an XML element as value.

@@ -44,21 +44,8 @@ module IbmPowerHmc
       headers = {
         :content_type => "application/vnd.ibm.powervm.web+xml; type=JobRequest"
       }
-      doc = REXML::Document.new("")
-      doc.add_element("JobRequest:JobRequest", "schemaVersion" => "V1_1_0")
-      doc.root.add_namespace(WEB_XMLNS)
-      doc.root.add_namespace("JobRequest", WEB_XMLNS)
-      op = doc.root.add_element("RequestedOperation", "schemaVersion" => "V1_1_0")
-      op.add_element("OperationName").text = @operation
-      op.add_element("GroupName").text = @group
-
-      jobparams = doc.root.add_element("JobParameters", "schemaVersion" => "V1_1_0")
-      @params.each do |key, value|
-        jobparam = jobparams.add_element("JobParameter", "schemaVersion" => "V1_1_0")
-        jobparam.add_element("ParameterName").text = key
-        jobparam.add_element("ParameterValue").text = value
-      end
-      response = @conn.request(:put, @method_url, headers, doc.to_s)
+      jobreq = JobRequest.marshall({:operation => @operation, :group => @group, :params => @params}, WEB_XMLNS)
+      response = @conn.request(:put, @method_url, headers, jobreq.xml.to_s)
       jobresp = Parser.new(response.body).object(:JobResponse)
       # Save the URL of the job (JobID is not sufficient as not all jobs are in uom).
       @href = jobresp.href.path
