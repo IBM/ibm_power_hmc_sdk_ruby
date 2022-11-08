@@ -125,7 +125,7 @@ module IbmPowerHmc
       end
 
       def to_s
-        "msg=\"#{@message}\" status=\"#{@status}\" reason=\"#{@reason}\" uri=#{@uri}"
+        %(msg="#{@message}" status="#{@status}" reason="#{@reason}" uri=#{@uri})
       end
     end
 
