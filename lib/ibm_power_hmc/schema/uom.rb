@@ -475,6 +475,10 @@ module IbmPowerHmc
     def vswitch_uuid
       uuids_from_links("AssociatedVirtualSwitch").first
     end
+
+    def vswitch_href=(href)
+      xml.add_element("AssociatedVirtualSwitch").add_element("link", "href" => href, "rel" => "related")
+    end
   end
 
   # Client Network Adapter information

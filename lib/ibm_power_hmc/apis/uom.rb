@@ -349,16 +349,19 @@ module IbmPowerHmc
     private :network_adapter
 
     ##
-    # @!method network_adapter_lpar_create(lpar_uuid, **args)
+    # @!method network_adapter_lpar_create(lpar_uuid, sys_uuid, vswitch_uuid, **args)
     # Create a virtual ethernet network adapter attached to a logical partition.
     # @param lpar_uuid [String] UUID of the logical partition.
+    # @param sys_uuid [String] UUID of the managed system of the virtual switch.
+    # @param vswitch_uuid [String] UUID of the virtual switch.
     # @param args [Hash] The network adapter properties.
     # @return [IbmPowerHmc::ClientNetworkAdapter] The created network adapter.
-    def network_adapter_lpar_create(lpar_uuid, **args)
+    def network_adapter_lpar_create(lpar_uuid, sys_uuid, vswitch_uuid, **args)
       method_url = "/rest/api/uom/LogicalPartition/#{lpar_uuid}/ClientNetworkAdapter"
       headers = {
         :content_type => "application/vnd.ibm.powervm.uom+xml; type=ClientNetworkAdapter"
       }
+      args[:vswitch_href] = "/rest/api/uom/ManagedSystem/#{sys_uuid}/VirtualSwitch/#{vswitch_uuid}"
       netadap = ClientNetworkAdapter.marshal(args)
       response = request(:put, method_url, headers, netadap.xml.to_s)
       Parser.new(response.body).object(:ClientNetworkAdapter)
