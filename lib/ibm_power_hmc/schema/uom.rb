@@ -134,6 +134,7 @@ module IbmPowerHmc
       :desired_memory => "PartitionMemoryConfiguration/DesiredMemory",
       :min_memory => "PartitionMemoryConfiguration/MinimumMemory",
       :max_memory => "PartitionMemoryConfiguration/MaximumMemory",
+      :ams => "PartitionMemoryConfiguration/ActiveMemorySharingEnabled",
       :dedicated => "PartitionProcessorConfiguration/CurrentHasDedicatedProcessors",
       :sharing_mode => "PartitionProcessorConfiguration/CurrentSharingMode",
       :uncapped_weight => "PartitionProcessorConfiguration/CurrentSharedProcessorConfiguration/CurrentUncappedWeight",
@@ -193,10 +194,27 @@ module IbmPowerHmc
       href = singleton("ProcessorPool", "href")
       uuid_from_href(href) unless href.nil?
     end
+
+    def paging_vios_uuid
+      href = singleton("PartitionMemoryConfiguration/CurrentPagingServicePartition", "href")
+      uuid_from_href(href) unless href.nil?
+    end
+
+    def paging_vios_uuids
+      ["PrimaryPagingServicePartition", "SecondaryPagingServicePartition"].map do |name|
+        href = singleton("PartitionMemoryConfiguration/#{name}", "href")
+        uuid_from_href(href) unless href.nil?
+      end
+    end
   end
 
   # Logical Partition information
   class LogicalPartition < BasePartition
+    ATTRS = ATTRS.merge({
+      :suspendable => "SuspendCapable",
+      :rrestartable => "RemoteRestartCapable"
+    }.freeze)
+
     def vnic_dedicated_uuids
       uuids_from_links("DedicatedVirtualNICs")
     end
