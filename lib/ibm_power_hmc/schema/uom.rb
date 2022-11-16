@@ -199,6 +199,13 @@ module IbmPowerHmc
       href = singleton("PartitionMemoryConfiguration/CurrentPagingServicePartition", "href")
       uuid_from_href(href) unless href.nil?
     end
+
+    def paging_vios_uuids
+      ["PrimaryPagingServicePartition", "SecondaryPagingServicePartition"].map do |name|
+        href = singleton("PartitionMemoryConfiguration/#{name}", "href")
+        uuid_from_href(href) unless href.nil?
+      end
+    end
   end
 
   # Logical Partition information
@@ -218,13 +225,6 @@ module IbmPowerHmc
 
     def vfc_client_uuids
       uuids_from_links("VirtualFibreChannelClientAdapters")
-    end
-
-    def paging_vios_uuids
-      ["PrimaryPagingServicePartition", "SecondaryPagingServicePartition"].map do |name|
-        href = singleton("PartitionMemoryConfiguration/#{name}", "href")
-        uuid_from_href(href) unless href.nil?
-      end
     end
   end
 
