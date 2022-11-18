@@ -135,6 +135,7 @@ module IbmPowerHmc
       :min_memory => "PartitionMemoryConfiguration/MinimumMemory",
       :max_memory => "PartitionMemoryConfiguration/MaximumMemory",
       :ams => "PartitionMemoryConfiguration/ActiveMemorySharingEnabled",
+      :shared_mem => "PartitionMemoryConfiguration/SharedMemoryEnabled",
       :dedicated => "PartitionProcessorConfiguration/CurrentHasDedicatedProcessors",
       :sharing_mode => "PartitionProcessorConfiguration/CurrentSharingMode",
       :uncapped_weight => "PartitionProcessorConfiguration/CurrentSharedProcessorConfiguration/CurrentUncappedWeight",
