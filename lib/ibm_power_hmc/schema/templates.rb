@@ -16,6 +16,7 @@ module IbmPowerHmc
       :lpar_id      => "logicalPartitionConfig/partitionId",
       :os           => "logicalPartitionConfig/osVersion",
       :memory       => "logicalPartitionConfig/memoryConfiguration/currMemory",
+      :shared_mem   => "logicalPartitionConfig/memoryConfiguration/isSharedMemory",
       :dedicated    => "logicalPartitionConfig/processorConfiguration/hasDedicatedProcessors",
       :sharing_mode => "logicalPartitionConfig/processorConfiguration/sharingMode",
       :vprocs       => "logicalPartitionConfig/processorConfiguration/sharedProcessorConfiguration/desiredVirtualProcessors",
