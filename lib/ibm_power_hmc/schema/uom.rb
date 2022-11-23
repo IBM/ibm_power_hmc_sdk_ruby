@@ -124,8 +124,26 @@ module IbmPowerHmc
 
   # FC adapter information
   class PhysicalFibreChannelAdapter < IOAdapter
-    def slots
+    def ports
       collection_of("PhysicalFibreChannelPorts", "PhysicalFibreChannelPort")
+    end
+  end
+
+  # FC port information
+  class PhysicalFibreChannelPort < AbstractNonRest
+    ATTRS = {
+      :location => "LocationCode",
+      :name => "PortName",
+      :udid => "UniqueDeviceID",
+      :wwpn => "WWPN",
+      :wwnn => "WWNN",
+      :avail_ports => "AvailablePorts",
+      :total_ports => "TotalPorts",
+      :label => "Label"
+    }.freeze
+
+    def pvs
+      collection_of("PhysicalVolumes", "PhysicalVolume")
     end
   end
 
@@ -756,24 +774,6 @@ module IbmPowerHmc
     def port
       elem = xml.elements["PhysicalPort"]
       PhysicalFibreChannelPort.new(elem) unless elem.nil?
-    end
-  end
-
-  # FC port information
-  class PhysicalFibreChannelPort < AbstractNonRest
-    ATTRS = {
-      :location => "LocationCode",
-      :name => "PortName",
-      :udid => "UniqueDeviceID",
-      :wwpn => "WWPN",
-      :wwnn => "WWNN",
-      :avail_ports => "AvailablePorts",
-      :total_ports => "TotalPorts",
-      :label => "Label"
-    }.freeze
-
-    def pvs
-      collection_of("PhysicalVolumes", "PhysicalVolume")
     end
   end
 
