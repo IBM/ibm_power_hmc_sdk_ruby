@@ -1,8 +1,13 @@
+## v0.23.0
+* Enhance schema definition for physical fibre channel adapters
+## v0.22.0
+* Add schema definitions related to shared memory
 ## v0.21.0
 * Add methods to create/delete LPAR client network adapters
 * Add methods and schema definitions for volume groups
 * Add label and page83 schema definitions for PVs
 * Add schema definitions for capabilities of lpars and vioses
+* Improve schema definitions for dedicated CPUs
 ## v0.20.0
 * Add permissive option (`ignoreError=true`) for cluster APIs
 * Fix `modify_object` method when URI has a query part

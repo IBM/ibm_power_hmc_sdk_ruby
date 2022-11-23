@@ -120,8 +120,14 @@ module IbmPowerHmc
   end
 
   class HostChannelAdapter < IOAdapter; end
-  class PhysicalFibreChannelAdapter < IOAdapter; end
   class SRIOVAdapter < IOAdapter; end
+
+  # FC adapter information
+  class PhysicalFibreChannelAdapter < IOAdapter
+    def slots
+      collection_of("PhysicalFibreChannelPorts", "PhysicalFibreChannelPort")
+    end
+  end
 
   # Common class for LPAR and VIOS
   class BasePartition < AbstractRest
@@ -762,7 +768,8 @@ module IbmPowerHmc
       :wwpn => "WWPN",
       :wwnn => "WWNN",
       :avail_ports => "AvailablePorts",
-      :total_ports => "TotalPorts"
+      :total_ports => "TotalPorts",
+      :label => "Label"
     }.freeze
 
     def pvs
