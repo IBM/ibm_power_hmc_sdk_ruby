@@ -1,3 +1,7 @@
+## v0.24.0
+* Add schema methods to modify VSCSI and VFC mappings
+* Add schema definition for IOSlot
+* Add schema definition for IORDevice
 ## v0.23.0
 * Enhance schema definition for physical fibre channel adapters
 ## v0.22.0
