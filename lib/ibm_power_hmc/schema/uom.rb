@@ -94,7 +94,7 @@ module IbmPowerHmc
       uuids_from_links("AssociatedVirtualIOServers")
     end
 
-    # Deprecated: use ios_slots.io_adapter
+    # Deprecated: use io_slots.io_adapter
     def io_adapters
       collection_of("AssociatedSystemIOConfiguration/IOSlots/IOSlot/RelatedIOAdapter", "IOAdapter")
     end
