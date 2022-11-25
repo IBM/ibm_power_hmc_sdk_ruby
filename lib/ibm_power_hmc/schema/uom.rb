@@ -357,8 +357,37 @@ module IbmPowerHmc
       collection_of("VirtualSCSIMappings", "VirtualSCSIMapping")
     end
 
+    # Remove VSCSI mapping (vhostX) from XML
+    def vscsi_mapping_delete!(location)
+      vscsi_mappings.each do |mapping|
+        mapping.xml.parent.delete(mapping.xml) if mapping.server&.location == location
+      end
+    end
+
+    # Remove VSCSI target (vtscsiX) from XML
+    def vscsi_mapping_unmap!(target)
+      mapping = vscsi_mappings.find { |m| m.device&.target == target }
+      mapping.xml.parent.delete(mapping.xml) unless mapping.nil?
+    end
+
     def vfc_mappings
       collection_of("VirtualFibreChannelMappings", "VirtualFibreChannelMapping")
+    end
+
+    # Remove VFC mapping (vfchostX) from XML
+    def vfc_mapping_delete!(location)
+      mapping = vfc_mappings.find { |m| m.server&.location == location }
+      mapping.xml.parent.delete(mapping.xml) unless mapping.nil?
+    end
+
+    # Remove FC adapter mapping (fcsX) from XML
+    def vfc_mapping_unmap!(location)
+      mapping = vfc_mappings.find { |m| m.port && m.server&.location == location }
+      return if mapping.nil?
+
+      mapping.port.xml.parent.delete(mapping.port.xml)
+      mapping.server.map_port = nil
+      mapping.server.xml.delete(mapping.server.port.xml) unless mapping.server.port.nil?
     end
 
     def seas
