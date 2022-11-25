@@ -94,8 +94,13 @@ module IbmPowerHmc
       uuids_from_links("AssociatedVirtualIOServers")
     end
 
+    # Deprecated: use ios_slots.io_adapter
     def io_adapters
       collection_of("AssociatedSystemIOConfiguration/IOSlots/IOSlot/RelatedIOAdapter", "IOAdapter")
+    end
+
+    def io_slots
+      collection_of("AssociatedSystemIOConfiguration/IOSlots", "IOSlot")
     end
 
     def vswitches_uuids
@@ -105,6 +110,73 @@ module IbmPowerHmc
     def networks_uuids
       uuids_from_links("AssociatedSystemIOConfiguration/AssociatedSystemVirtualNetwork/VirtualNetworks")
     end
+  end
+
+  # I/O Slot information
+  class IOSlot < AbstractNonRest
+    ATTRS = {
+      :description => "Description",
+      :lpar_id => "PartitionID",
+      :lpar_name => "PartitionName",
+      :lpar_type => "PartitionType",
+      :pci_class => "PCIClass",
+      :pci_dev => "PCIDeviceID",
+      :pci_subsys_dev => "PCISubsystemDeviceID",
+      :pci_man => "PCIManufacturerID",
+      :pci_rev => "PCIRevisionID",
+      :pci_vendor => "PCIVendorID",
+      :pci_subsys_vendor => "PCISubsystemVendorID",
+      :dr_name => "SlotDynamicReconfigurationConnectorName",
+      :physloc => "SlotPhysicalLocationCode",
+      :sriov_capable_dev => "SRIOVCapableDevice",
+      :sriov_capable => "SRIOVCapableSlot",
+      :vpd_model => "VitalProductDataModel",
+      :vpd_serial => "VitalProductDataSerialNumber",
+      :vpd_stale => "VitalProductDataStale",
+      :vpd_type => "VitalProductDataType"
+    }.freeze
+
+    def io_adapter
+      elem = xml.elements["RelatedIOAdapter/*[1]"]
+      Module.const_get("IbmPowerHmc::#{elem.name}").new(elem) unless elem.nil?
+    rescue NameError
+      nil
+    end
+
+    def features
+      xml.get_elements("FeatureCodes").map do |elem|
+        elem.text&.strip
+      end.compact
+    end
+
+    def ior_devices
+      collection_of("IORDevices", "IORDevice")
+    end
+  end
+
+  # I/O Device information
+  class IORDevice < AbstractNonRest
+    ATTRS = {
+      :parent => "ParentName",
+      :pci_dev => "PCIDeviceId",
+      :pci_vendor => "PCIVendorId",
+      :pci_subsys_dev => "PCISubsystemDeviceId",
+      :pci_subsys_vendor => "PCISubsystemVendorId",
+      :pci_rev => "PCIRevisionId",
+      :pci_class => "PCIClassCode",
+      :type => "DeviceType",
+      :serial => "SerialNumber",
+      :fru_number => "FruNumber",
+      :part_number => "PartNumber",
+      :ccin => "CCIN",
+      :size => "Size",
+      :location => "LocationCode",
+      :ucode_version => "MicroCodeVersion",
+      :wwpn => "WWPN",
+      :wwnn => "WWNN",
+      :macaddr => "MacAddressValue",
+      :description => "Description"
+    }.freeze
   end
 
   # I/O Adapter information
@@ -211,8 +283,15 @@ module IbmPowerHmc
       end.compact
     end
 
+    # Deprecated: use io_slots.io_adapter
     def io_adapters
       collection_of("PartitionIOConfiguration/ProfileIOSlots/ProfileIOSlot/AssociatedIOSlot/RelatedIOAdapter", "*[1]")
+    end
+
+    def io_slots
+      xml.get_elements("PartitionIOConfiguration/ProfileIOSlots/ProfileIOSlot/AssociatedIOSlot").map do |elem|
+        IOSlot.new(elem)
+      end.compact
     end
 
     def shared_processor_pool_uuid
