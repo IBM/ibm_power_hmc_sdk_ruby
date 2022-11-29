@@ -168,11 +168,15 @@ module IbmPowerHmc
     end
 
     ##
-    # @!method lpar_delete(lpar_uuid)
+    # @!method lpar_delete(lpar_uuid, delete_vios_mappings: false)
     # Delete a logical partition.
     # @param lpar_uuid [String] The UUID of the logical partition to delete.
-    def lpar_delete(lpar_uuid)
+    # @param delete_vios_mappings [Boolean] Delete associated VIOS VFC and VSCSI server adapters.
+    def lpar_delete(lpar_uuid, delete_vios_mappings: false)
       method_url = "/rest/api/uom/LogicalPartition/#{lpar_uuid}"
+
+      lpar_delete_vios_mappings(lpar_uuid) if delete_vios_mappings
+
       request(:delete, method_url)
       # Returns HTTP 204 if ok
     end

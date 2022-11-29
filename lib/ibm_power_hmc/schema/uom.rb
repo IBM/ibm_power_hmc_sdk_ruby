@@ -843,6 +843,8 @@ module IbmPowerHmc
 
   # VFC client information
   class VirtualFibreChannelClientAdapter < VirtualFibreChannelAdapter
+    alias vios_uuid lpar_uuid
+
     def nport_loggedin
       collection_of("NportLoggedInStatus", "VirtualFibreChannelNPortLoginStatus")
     end
