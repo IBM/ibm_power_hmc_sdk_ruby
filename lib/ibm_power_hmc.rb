@@ -19,4 +19,5 @@ module IbmPowerHmc
   require_relative "./ibm_power_hmc/schema/sem"
   require_relative "./ibm_power_hmc/schema/templates"
   require_relative "./ibm_power_hmc/schema/uom"
+  require_relative "./ibm_power_hmc/utils"
 end
