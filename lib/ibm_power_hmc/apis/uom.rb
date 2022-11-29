@@ -168,7 +168,7 @@ module IbmPowerHmc
     end
 
     ##
-    # @!method lpar_delete(lpar_uuid)
+    # @!method lpar_delete(lpar_uuid, delete_vios_mappings: false)
     # Delete a logical partition.
     # @param lpar_uuid [String] The UUID of the logical partition to delete.
     # @param delete_vios_mappings [Boolean] Delete associated VIOS VFC and VSCSI server adapters.

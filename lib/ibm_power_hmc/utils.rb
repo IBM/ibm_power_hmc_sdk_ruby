@@ -3,7 +3,7 @@
 module IbmPowerHmc
   class Connection
     ##
-    # @!method lpar_delete_vios_mappings
+    # @!method lpar_delete_vios_mappings(lpar_uuid)
     # Delete VIOS VSCSI and VFC mappings associated to a given logical partition.
     # @param lpar_uuid [String] The logical partition UUID.
     def lpar_delete_vios_mappings(lpar_uuid)
