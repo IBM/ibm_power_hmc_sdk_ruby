@@ -1,3 +1,7 @@
+## v0.25.0
+* Add `vios_uuid` as alias to `lpar_uuid` for VFC schema definition
+* Add `lpar_delete_vios_mappings` util method
+* Add option to `lpar_delete` to delete associated VIOS VSCSI/VFC mappings
 ## v0.24.0
 * Add schema methods to modify VSCSI and VFC mappings
 * Add schema definition for IOSlot
