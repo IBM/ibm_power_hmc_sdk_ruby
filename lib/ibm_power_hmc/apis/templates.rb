@@ -120,20 +120,6 @@ module IbmPowerHmc
     end
 
     ##
-    # @!method template_provision(template_uuid, target_sys_uuid, changes)
-    # Deploy Logical Partition from a Template (performs Check, Transform and Deploy steps in a single method).
-    # @param template_uuid [String] The UUID of the Template to deploy an LPAR from.
-    # @param target_sys_uuid [String] The UUID of the Managed System to deploy the LPAR on.
-    # @param changes [Hash] Modifications to apply to the Template before deploying Logical Partition.
-    # @return [String] The UUID of the deployed Logical Partition.
-    def template_provision(template_uuid, target_sys_uuid, changes)
-      draft_uuid = template_check(template_uuid, target_sys_uuid).results["TEMPLATE_UUID"]
-      template_transform(draft_uuid, target_sys_uuid)
-      template_modify(draft_uuid, changes)
-      template_deploy(draft_uuid, target_sys_uuid).results["PartitionUuid"]
-    end
-
-    ##
     # @!method template_modify(template_uuid, changes)
     # Modify a template.
     # @param template_uuid [String] UUID of the partition template to modify.
