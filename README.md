@@ -53,8 +53,8 @@ Listing the logical partitions and virtual I/O servers of each managed system:
 ```ruby
 hc.managed_systems.each do |sys|
   puts sys.name
-  hc.lpars(sys.uuid).each { |lpar| puts lpar.name }
-  hc.vioses(sys.uuid).each { |vios| puts vios.name }
+  hc.lpars(sys.uuid).collect(&:name)
+  hc.vioses(sys.uuid).collect(&:name)
 end
 ```
 
