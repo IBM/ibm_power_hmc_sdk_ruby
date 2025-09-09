@@ -1,3 +1,5 @@
+## v0.26.0
+* Fix REXML::Document.new("") raising an exception
 ## v0.25.0
 * Add `vios_uuid` as alias to `lpar_uuid` for VFC schema definition
 * Add `lpar_delete_vios_mappings` util method
