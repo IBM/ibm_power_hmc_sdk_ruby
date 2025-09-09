@@ -38,7 +38,7 @@ module IbmPowerHmc
       headers = {
         :content_type => "application/vnd.ibm.powervm.web+xml; type=LogonRequest"
       }
-      doc = REXML::Document.new("")
+      doc = REXML::Document.new(nil)
       doc.add_element("LogonRequest", "schemaVersion" => "V1_1_0")
       doc.root.add_namespace(WEB_XMLNS)
       doc.root.add_element("UserID").text = @username

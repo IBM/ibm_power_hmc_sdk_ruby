@@ -94,7 +94,7 @@ module IbmPowerHmc
     # @param namespace [String] The XML namespace to use.
     # @param version [String] The XML schema version to use.
     def self.marshal(attrs = {}, namespace = UOM_XMLNS, version = "V1_1_0")
-      doc = REXML::Document.new("")
+      doc = REXML::Document.new(nil)
       doc.add_element(name.split("::").last, "schemaVersion" => version)
       doc.root.add_namespace(namespace)
       obj = new(doc.root)
