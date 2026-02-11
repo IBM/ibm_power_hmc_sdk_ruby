@@ -63,7 +63,8 @@ module IbmPowerHmc
       :vtpm_version => "AssociatedSystemSecurity/VirtualTrustedPlatformModuleVersion",
       :vtpm_lpars => "AssociatedSystemSecurity/AvailableVirtualTrustedPlatformModulePartitions",
       :is_classic_hmc_mgmt => "IsClassicHMCManagement",
-      :is_hmc_mgmt_master => "IsHMCPowerVMManagementMaster"
+      :is_hmc_mgmt_master => "IsHMCPowerVMManagementMaster",
+      :is_mem_mirroring_enabled => "AssociatedSystemMemoryConfiguration/CurrentMemoryMirroringMode"
     }.freeze
 
     def group_uuids
@@ -316,7 +317,8 @@ module IbmPowerHmc
   class LogicalPartition < BasePartition
     ATTRS = ATTRS.merge({
       :suspendable => "SuspendCapable",
-      :rrestartable => "RemoteRestartCapable"
+      :rrestartable => "RemoteRestartCapable",
+      :srr => "SimplifiedRemoteRestartCapable"
     }.freeze)
 
     def vnic_dedicated_uuids
