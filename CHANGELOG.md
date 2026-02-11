@@ -1,3 +1,6 @@
+## v0.27.0
+* Add `is_mem_mirroring_enabled` for the system
+* Add `srr` to lpar
 ## v0.26.0
 * Fix REXML::Document.new("") raising an exception
 ## v0.25.0
