@@ -49,6 +49,7 @@ module IbmPowerHmc
     def managed_systems_quick
       method_url = "/rest/api/uom/ManagedSystem/quick/All"
       response = request(:get, method_url)
+      return [] if response.body.nil? || response.body.strip.empty?
       JSON.parse(response.body)
     end
 
