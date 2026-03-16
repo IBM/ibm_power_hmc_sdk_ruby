@@ -1,3 +1,5 @@
+## v0.27.1
+* Fix unexpected end of input (#134)
 ## v0.27.0
 * Add `is_mem_mirroring_enabled` for the system
 * Add `srr` to lpar
