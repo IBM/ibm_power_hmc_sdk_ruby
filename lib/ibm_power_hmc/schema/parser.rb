@@ -246,4 +246,12 @@ module IbmPowerHmc
       :message => "Message"
     }.freeze
   end
+
+  # JSON parser for handling JSON responses.
+  class JSONParser
+    def parse(body)
+      return [] if body.nil? || body.strip.empty?
+      JSON.parse(body)
+    end
+  end
 end

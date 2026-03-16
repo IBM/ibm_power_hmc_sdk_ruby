@@ -49,7 +49,7 @@ module IbmPowerHmc
     def managed_systems_quick
       method_url = "/rest/api/uom/ManagedSystem/quick/All"
       response = request(:get, method_url)
-      JSON.parse(response.body)
+      JSONParser.new.parse(response.body)
     end
 
     ##
@@ -62,7 +62,7 @@ module IbmPowerHmc
       method_url = "/rest/api/uom/ManagedSystem/#{sys_uuid}/quick"
       method_url += "/#{property}" unless property.nil?
       response = request(:get, method_url)
-      JSON.parse(response.body)
+      JSONParser.new.parse(response.body)
     end
 
     ##
@@ -114,7 +114,7 @@ module IbmPowerHmc
         method_url = "/rest/api/uom/ManagedSystem/#{sys_uuid}/LogicalPartition/quick/All"
       end
       response = request(:get, method_url)
-      JSON.parse(response.body)
+      JSONParser.new.parse(response.body)
     end
 
     ##
@@ -235,7 +235,7 @@ module IbmPowerHmc
         method_url = "/rest/api/uom/ManagedSystem/#{sys_uuid}/VirtualIOServer/quick/All"
       end
       response = request(:get, method_url)
-      JSON.parse(response.body)
+      JSONParser.new.parse(response.body)
     end
 
     ##
