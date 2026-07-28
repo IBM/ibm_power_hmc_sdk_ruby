@@ -16,5 +16,16 @@ module IbmPowerHmc
       response = request(:get, method_url)
       FeedParser.new(response.body).objects(:ServiceableEvent)
     end
+
+    ##
+    # @!method serviceable_events_search
+    # Retrieve all serviceable events using the search/hmc=all endpoint.
+    # Returns the raw XML response body as a String so callers can transform
+    # or persist it as needed.
+    # @return [String] Raw XML response body from the HMC.
+    def serviceable_events_search
+      response = request(:get, "/rest/api/sem/ServiceableEvent/search/hmc=all")
+      response.body.to_s
+    end
   end
 end
