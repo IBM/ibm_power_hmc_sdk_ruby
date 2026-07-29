@@ -1,3 +1,5 @@
+## v0.28.0
+* add serviceableEvent call (#135)
 ## v0.27.1
 * Fix unexpected end of input (#134)
 ## v0.27.0
