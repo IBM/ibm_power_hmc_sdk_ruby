@@ -759,6 +759,5 @@ module IbmPowerHmc
         e
       end.compact
     end
-
   end
 end
