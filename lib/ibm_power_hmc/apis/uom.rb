@@ -760,18 +760,6 @@ module IbmPowerHmc
       end.compact
     end
 
-    # Fetch /rest/api/sem/ServiceableEvent/search/hmc=all.
-    # Returns the raw XML body string, or nil if the response was empty.
-    # Never raises — errors are rescued so the UOM event flow is not interrupted.
-    def fetch_serviceable_events_xml
-      response = request(:get, "/rest/api/sem/ServiceableEvent/search/hmc=all")
-      body = response.body.to_s.strip
-      body.empty? ? nil : body
-    rescue => e
-      $ibm_power_hmc_log&.error("serviceable events fetch failed: #{e.class}: #{e.message}")
-      nil
-    end
-
     private
   end
 end
