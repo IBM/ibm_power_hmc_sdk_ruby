@@ -23,8 +23,9 @@ module IbmPowerHmc
     # Returns the raw XML response body as a String so callers can transform
     # or persist it as needed.
     # @return [String] Raw XML response body from the HMC.
-    def serviceable_events_search
-      response = request(:get, "/rest/api/sem/ServiceableEvent/search/hmc=all")
+    def serviceable_events_search(query = { hmc: 'all' })
+      search_params = query.map { |key, value| "#{key}=#{value}" }.join('/')
+      response = request(:get, "/rest/api/sem/ServiceableEvent/search/#{search_params}")
       response.body.to_s
     end
   end
