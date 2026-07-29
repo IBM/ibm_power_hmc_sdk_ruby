@@ -760,6 +760,5 @@ module IbmPowerHmc
       end.compact
     end
 
-    private
   end
 end
