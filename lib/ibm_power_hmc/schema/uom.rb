@@ -1051,7 +1051,8 @@ module IbmPowerHmc
       :id     => "EventID",
       :type   => "EventType",
       :data   => "EventData",
-      :detail => "EventDetail"
+      :detail => "EventDetail",
+      :value  => "EventValue"
     }.freeze
   end
 end
