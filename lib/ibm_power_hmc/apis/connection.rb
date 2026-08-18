@@ -80,7 +80,8 @@ module IbmPowerHmc
       j = JSON.parse(response.body)
       if j['status'].eql?("Completed")
         case j['key']
-        when "TEMPLATE_PARTITION_SAVE", "TEMPLATE_PARTITION_SAVE_AS", "TEMPLATE_PARTITION_CAPTURE"
+        when "TEMPLATE_PARTITION_SAVE", "TEMPLATE_PARTITION_SAVE_AS", "TEMPLATE_PARTITION_CAPTURE",
+             "TEMPLATE_PARTITION_NEW", "TEMPLATE_SYSTEM_CAPTURE"
           j['template_uuid'] = templates_summary.find { |t| t.name.eql?(j['labelParams'].first) }&.uuid
         end
       end
