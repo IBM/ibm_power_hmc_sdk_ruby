@@ -1,3 +1,5 @@
+## v0.28.1
+* Fix missing template_uuid in usertask (#137)
 ## v0.28.0
 * add serviceableEvent call (#135)
 ## v0.27.1
