@@ -1,3 +1,5 @@
+## v0.29.0
+* Add config_mem/config_cpus to ManagedSystem (#138)
 ## v0.28.1
 * Fix missing template_uuid in usertask (#137)
 ## v0.28.0
