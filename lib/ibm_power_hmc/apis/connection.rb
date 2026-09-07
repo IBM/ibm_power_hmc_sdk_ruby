@@ -1,9 +1,14 @@
 # frozen_string_literal: true
 
+require "logger"
+
 # Module for IBM HMC Rest API Client
 module IbmPowerHmc
   WEB_XMLNS = "http://www.ibm.com/xmlns/systems/power/firmware/web/mc/2012_10/"
   UOM_XMLNS = "http://www.ibm.com/xmlns/systems/power/firmware/uom/mc/2012_10/"
+
+  LOGGER = Logger.new("ibm_power_hmc.log")
+  LOGGER.level = Logger::DEBUG
 
   class Error < StandardError; end
 
@@ -145,9 +150,11 @@ module IbmPowerHmc
       reauth = false
       # Check for relative URLs
       url = "https://#{@hostname}#{url}" if url.start_with?("/")
+      LOGGER.debug("HMC API request: #{method.upcase} #{url}")
       begin
         headers = headers.merge("X-API-Session" => @api_session_token)
-        RestClient::Request.execute(
+        start_time = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+        response = RestClient::Request.execute(
           :method => method,
           :url => url,
           :verify_ssl => @verify_ssl,
@@ -155,7 +162,12 @@ module IbmPowerHmc
           :headers => headers,
           :timeout => @timeout
         )
+        elapsed = Process.clock_gettime(Process::CLOCK_MONOTONIC) - start_time
+        LOGGER.debug("HMC API response: #{response.code} #{method.upcase} #{url} (#{format('%.3f', elapsed)}s)")
+        response
       rescue RestClient::Exception => e
+        elapsed = Process.clock_gettime(Process::CLOCK_MONOTONIC) - start_time
+        LOGGER.debug("HMC API error: #{e.http_code} #{method.upcase} #{url} (#{format('%.3f', elapsed)}s) -- #{e.message}")
         raise HttpNotFound.new(e), "Not found" if e.http_code == 404
 
         # Do not retry on failed logon attempts.
