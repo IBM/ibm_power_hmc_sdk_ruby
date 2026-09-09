@@ -1,3 +1,5 @@
+## v0.30.0
+* expose memory region size of a managed system (#140)
 ## v0.29.0
 * Add config_mem/config_cpus to ManagedSystem (#138)
 ## v0.28.1
