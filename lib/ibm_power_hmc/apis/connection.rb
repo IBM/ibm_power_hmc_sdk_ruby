@@ -1,20 +1,17 @@
 # frozen_string_literal: true
 
-require "logger"
-
 # Module for IBM HMC Rest API Client
 module IbmPowerHmc
   WEB_XMLNS = "http://www.ibm.com/xmlns/systems/power/firmware/web/mc/2012_10/"
   UOM_XMLNS = "http://www.ibm.com/xmlns/systems/power/firmware/uom/mc/2012_10/"
-
-  LOGGER = Logger.new("ibm_power_hmc.log")
-  LOGGER.level = Logger::DEBUG
 
   class Error < StandardError; end
 
   ##
   # HMC REST Client connection.
   class Connection
+    include Logging
+
     ##
     # @!method initialize(host:, password:, username: "hscroot", port: 12_443, validate_ssl: true, timeout: 60)
     # Create a new HMC connection.
@@ -150,7 +147,7 @@ module IbmPowerHmc
       reauth = false
       # Check for relative URLs
       url = "https://#{@hostname}#{url}" if url.start_with?("/")
-      LOGGER.debug("HMC API request: #{method.upcase} #{url}")
+      logger.debug("HMC API request: #{method.upcase} #{url}")
       begin
         headers = headers.merge("X-API-Session" => @api_session_token)
         start_time = Process.clock_gettime(Process::CLOCK_MONOTONIC)
@@ -163,11 +160,11 @@ module IbmPowerHmc
           :timeout => @timeout
         )
         elapsed = Process.clock_gettime(Process::CLOCK_MONOTONIC) - start_time
-        LOGGER.debug("HMC API response: #{response.code} #{method.upcase} #{url} (#{format('%.3f', elapsed)}s)")
+        logger.debug("HMC API response: #{response.code} #{method.upcase} #{url} (#{'%.3f' % elapsed}s)")
         response
       rescue RestClient::Exception => e
         elapsed = Process.clock_gettime(Process::CLOCK_MONOTONIC) - start_time
-        LOGGER.debug("HMC API error: #{e.http_code} #{method.upcase} #{url} (#{format('%.3f', elapsed)}s) -- #{e.message}")
+        logger.debug("HMC API error: #{e.http_code} #{method.upcase} #{url} (#{'%.3f' % elapsed}s) -- #{e.message}")
         raise HttpNotFound.new(e), "Not found" if e.http_code == 404
 
         # Do not retry on failed logon attempts.
@@ -186,8 +183,8 @@ module IbmPowerHmc
     # @param headers [Hash] HTTP headers.
     # @param attempts [Integer] Maximum number of retries.
     # @yieldreturn [IbmPowerHmc::AbstractRest] The object to modify.
-    def modify_object(headers = {}, attempts = 5, &block)
-      modify_object_url(nil, headers, attempts, &block)
+    def modify_object(headers = {}, attempts = 5, &)
+      modify_object_url(nil, headers, attempts, &)
     end
 
     private
