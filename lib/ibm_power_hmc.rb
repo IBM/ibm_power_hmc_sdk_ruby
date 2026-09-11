@@ -4,6 +4,7 @@ require "rexml/document"
 require "rest-client"
 
 require "ibm_power_hmc/version"
+require "ibm_power_hmc/logging"
 
 # Module for IBM HMC Rest API Client
 module IbmPowerHmc

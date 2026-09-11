@@ -10,6 +10,8 @@ module IbmPowerHmc
   ##
   # HMC REST Client connection.
   class Connection
+    include Logging
+
     ##
     # @!method initialize(host:, password:, username: "hscroot", port: 12_443, validate_ssl: true, timeout: 60)
     # Create a new HMC connection.
@@ -145,9 +147,11 @@ module IbmPowerHmc
       reauth = false
       # Check for relative URLs
       url = "https://#{@hostname}#{url}" if url.start_with?("/")
+      logger.debug("HMC API request: #{method.upcase} #{url}")
       begin
         headers = headers.merge("X-API-Session" => @api_session_token)
-        RestClient::Request.execute(
+        start_time = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+        response = RestClient::Request.execute(
           :method => method,
           :url => url,
           :verify_ssl => @verify_ssl,
@@ -155,7 +159,12 @@ module IbmPowerHmc
           :headers => headers,
           :timeout => @timeout
         )
+        elapsed = Process.clock_gettime(Process::CLOCK_MONOTONIC) - start_time
+        logger.debug("HMC API response: #{response.code} #{method.upcase} #{url} (#{'%.3f' % elapsed}s)")
+        response
       rescue RestClient::Exception => e
+        elapsed = Process.clock_gettime(Process::CLOCK_MONOTONIC) - start_time
+        logger.debug("HMC API error: #{e.http_code} #{method.upcase} #{url} (#{'%.3f' % elapsed}s) -- #{e.message}")
         raise HttpNotFound.new(e), "Not found" if e.http_code == 404
 
         # Do not retry on failed logon attempts.
@@ -174,8 +183,8 @@ module IbmPowerHmc
     # @param headers [Hash] HTTP headers.
     # @param attempts [Integer] Maximum number of retries.
     # @yieldreturn [IbmPowerHmc::AbstractRest] The object to modify.
-    def modify_object(headers = {}, attempts = 5, &block)
-      modify_object_url(nil, headers, attempts, &block)
+    def modify_object(headers = {}, attempts = 5, &)
+      modify_object_url(nil, headers, attempts, &)
     end
 
     private
