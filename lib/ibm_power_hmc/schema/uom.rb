@@ -67,7 +67,8 @@ module IbmPowerHmc
       :is_classic_hmc_mgmt => "IsClassicHMCManagement",
       :is_hmc_mgmt_master => "IsHMCPowerVMManagementMaster",
       :is_mem_mirroring_enabled => "AssociatedSystemMemoryConfiguration/CurrentMemoryMirroringMode",
-      :memory_region_size => "AssociatedSystemMemoryConfiguration/MemoryRegionSize"
+      :memory_region_size => "AssociatedSystemMemoryConfiguration/MemoryRegionSize",
+      :detailed_state => "DetailedState"
     }.freeze
 
     def group_uuids
