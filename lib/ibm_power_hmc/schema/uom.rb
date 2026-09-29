@@ -68,7 +68,11 @@ module IbmPowerHmc
       :is_hmc_mgmt_master => "IsHMCPowerVMManagementMaster",
       :is_mem_mirroring_enabled => "AssociatedSystemMemoryConfiguration/CurrentMemoryMirroringMode",
       :memory_region_size => "AssociatedSystemMemoryConfiguration/MemoryRegionSize",
-      :detailed_state => "DetailedState"
+      :detailed_state => "DetailedState",
+      :ipl_lpar_start_policy => "AssociatedIPLConfiguration/PowerOnLogicalPartitionStartPolicy",
+      :ipl_power_on_side     => "AssociatedIPLConfiguration/CurrentPowerOnSide",
+      :ipl_keylock           => "AssociatedIPLConfiguration/CurrentSystemKeylock",
+      :ipl_power_on_source   => "AssociatedIPLConfiguration/PowerOnSource"
     }.freeze
 
     def group_uuids
