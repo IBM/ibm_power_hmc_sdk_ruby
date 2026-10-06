@@ -1,3 +1,6 @@
+## v0.31.0
+* Add host attributes(#141)
+* Improve logging (#139)
 ## v0.30.0
 * expose memory region size of a managed system (#140)
 ## v0.29.0
