@@ -210,15 +210,15 @@ module IbmPowerHmc
     end
 
     def vswitches_uuids
-      uuids_from_links("AssociatedSystemVirtualNetwork/VirtualSwitches")
+      uuids_from_links(".//AssociatedSystemVirtualNetwork/VirtualSwitches")
     end
 
     def networks_uuids
-      uuids_from_links("AssociatedSystemVirtualNetwork/VirtualNetworks")
+      uuids_from_links(".//AssociatedSystemVirtualNetwork/VirtualNetworks")
     end
 
     def network_bridges_uuids
-      uuids_from_links("AssociatedSystemVirtualNetwork/NetworkBridges")
+      uuids_from_links(".//AssociatedSystemVirtualNetwork/NetworkBridges")
     end
   end
 
