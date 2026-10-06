@@ -47,27 +47,111 @@ module IbmPowerHmc
     ATTRS = {
       :name => "SystemName",
       :state => "State",
+      :detailed_state => "DetailedState",
       :hostname => "Hostname",
       :ipaddr => "PrimaryIPAddress",
       :description => "Description",
       :location => "SystemLocation", # Rack/Unit
       :ref_code => "ReferenceCode",
+      :merged_ref_code => "MergedReferenceCode",
       :fwversion => "SystemFirmware",
+      :sp_version => "ServiceProcessorVersion",
+      :sp_failover_enabled => "ServiceProcessorFailoverEnabled",
+      :sp_failover_reason => "ServiceProcessorFailoverReason",
+      :sp_failover_state => "ServiceProcessorFailoverState",
+      :physical_attn_led => "PhysicalSystemAttentionLEDState",
+      :virtual_attn_led => "VirtualSystemAttentionLEDState",
       :memory => "AssociatedSystemMemoryConfiguration/InstalledSystemMemory",
-      :avail_mem => "AssociatedSystemMemoryConfiguration/CurrentAvailableSystemMemory",
       :config_mem => "AssociatedSystemMemoryConfiguration/ConfigurableSystemMemory",
+      :permanent_mem => "AssociatedSystemMemoryConfiguration/PermanentSystemMemory",
+      :avail_mem => "AssociatedSystemMemoryConfiguration/CurrentAvailableSystemMemory",
+      :pending_avail_mem => "AssociatedSystemMemoryConfiguration/PendingAvailableSystemMemory",
+      :logical_mem_block_size => "AssociatedSystemMemoryConfiguration/CurrentLogicalMemoryBlockSize",
+      :pending_logical_mem_block_size => "AssociatedSystemMemoryConfiguration/PendingLogicalMemoryBlockSize",
+      :memory_region_size => "AssociatedSystemMemoryConfiguration/MemoryRegionSize",
+      :pending_memory_region_size => "AssociatedSystemMemoryConfiguration/PendingMemoryRegionSize",
+      :pending_logical_mem_region_size => "AssociatedSystemMemoryConfiguration/PendingLogicalMemoryRegionSize",
+      :huge_page_count => "AssociatedSystemMemoryConfiguration/HugePageCount",
+      :huge_page_size => "AssociatedSystemMemoryConfiguration/HugePageSize",
+      :max_huge_pages => "AssociatedSystemMemoryConfiguration/MaximumHugePages",
+      :avail_huge_pages => "AssociatedSystemMemoryConfiguration/CurrentAvailableHugePages",
+      :pending_avail_huge_pages => "AssociatedSystemMemoryConfiguration/PendingAvailableHugePages",
+      :requested_huge_pages => "AssociatedSystemMemoryConfiguration/RequestedHugePages",
+      :configurable_huge_pages => "AssociatedSystemMemoryConfiguration/ConfigurableHugePages",
+      :mem_used_by_hypervisor => "AssociatedSystemMemoryConfiguration/MemoryUsedByHypervisor",
+      :is_mem_mirroring_enabled => "AssociatedSystemMemoryConfiguration/CurrentMemoryMirroringMode",
+      :pending_mem_mirroring_mode => "AssociatedSystemMemoryConfiguration/PendingMemoryMirroringMode",
+      :mem_mirroring_state => "AssociatedSystemMemoryConfiguration/MemoryMirroringState",
+      :mirrored_mem => "AssociatedSystemMemoryConfiguration/CurrentMirroredMemory",
+      :configured_mirrored_mem => "AssociatedSystemMemoryConfiguration/ConfiguredMirroredMemory",
+      :avail_mirrored_mem => "AssociatedSystemMemoryConfiguration/CurrentAvailableMirroredMemory",
+      :mirrorable_mem_with_defrag => "AssociatedSystemMemoryConfiguration/MirrorableMemoryWithDefragmentation",
+      :mirrorable_mem_without_defrag => "AssociatedSystemMemoryConfiguration/MirrorableMemoryWithoutDefragmentation",
+      :mirrored_mem_used_by_hypervisor => "AssociatedSystemMemoryConfiguration/MirroredMemoryUsedByHypervisor",
+      :max_mirrored_mem_defragmented => "AssociatedSystemMemoryConfiguration/MaximumMirroredMemoryDefragmented",
+      :temp_mem_for_lpm => "AssociatedSystemMemoryConfiguration/TemporaryMemoryForLogicalPartitionMobilityInUse",
       :cpus => "AssociatedSystemProcessorConfiguration/InstalledSystemProcessorUnits",
       :avail_cpus => "AssociatedSystemProcessorConfiguration/CurrentAvailableSystemProcessorUnits",
       :config_cpus => "AssociatedSystemProcessorConfiguration/ConfigurableSystemProcessorUnits",
+      :pending_avail_cpus => "AssociatedSystemProcessorConfiguration/PendingAvailableSystemProcessorUnits",
+      :linux_cpus => "AssociatedSystemProcessorConfiguration/NumberOfLinuxOnlyProcessorUnits",
+      :linux_or_vios_cpus => "AssociatedSystemProcessorConfiguration/NumberOfLinuxOrVIOSOnlyProcessorUnits",
+      :vios_cpus => "AssociatedSystemProcessorConfiguration/NumberOfVirtualIOServerProcessorUnits",
+      :shared_proc_pool_count => "AssociatedSystemProcessorConfiguration/SharedProcessorPoolCount",
+      :stealable_cpus => "AssociatedSystemProcessorConfiguration/CurrentStealableProcessorUnits",
+      :max_virt_procs_per_lpar => "AssociatedSystemProcessorConfiguration/MaximumAllowedVirtualProcessorsPerPartition",
+      :min_proc_units_per_vproc => "AssociatedSystemProcessorConfiguration/MinimumProcessorUnitsPerVirtualProcessor",
+      :temp_cpus_for_lpm => "AssociatedSystemProcessorConfiguration/TemporaryProcessorUnitsForLogicalPartitionMobilityInUse",
       :mtype => "MachineTypeModelAndSerialNumber/MachineType",
       :model => "MachineTypeModelAndSerialNumber/Model",
       :serial => "MachineTypeModelAndSerialNumber/SerialNumber",
-      :vtpm_version => "AssociatedSystemSecurity/VirtualTrustedPlatformModuleVersion",
-      :vtpm_lpars => "AssociatedSystemSecurity/AvailableVirtualTrustedPlatformModulePartitions",
+      :vtpm_key_length  => "AssociatedSystemSecurity/VirtualTrustedPlatformModuleKeyLength",
+      :vtpm_key_status  => "AssociatedSystemSecurity/VirtualTrustedPlatformModuleKeyStatus",
+      :vtpm_version     => "AssociatedSystemSecurity/VirtualTrustedPlatformModuleVersion",
+      :vtpm_max_lpars   => "AssociatedSystemSecurity/MaximumSupportedVirtualTrustedPlatformModulePartitions",
+      :vtpm_lpars       => "AssociatedSystemSecurity/AvailableVirtualTrustedPlatformModulePartitions",
+      :vtpm_min_key_store_size => "MinimumKeyStoreSize",
+      :vtpm_max_key_store_size => "MaximumkeyStoreSize",
+      :current_power_saving_mode   => "EnergyManagementConfiguration/CurrentPowerSavingMode",
+      :required_power_saving_mode  => "EnergyManagementConfiguration/RequiredPowerSavingMode",
       :is_classic_hmc_mgmt => "IsClassicHMCManagement",
       :is_hmc_mgmt_master => "IsHMCPowerVMManagementMaster",
-      :is_mem_mirroring_enabled => "AssociatedSystemMemoryConfiguration/CurrentMemoryMirroringMode",
-      :memory_region_size => "AssociatedSystemMemoryConfiguration/MemoryRegionSize"
+      :wwpn_prefix => "AssociatedSystemIOConfiguration/WWPNPrefix",
+      :mac_prefix  => "AssociatedSystemVirtualNetwork/VirtualEthernetAdapterMACAddressPrefix",
+      :uptime => "Uptime",
+      :system_type => "SystemType",
+      :processor_throttling => "ProcessorThrottling",
+      # Persistent Memory
+      :max_pmem_volumes          => "AssociatedPersistentMemoryConfiguration/MaximumPersistentMemoryVolumes",
+      :current_pmem_volumes      => "AssociatedPersistentMemoryConfiguration/CurrentPersistentMemoryVolumes",
+      :max_aix_linux_pmem_vols   => "AssociatedPersistentMemoryConfiguration/MaximumAixLinuxPersistentMemoryVolumes",
+      :max_vios_pmem_vols        => "AssociatedPersistentMemoryConfiguration/MaximumVIOSPersistentMemoryVolumes",
+      :dram_pmem_block_size      => "AssociatedPersistentMemoryConfiguration/DramPersistentMemoryVolumeBlockSize",
+      :dram_pmem_size            => "AssociatedPersistentMemoryConfiguration/DramPersistentMemoryVolumesSize",
+      :dram_pmem_current_size    => "AssociatedPersistentMemoryConfiguration/DramPersistentMemoryVolumesCurrentSize",
+      :supported_pmem_dev_types  => "AssociatedPersistentMemoryConfiguration/SupportedPersistentMemoryDeviceTypes",
+      # Migration
+      :max_inactive_migrations   => "SystemMigrationInformation/MaximumInactiveMigrations",
+      :max_active_migrations     => "SystemMigrationInformation/MaximumActiveMigrations",
+      :max_fw_active_migrations  => "SystemMigrationInformation/MaximumFirmwareActiveMigrations",
+      :max_fw_inactive_migrations => "SystemMigrationInformation/MaximumFirmwareInactiveMigrations",
+      :inactive_migrations_in_progress => "SystemMigrationInformation/NumberOfInactiveMigrationsInProgress",
+      :active_migrations_in_progress   => "SystemMigrationInformation/NumberOfActiveMigrationsInProgress",
+      :inactive_lpar_migration_capable => "SystemMigrationInformation/InactiveLogicalPartitionMigrationCapable",
+      :active_lpar_migration_capable   => "SystemMigrationInformation/ActiveLogicalPartitionMigrationCapable",
+      :ibmi_lpar_migration_capable     => "SystemMigrationInformation/IBMiLogicalPartitionMigrationCapable",
+      :sriov_migration_capable         => "SystemMigrationInformation/LogicalPartitionSRIOVMigrationCapable",
+      :pmem_migration_capable          => "SystemMigrationInformation/LogicalPartitionPersistentMemoryMigrationCapable",
+      :redundant_msps_migration_capable => "SystemMigrationInformation/LogicalPartitionRedundantMspsMigrationCapable",
+      :affinity_check_migration_capable => "SystemMigrationInformation/LogicalPartitionAffinityCheckCapable",
+      :vswitch_migration_capable        => "SystemMigrationInformation/LogicalPartitionVSwitchChangeMigrationCapable",
+      :npiv_validation_policy           => "SystemMigrationInformation/NPIVValidationPolicy",
+      :inactive_profile_migration_policy => "SystemMigrationInformation/InactiveProfileMigrationPolicy",
+      # IPL
+      :ipl_lpar_start_policy => "AssociatedIPLConfiguration/PowerOnLogicalPartitionStartPolicy",
+      :ipl_power_on_side     => "AssociatedIPLConfiguration/CurrentPowerOnSide",
+      :ipl_keylock           => "AssociatedIPLConfiguration/CurrentSystemKeylock",
+      :ipl_power_on_source   => "AssociatedIPLConfiguration/PowerOnSource"
     }.freeze
 
     def group_uuids
@@ -90,6 +174,24 @@ module IbmPowerHmc
       end.compact
     end
 
+    def supported_vtpm_versions
+      xml.get_elements("SupportedVTPMVersions").map do |elem|
+        elem.text&.strip
+      end.compact
+    end
+
+    def supported_vtpm2_encryption_levels
+      xml.get_elements("SupportedVTPM2EncryptionLevels").map do |elem|
+        elem.text&.strip
+      end.compact
+    end
+
+    def supported_power_saving_modes
+      xml.get_elements("EnergyManagementConfiguration/SupportedPowerSavingModeTypes").map do |elem|
+        elem.text&.strip
+      end.compact
+    end
+
     def lpars_uuids
       uuids_from_links("AssociatedLogicalPartitions")
     end
@@ -108,36 +210,44 @@ module IbmPowerHmc
     end
 
     def vswitches_uuids
-      uuids_from_links("AssociatedSystemIOConfiguration/AssociatedSystemVirtualNetwork/VirtualSwitches")
+      uuids_from_links(".//AssociatedSystemVirtualNetwork/VirtualSwitches")
     end
 
     def networks_uuids
-      uuids_from_links("AssociatedSystemIOConfiguration/AssociatedSystemVirtualNetwork/VirtualNetworks")
+      uuids_from_links(".//AssociatedSystemVirtualNetwork/VirtualNetworks")
+    end
+
+    def network_bridges_uuids
+      uuids_from_links(".//AssociatedSystemVirtualNetwork/NetworkBridges")
     end
   end
 
   # I/O Slot information
   class IOSlot < AbstractNonRest
     ATTRS = {
-      :description => "Description",
-      :lpar_id => "PartitionID",
-      :lpar_name => "PartitionName",
-      :lpar_type => "PartitionType",
-      :pci_class => "PCIClass",
-      :pci_dev => "PCIDeviceID",
-      :pci_subsys_dev => "PCISubsystemDeviceID",
-      :pci_man => "PCIManufacturerID",
-      :pci_rev => "PCIRevisionID",
-      :pci_vendor => "PCIVendorID",
-      :pci_subsys_vendor => "PCISubsystemVendorID",
-      :dr_name => "SlotDynamicReconfigurationConnectorName",
-      :physloc => "SlotPhysicalLocationCode",
-      :sriov_capable_dev => "SRIOVCapableDevice",
-      :sriov_capable => "SRIOVCapableSlot",
-      :vpd_model => "VitalProductDataModel",
-      :vpd_serial => "VitalProductDataSerialNumber",
-      :vpd_stale => "VitalProductDataStale",
-      :vpd_type => "VitalProductDataType"
+      :description         => "Description",
+      :lpar_id             => "PartitionID",
+      :lpar_name           => "PartitionName",
+      :lpar_type           => "PartitionType",
+      :bus_grouping        => "BusGroupingRequired",
+      :io_unit_physloc     => "IOUnitPhysicalLocation",
+      :pci_class           => "PCIClass",
+      :pci_dev             => "PCIDeviceID",
+      :pci_subsys_dev      => "PCISubsystemDeviceID",
+      :pci_man             => "PCIManufacturerID",
+      :pci_rev             => "PCIRevisionID",
+      :pci_vendor          => "PCIVendorID",
+      :pci_subsys_vendor   => "PCISubsystemVendorID",
+      :dr_index            => "SlotDynamicReconfigurationConnectorIndex",
+      :dr_name             => "SlotDynamicReconfigurationConnectorName",
+      :physloc             => "SlotPhysicalLocationCode",
+      :sriov_capable_dev   => "SRIOVCapableDevice",
+      :sriov_capable       => "SRIOVCapableSlot",
+      :sriov_ports_limit   => "SRIOVLogicalPortsLimit",
+      :vpd_model           => "VitalProductDataModel",
+      :vpd_serial          => "VitalProductDataSerialNumber",
+      :vpd_stale           => "VitalProductDataStale",
+      :vpd_type            => "VitalProductDataType"
     }.freeze
 
     def io_adapter
@@ -161,37 +271,44 @@ module IbmPowerHmc
   # I/O Device information
   class IORDevice < AbstractNonRest
     ATTRS = {
-      :parent => "ParentName",
-      :pci_dev => "PCIDeviceId",
-      :pci_vendor => "PCIVendorId",
-      :pci_subsys_dev => "PCISubsystemDeviceId",
-      :pci_subsys_vendor => "PCISubsystemVendorId",
-      :pci_rev => "PCIRevisionId",
-      :pci_class => "PCIClassCode",
-      :type => "DeviceType",
-      :serial => "SerialNumber",
-      :fru_number => "FruNumber",
-      :part_number => "PartNumber",
-      :ccin => "CCIN",
-      :size => "Size",
-      :location => "LocationCode",
-      :ucode_version => "MicroCodeVersion",
-      :wwpn => "WWPN",
-      :wwnn => "WWNN",
-      :macaddr => "MacAddressValue",
-      :description => "Description"
+      :parent              => "ParentName",
+      :parent_dr_index     => "ParentDynamicReconfigurationConnectorIndex",
+      :pci_dev             => "PCIDeviceId",
+      :pci_vendor          => "PCIVendorId",
+      :pci_subsys_dev      => "PCISubsystemDeviceId",
+      :pci_subsys_vendor   => "PCISubsystemVendorId",
+      :pci_rev             => "PCIRevisionId",
+      :pci_class           => "PCIClassCode",
+      :pci_prog_iface      => "ProgrammingInterfaceClass",
+      :type                => "DeviceType",
+      :primary_dev_func    => "PrimaryDeviceFunction",
+      :serial              => "SerialNumber",
+      :fru_number          => "FruNumber",
+      :part_number         => "PartNumber",
+      :ccin                => "CCIN",
+      :slot_child_id       => "SlotChildId",
+      :size                => "Size",
+      :location            => "LocationCode",
+      :ucode_version       => "MicroCodeVersion",
+      :wwpn                => "WWPN",
+      :wwnn                => "WWNN",
+      :macaddr             => "MacAddressValue",
+      :description         => "Description"
     }.freeze
   end
 
   # I/O Adapter information
   class IOAdapter < AbstractNonRest
     ATTRS = {
-      :id => "AdapterID",
-      :description => "Description",
-      :name => "DeviceName",
-      :type => "DeviceType",
-      :dr_name => "DynamicReconfigurationConnectorName",
-      :udid => "UniqueDeviceID"
+      :id           => "AdapterID",
+      :description  => "Description",
+      :name         => "DeviceName",
+      :type         => "DeviceType",
+      :dr_name      => "DynamicReconfigurationConnectorName",
+      :physloc      => "PhysicalLocation",
+      :udid         => "UniqueDeviceID",
+      :lpar_capable => "LogicalPartitionAssignmentCapable",
+      :dyn_capable  => "DynamicPartitionAssignmentCapable"
     }.freeze
   end
 
