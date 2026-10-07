@@ -1,3 +1,5 @@
+## v0.32.0
+* Add vm attributes (#142)
 ## v0.31.0
 * Add host attributes(#141)
 * Improve logging (#139)
