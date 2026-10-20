@@ -454,9 +454,9 @@ module IbmPowerHmc
       :current_max_virtual_io_slots => "PartitionIOConfiguration/CurrentMaximumVirtualIOSlots",
       :hsl_opticonnect_pool         => "PartitionIOConfiguration/HighSpeedLinkOpticonnectPool",
       :virtual_opticonnect_pool     => "PartitionIOConfiguration/VirtualOpticonnectPool",
-      :alternate_load_source        => "PartitionIOConfiguration/TaggedIO/AlternateLoadSource",
-      :console                      => "PartitionIOConfiguration/TaggedIO/Console",
-      :load_source                  => "PartitionIOConfiguration/TaggedIO/LoadSource",
+      :alternate_load_source        => "PartitionIOConfiguration/AlternateLoadSource",
+      :console                      => "PartitionIOConfiguration/Console",
+      :load_source                  => "PartitionIOConfiguration/LoadSource"
       # General
       :allow_perf_data_collection   => "AllowPerformanceDataCollection",
       :availability_priority        => "AvailabilityPriority",
