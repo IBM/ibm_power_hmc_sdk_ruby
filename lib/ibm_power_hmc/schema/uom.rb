@@ -457,6 +457,40 @@ module IbmPowerHmc
       :alternate_load_source        => "PartitionIOConfiguration/TaggedIO/AlternateLoadSource",
       :console                      => "PartitionIOConfiguration/TaggedIO/Console",
       :load_source                  => "PartitionIOConfiguration/TaggedIO/LoadSource",
+      # General
+      :allow_perf_data_collection   => "AllowPerformanceDataCollection",
+      :availability_priority        => "AvailabilityPriority",
+      :current_profile_sync         => "CurrentProfileSync",
+      :vtpm_enabled                 => "IsVirtualTrustedPlatformModuleEnabled",
+      :partition_uuid               => "PartitionUUID",
+      :pending_cpu_compat_mode      => "PendingProcessorCompatibilityMode",
+      :service_partition            => "IsServicePartition",
+      :mac_address_prefix           => "MACAddressPrefix",
+      :migration_disable            => "MigrationDisable",
+      :default_profile_name         => "DefaultProfileName",
+      :last_activated_profile       => "LastActivatedProfile",
+      :key_store_size               => "KeyStoreSize",
+      :system_name                  => "SystemName",
+      :uses_hsl_opticonnect         => "UsesHighSpeedLinkOpticonnect",
+      :uses_virtual_opticonnect     => "UsesVirtualOpticonnect",
+      :virtual_serial_number        => "VirtualSerialNumber",
+      :restricted_io_partition      => "IsRestrictedIOPartition",
+      :designated_ipl_source        => "DesignatedIPLSource",
+      :ibmi_restricted_io_sriov     => "IBMiRestrictedIOModeSRIOVLogicalPortAssignmentCapable",
+      :network_install_iscsi_name   => "NetworkInstalliSCSIInitiatorNameDefault",
+      :hw_accel_qos                 => "HardwareAcceleratorQoS",
+      # Memory Configuration
+      :active_mem_expansion_enabled => "PartitionMemoryConfiguration/ActiveMemoryExpansionEnabled",
+      :expansion_factor             => "PartitionMemoryConfiguration/ExpansionFactor",
+      :hw_page_table_ratio          => "PartitionMemoryConfiguration/HardwarePageTableRatio",
+      :current_max_huge_pages       => "PartitionMemoryConfiguration/CurrentMaximumHugePageCount",
+      :current_min_huge_pages       => "PartitionMemoryConfiguration/CurrentMinimumHugePageCount",
+      :runtime_huge_pages           => "PartitionMemoryConfiguration/RuntimeHugePageCount",
+      :physical_page_table_ratio    => "PartitionMemoryConfiguration/PhysicalPageTableRatio",
+      # Processor Configuration
+      :has_dedicated_procs          => "PartitionProcessorConfiguration/HasDedicatedProcessors",
+      :shared_pool_id               => "PartitionProcessorConfiguration/SharedProcessorConfiguration/SharedProcessorPoolID",
+      :runtime_uncapped_weight      => "PartitionProcessorConfiguration/CurrentSharedProcessorConfiguration/RuntimeUncappedWeight"
     }.freeze
 
     def sys_uuid
