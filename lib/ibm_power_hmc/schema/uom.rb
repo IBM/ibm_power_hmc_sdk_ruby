@@ -441,8 +441,8 @@ module IbmPowerHmc
       :keystore_signed_updates_no_verify        => "KeyStoreSignedUpdatesWithoutVerificationAllowed",
       :linux_dynamic_key_secure_boot            => "LinuxDynamicKeySecureBootEnabled",
       # Persistent Memory
-      :max_dram_pmem_vols     => "AssociatedPartitionPersistentMemoryConfiguration/MaximumDramPersistentMemoryVolumes",
-      :current_dram_pmem_vols => "AssociatedPartitionPersistentMemoryConfiguration/CurrentDramPersistentMemoryVolumes",
+      :max_dram_pmem_vols     => "AssociatedPersistentMemoryConfiguration/MaximumDramPersistentMemoryVolumes",
+      :current_dram_pmem_vols => "AssociatedPersistentMemoryConfiguration/CurrentDramPersistentMemoryVolumes",
       # Placement & Resource Groups
       :partition_placement          => "PartitionPlacement",
       :min_affinity_score           => "MinimumAffinityScore",
