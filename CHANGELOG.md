@@ -1,3 +1,6 @@
+## v0.33.0
+* Add request id for log (#144)
+* Added attribute mapping (#143)
 ## v0.32.1
 * Fix host attributes (#145)
 ## v0.32.0
