@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require "concurrent/atomic/atomic_fixnum"
 require "rexml/document"
 require "rest-client"
 

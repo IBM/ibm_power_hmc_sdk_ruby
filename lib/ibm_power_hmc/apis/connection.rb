@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "securerandom"
+
 # Module for IBM HMC Rest API Client
 module IbmPowerHmc
   WEB_XMLNS = "http://www.ibm.com/xmlns/systems/power/firmware/web/mc/2012_10/"
@@ -29,7 +31,6 @@ module IbmPowerHmc
       @verify_ssl = validate_ssl
       @api_session_token = nil
       @timeout = timeout
-      @request_count = Concurrent::AtomicFixnum.new(0)
     end
 
     ##
@@ -148,7 +149,7 @@ module IbmPowerHmc
       reauth = false
       # Check for relative URLs
       url = "https://#{@hostname}#{url}" if url.start_with?("/")
-      req_id = @request_count.increment
+      req_id = SecureRandom.hex(4)
       logger.debug("HMC API request [#{req_id}]: #{method.upcase} #{url}")
       begin
         headers = headers.merge("X-API-Session" => @api_session_token)
