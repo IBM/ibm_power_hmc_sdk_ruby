@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "securerandom"
+
 # Module for IBM HMC Rest API Client
 module IbmPowerHmc
   WEB_XMLNS = "http://www.ibm.com/xmlns/systems/power/firmware/web/mc/2012_10/"
@@ -147,7 +149,8 @@ module IbmPowerHmc
       reauth = false
       # Check for relative URLs
       url = "https://#{@hostname}#{url}" if url.start_with?("/")
-      logger.debug("HMC API request: #{method.upcase} #{url}")
+      req_id = SecureRandom.hex(4)
+      logger.debug("HMC API request [#{req_id}]: #{method.upcase} #{url}")
       begin
         headers = headers.merge("X-API-Session" => @api_session_token)
         start_time = Process.clock_gettime(Process::CLOCK_MONOTONIC)
@@ -160,11 +163,11 @@ module IbmPowerHmc
           :timeout => @timeout
         )
         elapsed = Process.clock_gettime(Process::CLOCK_MONOTONIC) - start_time
-        logger.debug("HMC API response: #{response.code} #{method.upcase} #{url} (#{'%.3f' % elapsed}s)")
+        logger.debug("HMC API response [#{req_id}]: #{response.code} #{method.upcase} #{url} (#{'%.3f' % elapsed}s)")
         response
       rescue RestClient::Exception => e
         elapsed = Process.clock_gettime(Process::CLOCK_MONOTONIC) - start_time
-        logger.debug("HMC API error: #{e.http_code} #{method.upcase} #{url} (#{'%.3f' % elapsed}s) -- #{e.message}")
+        logger.debug("HMC API error [#{req_id}]: #{e.http_code} #{method.upcase} #{url} (#{'%.3f' % elapsed}s) -- #{e.message}")
         raise HttpNotFound.new(e), "Not found" if e.http_code == 404
 
         # Do not retry on failed logon attempts.
